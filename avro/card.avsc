@@ -1,0 +1,13 @@
+{
+  "type": "record",
+  "name": "BankCard",
+  "namespace": "github.com.patraden.gophkeeper",
+  "fields": [
+    { "name": "user_id", "type": "string" },
+    { "name": "cardholder_name", "type": "string" },
+    { "name": "card_number", "type": "string" },
+    { "name": "expiry_month", "type": "int" },
+    { "name": "expiry_year", "type": "int" },
+    { "name": "cvv", "type": "int" }
+  ]
+}

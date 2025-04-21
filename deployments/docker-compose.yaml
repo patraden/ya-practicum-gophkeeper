@@ -1,0 +1,65 @@
+version: "3.9"
+
+services:
+  certgen:
+    image: golang:1.21
+    profiles: ["manual"]
+    container_name: certgen
+    working_dir: /go/certgen
+    entrypoint: >
+      sh -c "
+        go install github.com/minio/certgen@latest &&
+        mkdir -p /certs && cd /certs &&
+        /go/bin/certgen -host "127.0.0.1,localhost" &&
+        cat /certs/public.crt
+      "
+    volumes:
+      - minio_certs:/certs
+    networks:
+      - gophkeeper
+    restart: "no"
+ 
+  postgres:
+    container_name: postgres
+    image: postgres:15.1
+    env_file: .env
+    healthcheck:
+      test: >
+        CMD-SHELL pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h localhost -p 5432
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - gophkeeper
+  minio:
+    image: quay.io/minio/minio
+    container_name: minio
+    env_file: .env
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001" --certs-dir="/etc/ssl/certs/"
+    restart: unless-stopped
+    volumes:
+      - minio_data:/data
+      - minio_certs:/etc/ssl/certs
+    networks:
+      - gophkeeper
+
+networks:
+    gophkeeper:
+        name: gophkeeper
+volumes:
+  postgres_data:
+    name: gophkeeper_postgres_data
+  minio_data:
+    name: gophkeeper_minio_data
+  minio_certs:
+    name: gophkeeper_minio_certs
+    external: true

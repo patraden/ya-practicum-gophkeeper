@@ -1,0 +1,32 @@
+# See https://golangci-lint.run/usage/linters/
+
+linters:
+  enable-all: true
+  disable:
+    - ireturn
+    - nlreturn
+    - exhaustruct
+    - tenv
+    - recvcheck
+    - tparallel
+    - usetesting
+
+linters-settings:
+  depguard:
+    rules:
+      main:
+        list-mode: lax
+        allow:
+          - $gostd
+
+  tagliatelle:
+      case:
+        rules:
+          json: snake
+
+  wrapcheck:
+    ignorePackageGlobs:
+      - os
+      - github.com/google/uuid
+      - github.com/hamba/avro/v2
+      - github.com/patraden/ya-practicum-gophkeeper/pkg/utils/*

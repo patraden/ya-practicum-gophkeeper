@@ -1,0 +1,5 @@
+sections:
+  - Standard
+  - Default
+  - Prefix(github.com/patraden/ya-practicum-gophkeeper)
+skip-generated: true

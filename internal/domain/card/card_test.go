@@ -1,10 +1,10 @@
-package model_test
+package card_test
 
 import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/patraden/ya-practicum-gophkeeper/internal/client/model"
+	"github.com/patraden/ya-practicum-gophkeeper/internal/domain/card"
 	uavro "github.com/patraden/ya-practicum-gophkeeper/pkg/utils/avro"
 	"github.com/stretchr/testify/require"
 )
@@ -14,7 +14,7 @@ func TestBankCardSerializeDeserialize(t *testing.T) {
 
 	schemaFile := uavro.NewSchemaFile("../../../avro/card.avsc")
 
-	original := &model.BankCard{
+	original := &card.BankCard{
 		UserID:         uuid.NewString(),
 		CardholderName: "Denis Patrakhin",
 		CardNumber:     "1234567812345678",
@@ -31,7 +31,7 @@ func TestBankCardSerializeDeserialize(t *testing.T) {
 	require.NotEmpty(t, data)
 
 	// Unmarshal it back
-	card, err := model.UnmarshalBankCard(schemaFile, data)
+	card, err := card.UnmarshalBankCard(schemaFile, data)
 	require.NoError(t, err)
 	require.NotNil(t, card)
 

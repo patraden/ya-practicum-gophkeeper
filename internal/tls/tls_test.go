@@ -1,18 +1,17 @@
-package object_test
+package tls_test
 
 import (
-	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/patraden/ya-practicum-gophkeeper/internal/server/config"
-	"github.com/patraden/ya-practicum-gophkeeper/internal/server/model"
-	"github.com/patraden/ya-practicum-gophkeeper/internal/server/object"
+	"github.com/patraden/ya-practicum-gophkeeper/internal/domain/errors"
+	"github.com/patraden/ya-practicum-gophkeeper/internal/tls"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 )
 
-const validCert = `-----BEGIN CERTIFICATE-----
+const ValidCert = `-----BEGIN CERTIFICATE-----
 MIIB5jCCAYygAwIBAgIRAPIBNlr5AgVg7LmwwHZ5AZowCgYIKoZIzj0EAwIwOjEc
 MBoGA1UEChMTQ2VydGdlbiBEZXZlbG9wbWVudDEaMBgGA1UECwwRcm9vdEAxNjVl
 OGYxOTM5OGEwHhcNMjUwNDEzMjAwMjExWhcNMjYwNDEzMjAwMjExWjA6MRwwGgYD
@@ -36,18 +35,18 @@ func TestHTTPTransportBuilder_FromBytes(t *testing.T) {
 	}{
 		{
 			name:      "valid certificate",
-			certBytes: []byte(validCert),
+			certBytes: []byte(ValidCert),
 			wantErr:   nil,
 		},
 		{
 			name:      "invalid certificate",
 			certBytes: []byte("not a cert"),
-			wantErr:   model.ErrMinioClientTransport,
+			wantErr:   errors.ErrMinioClientTransport,
 		},
 		{
 			name:      "empty certificate",
 			certBytes: []byte{},
-			wantErr:   model.ErrMinioClientTransport,
+			wantErr:   errors.ErrMinioClientTransport,
 		},
 	}
 
@@ -55,7 +54,8 @@ func TestHTTPTransportBuilder_FromBytes(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			t.Parallel()
 
-			builder := object.NewHTTPTransportBuilder("", testCase.certBytes)
+			log := zerolog.Nop()
+			builder := tls.NewHTTPTransportBuilder("", testCase.certBytes, &log)
 			transport, err := builder.Build()
 
 			if testCase.wantErr != nil {
@@ -75,7 +75,7 @@ func TestHTTPTransportBuilder_FromFile(t *testing.T) {
 	t.Parallel()
 
 	tempValidFile := filepath.Join(t.TempDir(), "valid-cert.pem")
-	require.NoError(t, os.WriteFile(tempValidFile, []byte(validCert), 0o600))
+	require.NoError(t, os.WriteFile(tempValidFile, []byte(ValidCert), 0o600))
 
 	tests := []struct {
 		name     string
@@ -90,12 +90,12 @@ func TestHTTPTransportBuilder_FromFile(t *testing.T) {
 		{
 			name:     "non-existent file",
 			certPath: filepath.Join(t.TempDir(), "no-such-file.pem"),
-			wantErr:  model.ErrMinioClientTransport,
+			wantErr:  errors.ErrMinioClientTransport,
 		},
 		{
 			name:     "empty file path",
 			certPath: "",
-			wantErr:  model.ErrMinioClientTransport,
+			wantErr:  errors.ErrMinioClientTransport,
 		},
 	}
 
@@ -103,7 +103,8 @@ func TestHTTPTransportBuilder_FromFile(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			t.Parallel()
 
-			builder := object.NewHTTPTransportBuilder(testCase.certPath, nil)
+			log := zerolog.Nop()
+			builder := tls.NewHTTPTransportBuilder(testCase.certPath, nil, &log)
 			transport, err := builder.Build()
 
 			if testCase.wantErr != nil {
@@ -117,20 +118,4 @@ func TestHTTPTransportBuilder_FromFile(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestNewMinioClient_Invalid(t *testing.T) {
-	t.Parallel()
-
-	transport := &http.Transport{}
-	cfg := &config.ObjectStorageConfig{
-		Endpoint:  "http://invalid:1234",
-		AccessKey: "key",
-		SecretKey: "secret",
-		Token:     "token",
-	}
-
-	client, err := object.NewMinioClient(cfg, transport)
-	require.ErrorIs(t, err, model.ErrMinioClientCreate)
-	require.Nil(t, client)
 }

@@ -1,4 +1,4 @@
-package model
+package card
 
 import (
 	"github.com/hamba/avro/v2"

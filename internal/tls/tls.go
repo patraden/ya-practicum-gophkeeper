@@ -1,4 +1,4 @@
-package object
+package tls
 
 import (
 	"crypto/tls"
@@ -6,10 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/minio/minio-go/v7"
-	"github.com/minio/minio-go/v7/pkg/credentials"
-	"github.com/patraden/ya-practicum-gophkeeper/internal/server/config"
-	"github.com/patraden/ya-practicum-gophkeeper/internal/server/model"
+	"github.com/patraden/ya-practicum-gophkeeper/internal/domain/errors"
+	"github.com/rs/zerolog"
 )
 
 // HTTPTransportBuilder is responsible for building a custom HTTP transport
@@ -17,13 +15,15 @@ import (
 type HTTPTransportBuilder struct {
 	CertBytes []byte
 	CertPath  string
+	log       *zerolog.Logger
 }
 
 // NewHTTPTransportBuilder creates a builder for HTTP transport with optional certificate input.
-func NewHTTPTransportBuilder(certPath string, certBytes []byte) *HTTPTransportBuilder {
+func NewHTTPTransportBuilder(certPath string, certBytes []byte, log *zerolog.Logger) *HTTPTransportBuilder {
 	return &HTTPTransportBuilder{
 		CertBytes: certBytes,
 		CertPath:  certPath,
+		log:       log,
 	}
 }
 
@@ -33,12 +33,19 @@ func NewHTTPTransportBuilder(certPath string, certBytes []byte) *HTTPTransportBu
 func (b *HTTPTransportBuilder) Build() (*http.Transport, error) {
 	if len(b.CertBytes) == 0 {
 		if b.CertPath == "" {
-			return nil, model.ErrMinioClientTransport
+			b.log.Error().
+				Msg("path to certificate file is empty")
+
+			return nil, errors.ErrMinioClientTransport
 		}
 
 		certData, err := os.ReadFile(b.CertPath)
 		if err != nil {
-			return nil, model.ErrMinioClientTransport
+			b.log.Error().
+				Str("file_path", b.CertPath).
+				Msg("failed to read certificate from file")
+
+			return nil, errors.ErrMinioClientTransport
 		}
 
 		b.CertBytes = certData
@@ -46,7 +53,11 @@ func (b *HTTPTransportBuilder) Build() (*http.Transport, error) {
 
 	certPool := x509.NewCertPool()
 	if !certPool.AppendCertsFromPEM(b.CertBytes) {
-		return nil, model.ErrMinioClientTransport
+		b.log.Error().
+			Str("certificate", string(b.CertBytes)).
+			Msg("failed to add certificate to the pool")
+
+		return nil, errors.ErrMinioClientTransport
 	}
 
 	tlsConfig := &tls.Config{
@@ -62,19 +73,4 @@ func (b *HTTPTransportBuilder) Build() (*http.Transport, error) {
 	base.TLSClientConfig = tlsConfig
 
 	return base, nil
-}
-
-// NewMinioClient initializes a new MinIO client using the provided configuration
-// and a custom HTTP transport. Returns a configured *minio.Client or an error.
-func NewMinioClient(cfg *config.ObjectStorageConfig, transport *http.Transport) (*minio.Client, error) {
-	client, err := minio.New(cfg.Endpoint, &minio.Options{
-		Creds:     credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, cfg.Token),
-		Secure:    true,
-		Transport: transport,
-	})
-	if err != nil {
-		return nil, model.ErrMinioClientCreate
-	}
-
-	return client, nil
 }

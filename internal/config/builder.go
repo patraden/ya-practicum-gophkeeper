@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/caarlos0/env/v6"
-	"github.com/patraden/ya-practicum-gophkeeper/internal/server/model"
+	"github.com/patraden/ya-practicum-gophkeeper/internal/domain/errors"
 )
 
 type builder struct {
@@ -20,7 +20,7 @@ func newBuilder() *builder {
 
 func (b *builder) loadEnv() {
 	if err := env.Parse(b.cfg); err != nil {
-		log.Fatal(model.ErrConfigEnvParse)
+		log.Fatal(errors.ErrConfigEnvParse)
 	}
 }
 

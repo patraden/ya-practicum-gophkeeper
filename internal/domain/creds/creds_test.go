@@ -1,10 +1,10 @@
-package model_test
+package creds_test
 
 import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/patraden/ya-practicum-gophkeeper/internal/client/model"
+	"github.com/patraden/ya-practicum-gophkeeper/internal/domain/creds"
 	uavro "github.com/patraden/ya-practicum-gophkeeper/pkg/utils/avro"
 	"github.com/stretchr/testify/require"
 )
@@ -14,7 +14,7 @@ func TestUserCredsSerializeDeserialize(t *testing.T) {
 
 	schemaFile := uavro.NewSchemaFile("../../../avro/creds.avsc")
 
-	original := &model.UserCredentials{
+	original := &creds.UserCredentials{
 		UserID:         uuid.NewString(),
 		Username:       "patraden",
 		HashedPassword: []byte("password"),
@@ -26,7 +26,7 @@ func TestUserCredsSerializeDeserialize(t *testing.T) {
 	require.NotEmpty(t, data)
 
 	// Unmarshal it back
-	creds, err := model.UnmarshalUserCreds(schemaFile, data)
+	creds, err := creds.UnmarshalUserCreds(schemaFile, data)
 	require.NoError(t, err)
 	require.NotNil(t, creds)
 

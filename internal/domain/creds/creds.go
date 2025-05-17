@@ -1,4 +1,4 @@
-package model
+package creds
 
 import (
 	"github.com/hamba/avro/v2"

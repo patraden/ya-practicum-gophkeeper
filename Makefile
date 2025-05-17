@@ -34,7 +34,7 @@ docker\:down:
 
 .PHONY: gen\:avro
 gen\:avro:
-	@avrogen -pkg model -o ./internal/client/model/avro_card.go -tags json:snake ./avro/card.avsc
-	@avrogen -pkg model -o ./internal/client/model/avro_creds.go -tags json:snake ./avro/creds.avsc
+	@avrogen -pkg card -o ./internal/domain/card/avro_card.go -tags json:snake ./avro/card.avsc
+	@avrogen -pkg creds -o ./internal/domain/creds/avro_creds.go -tags json:snake ./avro/creds.avsc
 
 

@@ -98,10 +98,10 @@ func TestAuthEncoder(t *testing.T) {
 		{
 			name: "keyFunc returns error",
 			keyFunc: func(_ *jwt.Token) (any, error) {
-				return nil, e.ErrJWTTokenGenerate
+				return nil, e.ErrAuthTokenGenerate
 			},
 			user:        usr,
-			expectErr:   e.ErrJWTTokenGenerate,
+			expectErr:   e.ErrAuthTokenGenerate,
 			expectToken: false,
 		},
 		{
@@ -110,22 +110,22 @@ func TestAuthEncoder(t *testing.T) {
 				return struct{}{}, nil // incompatible key type
 			},
 			user:        usr,
-			expectErr:   e.ErrJWTTokenGenerate,
+			expectErr:   e.ErrAuthTokenGenerate,
 			expectToken: false,
 		},
 	}
 
-	for _, tcase := range tests {
-		t.Run(tcase.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			jwtauth := auth.New(tcase.keyFunc, logger)
+			jwtauth := auth.New(tt.keyFunc, logger)
 			encoder := jwtauth.Encoder()
 
-			token, err := encoder(tcase.user)
+			token, err := encoder(tt.user)
 
-			if tcase.expectErr != nil {
-				require.ErrorIs(t, err, tcase.expectErr)
+			if tt.expectErr != nil {
+				require.ErrorIs(t, err, tt.expectErr)
 				require.Empty(t, token)
 			} else {
 				require.NoError(t, err)
@@ -165,7 +165,7 @@ func TestAuthVerifyInvalid(t *testing.T) {
 	jwtauth := auth.New(mockKeyFunc, logger)
 
 	token, err := jwtauth.Validate("invalid.token")
-	require.ErrorIs(t, err, e.ErrJWTTokenInvalid, "Verification of an invalid token should error")
+	require.ErrorIs(t, err, e.ErrAuthTokenInvalid, "Verification of an invalid token should error")
 	assert.Nil(t, token)
 
 	encoder := jwtauth.Encoder()
@@ -173,13 +173,13 @@ func TestAuthVerifyInvalid(t *testing.T) {
 	require.NoError(t, err)
 
 	token, err = jwtauth.Validate(tokenString)
-	require.ErrorIs(t, err, e.ErrJWTTokenInvalid, "Verification of a token with nil user_id should error")
+	require.ErrorIs(t, err, e.ErrAuthTokenInvalid, "Verification of a token with nil user_id should error")
 	assert.Nil(t, token)
 
 	expiredToken, err := ExpiredToken(t)
 	require.NoError(t, err)
 	token, err = jwtauth.Validate(expiredToken)
-	require.ErrorIs(t, err, e.ErrJWTTokenInvalid, "Verification of an expired token should error")
+	require.ErrorIs(t, err, e.ErrAuthTokenInvalid, "Verification of an expired token should error")
 	assert.Nil(t, token)
 
 	// Create token with wrong key
@@ -189,7 +189,7 @@ func TestAuthVerifyInvalid(t *testing.T) {
 	require.NoError(t, err)
 
 	token, err = jwtauth.Validate(tokenString)
-	require.ErrorIs(t, err, e.ErrJWTTokenInvalid, "Verification of a token with bad secret should error")
+	require.ErrorIs(t, err, e.ErrAuthTokenInvalid, "Verification of a token with bad secret should error")
 	assert.Nil(t, token)
 }
 
@@ -211,30 +211,30 @@ func TestAuthVerifyContext(t *testing.T) {
 		expectErr   error
 	}{
 		{"valid token", map[string]string{"authorization": "Bearer " + validToken}, true, nil},
-		{"missing metadata", nil, false, e.ErrJWTTokenNotFound},
-		{"no header", map[string]string{"x-custom-header": "value"}, false, e.ErrJWTTokenNotFound},
-		{"header is empty", map[string]string{"authorization": ""}, false, e.ErrJWTTokenNotFound},
-		{"no Bearer prefix", map[string]string{"authorization": "Token " + validToken}, false, e.ErrJWTTokenNotFound},
+		{"missing metadata", nil, false, e.ErrAuthTokenNotFound},
+		{"no header", map[string]string{"x-custom-header": "value"}, false, e.ErrAuthTokenNotFound},
+		{"header is empty", map[string]string{"authorization": ""}, false, e.ErrAuthTokenNotFound},
+		{"no Bearer prefix", map[string]string{"authorization": "Token " + validToken}, false, e.ErrAuthTokenNotFound},
 	}
 
-	for _, tcase := range tests {
-		t.Run(tcase.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
 			var ctx context.Context
-			if tcase.metadata != nil {
-				ctx = metadata.NewIncomingContext(context.Background(), metadata.New(tcase.metadata))
+			if tt.metadata != nil {
+				ctx = metadata.NewIncomingContext(context.Background(), metadata.New(tt.metadata))
 			} else {
 				ctx = context.Background()
 			}
 
 			token, err := jwtauth.VerifyContext(ctx, auth.MetaDataTokenExtractor)
 
-			if tcase.expectToken {
+			if tt.expectToken {
 				require.NoError(t, err)
 				require.NotNil(t, token)
 			} else {
-				require.ErrorIs(t, err, tcase.expectErr)
+				require.ErrorIs(t, err, tt.expectErr)
 				require.Nil(t, token)
 			}
 		})

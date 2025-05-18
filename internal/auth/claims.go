@@ -18,7 +18,7 @@ type Claims struct {
 // Validate implements additional validations for claims.
 func (c Claims) Validate() error {
 	if userID, err := user.ParseUserID(c.UserID); err != nil || userID.IsNil() {
-		return errors.ErrJWTTokenInvalid
+		return errors.ErrAuthTokenInvalid
 	}
 
 	return nil

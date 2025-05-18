@@ -5,10 +5,12 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/patraden/ya-practicum-gophkeeper/internal/domain/errors"
+	e "github.com/patraden/ya-practicum-gophkeeper/internal/domain/errors"
 	"github.com/patraden/ya-practicum-gophkeeper/internal/domain/user"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type (
@@ -26,6 +28,24 @@ const (
 	ErrorCtxKey      = contextKey("TokenErr")
 	maxTokenDuration = 365 * 24 * time.Hour
 )
+
+// FromContext gets token and claims from context added by GRPCServerVerifier interceptor.
+func FromContext(ctx context.Context) (*jwt.Token, *Claims, error) {
+	var claims *Claims
+
+	token, _ := ctx.Value(TokenCtxKey).(*jwt.Token)
+	err, _ := ctx.Value(ErrorCtxKey).(error)
+
+	if token != nil {
+		if c, ok := token.Claims.(*Claims); ok {
+			claims = c
+		} else {
+			return token, nil, e.ErrAuthTokenInvalid
+		}
+	}
+
+	return token, claims, err
+}
 
 // Auth is a struct that provides JWT-based authentication and authorization capabilities.
 type Auth struct {
@@ -51,7 +71,7 @@ func (auth *Auth) Validate(tokenString string) (*jwt.Token, error) {
 			Err(err).
 			Msg("failed to parse JWT token")
 
-		return nil, errors.ErrJWTTokenInvalid
+		return nil, e.ErrAuthTokenInvalid
 	}
 
 	claims, ok := token.Claims.(*Claims)
@@ -60,7 +80,7 @@ func (auth *Auth) Validate(tokenString string) (*jwt.Token, error) {
 			Str("user_id", claims.UserID).
 			Msg("invalid claims")
 
-		return nil, errors.ErrJWTTokenInvalid
+		return nil, e.ErrAuthTokenInvalid
 	}
 
 	return token, nil
@@ -90,7 +110,7 @@ func (auth *Auth) Encoder() TokenEncoder {
 				Str("username", user.Username).
 				Msg("failed to retrieve signing key")
 
-			return "", errors.ErrJWTTokenGenerate
+			return "", e.ErrAuthTokenGenerate
 		}
 
 		tokenString, err := token.SignedString(signingKey)
@@ -100,7 +120,7 @@ func (auth *Auth) Encoder() TokenEncoder {
 				Str("username", user.Username).
 				Msg("failed to sign token")
 
-			return "", errors.ErrJWTTokenGenerate
+			return "", e.ErrAuthTokenGenerate
 		}
 
 		auth.log.Info().
@@ -134,12 +154,15 @@ func (auth *Auth) VerifyContext(ctx context.Context, extractors ...TokenExtracto
 		auth.log.Error().
 			Msg("token not found in request")
 
-		return nil, errors.ErrJWTTokenNotFound
+		return nil, e.ErrAuthTokenNotFound
 	}
 
 	return auth.Validate(tokenString)
 }
 
+// VerifyGRPCUnaryServer return interceptor to extract and validate token string base on
+// arbitrary set of context extractors. It produces and injects token and claims into context
+// and unconditionally calls next handler.
 func VerifyGRPCUnaryServer(auth *Auth, extractors ...TokenExtractor) grpc.UnaryServerInterceptor {
 	return func(
 		ctx context.Context,
@@ -160,4 +183,18 @@ func VerifyGRPCUnaryServer(auth *Auth, extractors ...TokenExtractor) grpc.UnaryS
 // which checks the request context jwt token and error to prepare a custom response.
 func GRPCServerVerifier(auth *Auth) grpc.UnaryServerInterceptor {
 	return VerifyGRPCUnaryServer(auth, MetaDataTokenExtractor)
+}
+
+// GRPCServerAuthenticator is a default authentication interceptor to enforce access from the
+// Verifier interceptor request context values. The GRPCServerAuthenticator sends a 401 Unauthorized
+// response for any unverified tokens and passes the good ones through.
+func GRPCServerAuthenticator() grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+		token, claims, err := FromContext(ctx)
+		if err != nil || token == nil || claims == nil {
+			return nil, status.Errorf(codes.Unauthenticated, "Unauthorized")
+		}
+
+		return handler(ctx, req)
+	}
 }

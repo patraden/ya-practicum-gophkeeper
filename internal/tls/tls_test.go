@@ -50,16 +50,16 @@ func TestHTTPTransportBuilder_FromBytes(t *testing.T) {
 		},
 	}
 
-	for _, testCase := range tests {
-		t.Run(testCase.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
 			log := zerolog.Nop()
-			builder := tls.NewHTTPTransportBuilder("", testCase.certBytes, &log)
+			builder := tls.NewHTTPTransportBuilder("", tt.certBytes, &log)
 			transport, err := builder.Build()
 
-			if testCase.wantErr != nil {
-				require.ErrorIs(t, err, testCase.wantErr)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
 				require.Nil(t, transport)
 			} else {
 				require.NoError(t, err)
@@ -99,16 +99,16 @@ func TestHTTPTransportBuilder_FromFile(t *testing.T) {
 		},
 	}
 
-	for _, testCase := range tests {
-		t.Run(testCase.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
 			log := zerolog.Nop()
-			builder := tls.NewHTTPTransportBuilder(testCase.certPath, nil, &log)
+			builder := tls.NewHTTPTransportBuilder(tt.certPath, nil, &log)
 			transport, err := builder.Build()
 
-			if testCase.wantErr != nil {
-				require.ErrorIs(t, err, testCase.wantErr)
+			if tt.wantErr != nil {
+				require.ErrorIs(t, err, tt.wantErr)
 				require.Nil(t, transport)
 			} else {
 				require.NoError(t, err)

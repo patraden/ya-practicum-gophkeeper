@@ -28,5 +28,13 @@ linters-settings:
     ignorePackageGlobs:
       - os
       - github.com/google/uuid
+      - github.com/cenkalti/backoff/*
       - github.com/hamba/avro/v2
       - github.com/patraden/ya-practicum-gophkeeper/pkg/utils/*
+
+  varnamelen:
+    ignore-names:
+      - db
+      - tt
+    ignore-decls:
+      - t testing.T

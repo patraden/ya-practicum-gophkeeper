@@ -3,6 +3,7 @@ DOCKER_COMPOSE_PATH := ./deployments/docker-compose.yaml
 BUILD_DATE := $(shell date -u +"%d.%m.%Y")
 BUILD_COMMIT := $(shell git rev-parse --short HEAD)
 BUILD_VERSION := $(shell git describe --tags --abbrev=0 2>/dev/null || echo "N/A")
+TEST_COVERAGE_REPORT := coverage.txt
 
 .PHONY: lint
 lint:
@@ -13,12 +14,12 @@ lint:
 
 .PHONY: test
 test:
-	@go test -v -coverprofile=coverage.txt ./...
-	@go tool cover -html=coverage.txt
+	@go test -v -coverprofile=$(TEST_COVERAGE_REPORT) ./...
+	@go tool cover -html=$(TEST_COVERAGE_REPORT)
 
 .PHONY: clean
 clean:
-	@rm -f ./coverage.out
+	@rm -f ./$(TEST_COVERAGE_REPORT)
 
 .PHONY: docker\:certgen
 docker\:certgen:
@@ -37,4 +38,7 @@ gen\:avro:
 	@avrogen -pkg card -o ./internal/domain/card/avro_card.go -tags json:snake ./avro/card.avsc
 	@avrogen -pkg creds -o ./internal/domain/creds/avro_creds.go -tags json:snake ./avro/creds.avsc
 
+.PHONY: gen\:sql
+gen\:sql:
+	@sqlc generate
 

@@ -6,7 +6,7 @@ import (
 
 	"github.com/patraden/ya-practicum-gophkeeper/internal/config"
 	"github.com/patraden/ya-practicum-gophkeeper/internal/domain/errors"
-	"github.com/patraden/ya-practicum-gophkeeper/internal/s3"
+	"github.com/patraden/ya-practicum-gophkeeper/internal/storage/s3"
 	"github.com/stretchr/testify/require"
 )
 
@@ -14,7 +14,7 @@ func TestNewMinioClient_Invalid(t *testing.T) {
 	t.Parallel()
 
 	transport := &http.Transport{}
-	cfg := &config.ObjectStorageConfig{
+	cfg := &config.S3Config{
 		Endpoint:  "http://invalid:1234",
 		AccessKey: "key",
 		SecretKey: "secret",

@@ -7,7 +7,7 @@ import (
 	"github.com/pashagolub/pgxmock/v4"
 	"github.com/patraden/ya-practicum-gophkeeper/internal/domain/errors"
 	"github.com/patraden/ya-practicum-gophkeeper/internal/logger"
-	"github.com/patraden/ya-practicum-gophkeeper/internal/pg"
+	"github.com/patraden/ya-practicum-gophkeeper/internal/storage/pg"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 )

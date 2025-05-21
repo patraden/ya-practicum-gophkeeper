@@ -1,6 +1,6 @@
 package config
 
-type ObjectStorageConfig struct {
+type S3Config struct {
 	Endpoint  string `env:"OBJECT_STORAGE_ENDPOINT"`
 	CertPath  string `env:"OBJECT_STORAGE_CERT_PATH"`
 	AccessKey string `env:"OBJECT_STORAGE_ACCESS_KEY"`
@@ -8,8 +8,8 @@ type ObjectStorageConfig struct {
 	Token     string `env:"OBJECT_STORAGE_TOKEN"`
 }
 
-func DefaultObjectStore() *ObjectStorageConfig {
-	return &ObjectStorageConfig{
+func DefaultObjectStore() *S3Config {
+	return &S3Config{
 		Endpoint:  `localhost:9000`,
 		CertPath:  `.certs/minio-cert.crt`,
 		AccessKey: `minioadmin`,
@@ -19,7 +19,7 @@ func DefaultObjectStore() *ObjectStorageConfig {
 }
 
 type Config struct {
-	ObjectStorage ObjectStorageConfig
+	ObjectStorage S3Config
 }
 
 func DefaultConfig() *Config {

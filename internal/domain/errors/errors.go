@@ -14,5 +14,8 @@ var (
 	ErrAuthTokenInvalid          = errors.New("jwt token invalid")
 	ErrPGInit                    = errors.New("pg database init error")
 	ErrPGConn                    = errors.New("pg database connection error")
+	ErrSQLiteInit                = errors.New("sqlite database init error")
+	ErrSQLiteConn                = errors.New("sqlite database connection error")
+	ErrSQLiteClose               = errors.New("sqlite database close error")
 	ErrTesting                   = errors.New("testing error")
 )

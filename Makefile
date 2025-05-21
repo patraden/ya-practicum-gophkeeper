@@ -21,24 +21,38 @@ test:
 clean:
 	@rm -f ./$(TEST_COVERAGE_REPORT)
 
-.PHONY: docker\:certgen
-docker\:certgen:
+.PHONY: docker-certgen
+docker-certgen:
 	@docker-compose -f $(DOCKER_COMPOSE_PATH) run --rm certgen
 
-.PHONY: docker\:up 
-docker\:up:
+.PHONY: docker-up 
+docker-up:
 	@docker-compose -f $(DOCKER_COMPOSE_PATH) up -d
 
-.PHONY: docker\:down
-docker\:down:
+.PHONY: docker-down
+docker-down:
 	@docker-compose -f $(DOCKER_COMPOSE_PATH) down -v
 
-.PHONY: gen\:avro
-gen\:avro:
+.PHONY: avro
+avro:
 	@avrogen -pkg card -o ./internal/domain/card/avro_card.go -tags json:snake ./avro/card.avsc
 	@avrogen -pkg creds -o ./internal/domain/creds/avro_creds.go -tags json:snake ./avro/creds.avsc
 
-.PHONY: gen\:sql
-gen\:sql:
+.PHONY: sql
+sql:
 	@sqlc generate
+
+.PHONY: proto
+proto:
+	@echo "🔍 Running buf lint..."
+	@buf lint
+	@echo "📦 Updating buf dependencies..."
+	@buf dep update
+	@echo "⚙️ Generating protobuf and validation code..."
+	@buf generate
+	@echo "📥 Ensuring protovalidate runtime is installed..."
+	@go get buf.build/go/protovalidate
+	@echo "🧹 Tidying go.mod..."
+	@go mod tidy
+	@echo "✅ Proto generation complete."
 

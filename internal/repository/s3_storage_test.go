@@ -7,7 +7,7 @@ import (
 	"github.com/patraden/ya-practicum-gophkeeper/internal/config"
 	"github.com/patraden/ya-practicum-gophkeeper/internal/logger"
 	repo "github.com/patraden/ya-practicum-gophkeeper/internal/repository"
-	"github.com/patraden/ya-practicum-gophkeeper/internal/s3"
+	"github.com/patraden/ya-practicum-gophkeeper/internal/storage/s3"
 	"github.com/patraden/ya-practicum-gophkeeper/internal/tls"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"

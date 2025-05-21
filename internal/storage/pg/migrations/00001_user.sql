@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE users (
+CREATE TABLE "user" (
   id UUID PRIMARY KEY,
   username VARCHAR(255) UNIQUE NOT NULL,
   password BYTEA NOT NULL,
@@ -12,5 +12,5 @@ CREATE TABLE users (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS user;
 -- +goose StatementEnd

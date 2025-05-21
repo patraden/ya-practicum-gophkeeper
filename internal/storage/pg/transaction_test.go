@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/pashagolub/pgxmock/v4"
 	e "github.com/patraden/ya-practicum-gophkeeper/internal/domain/errors"
-	"github.com/patraden/ya-practicum-gophkeeper/internal/pg"
+	"github.com/patraden/ya-practicum-gophkeeper/internal/storage/pg"
 	"github.com/stretchr/testify/require"
 )
 

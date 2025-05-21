@@ -5,7 +5,7 @@ import (
 
 	"github.com/minio/minio-go/v7"
 	"github.com/patraden/ya-practicum-gophkeeper/internal/domain/errors"
-	"github.com/patraden/ya-practicum-gophkeeper/internal/s3"
+	"github.com/patraden/ya-practicum-gophkeeper/internal/storage/s3"
 	"github.com/rs/zerolog"
 )
 

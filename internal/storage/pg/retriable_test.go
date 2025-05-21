@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	e "github.com/patraden/ya-practicum-gophkeeper/internal/domain/errors"
 	"github.com/patraden/ya-practicum-gophkeeper/internal/logger"
-	"github.com/patraden/ya-practicum-gophkeeper/internal/pg"
+	"github.com/patraden/ya-practicum-gophkeeper/internal/storage/pg"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

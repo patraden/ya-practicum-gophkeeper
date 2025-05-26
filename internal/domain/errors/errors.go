@@ -17,5 +17,8 @@ var (
 	ErrSQLiteInit                = errors.New("sqlite database init error")
 	ErrSQLiteConn                = errors.New("sqlite database connection error")
 	ErrSQLiteClose               = errors.New("sqlite database close error")
+	ErrServerStart               = errors.New("grpc server start error")
+	ErrServerShutdown            = errors.New("grpc server shutdown error")
+	ErrServerTLS                 = errors.New("grpc server tls error")
 	ErrTesting                   = errors.New("testing error")
 )

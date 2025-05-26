@@ -36,5 +36,6 @@ linters-settings:
     ignore-names:
       - db
       - tt
+      - lc
     ignore-decls:
       - t testing.T

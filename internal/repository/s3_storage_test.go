@@ -8,7 +8,6 @@ import (
 	"github.com/patraden/ya-practicum-gophkeeper/internal/logger"
 	repo "github.com/patraden/ya-practicum-gophkeeper/internal/repository"
 	"github.com/patraden/ya-practicum-gophkeeper/internal/storage/s3"
-	"github.com/patraden/ya-practicum-gophkeeper/internal/tls"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -34,8 +33,8 @@ func TestMinioDevIntegration(t *testing.T) {
 
 	log := logger.Stdout(zerolog.DebugLevel).GetZeroLog()
 	ctx := context.Background()
-	cfg := config.DefaultObjectStore()
-	transportBuilder := tls.NewHTTPTransportBuilder("", []byte(validCert), log)
+	cfg := config.DefaultConfig()
+	transportBuilder := s3.NewHTTPTransportBuilder("", []byte(validCert), log)
 
 	transport, err := transportBuilder.Build()
 	require.NoError(t, err)

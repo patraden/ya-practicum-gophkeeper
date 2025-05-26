@@ -1,4 +1,4 @@
-package tls_test
+package s3_test
 
 import (
 	"os"
@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/patraden/ya-practicum-gophkeeper/internal/domain/errors"
-	"github.com/patraden/ya-practicum-gophkeeper/internal/tls"
+	"github.com/patraden/ya-practicum-gophkeeper/internal/storage/s3"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 )
@@ -55,7 +55,7 @@ func TestHTTPTransportBuilder_FromBytes(t *testing.T) {
 			t.Parallel()
 
 			log := zerolog.Nop()
-			builder := tls.NewHTTPTransportBuilder("", tt.certBytes, &log)
+			builder := s3.NewHTTPTransportBuilder("", tt.certBytes, &log)
 			transport, err := builder.Build()
 
 			if tt.wantErr != nil {
@@ -104,7 +104,7 @@ func TestHTTPTransportBuilder_FromFile(t *testing.T) {
 			t.Parallel()
 
 			log := zerolog.Nop()
-			builder := tls.NewHTTPTransportBuilder(tt.certPath, nil, &log)
+			builder := s3.NewHTTPTransportBuilder(tt.certPath, nil, &log)
 			transport, err := builder.Build()
 
 			if tt.wantErr != nil {

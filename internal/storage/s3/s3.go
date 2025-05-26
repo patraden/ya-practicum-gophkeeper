@@ -24,9 +24,9 @@ type MinioClient interface {
 
 // NewMinioClient initializes a new MinIO client using the provided configuration
 // and a custom HTTP transport. Returns a configured *minio.Client or an error.
-func NewMinioClient(cfg *config.S3Config, transport *http.Transport) (*minio.Client, error) {
-	client, err := minio.New(cfg.Endpoint, &minio.Options{
-		Creds:     credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, cfg.Token),
+func NewMinioClient(cfg *config.Config, transport *http.Transport) (*minio.Client, error) {
+	client, err := minio.New(cfg.S3Endpoint, &minio.Options{
+		Creds:     credentials.NewStaticV4(cfg.S3AccessKey, cfg.S3SecretKey, cfg.S3Token),
 		Secure:    true,
 		Transport: transport,
 	})

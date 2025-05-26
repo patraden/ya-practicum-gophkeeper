@@ -14,11 +14,11 @@ func TestNewMinioClient_Invalid(t *testing.T) {
 	t.Parallel()
 
 	transport := &http.Transport{}
-	cfg := &config.S3Config{
-		Endpoint:  "http://invalid:1234",
-		AccessKey: "key",
-		SecretKey: "secret",
-		Token:     "token",
+	cfg := &config.Config{
+		S3Endpoint:  "http://invalid:1234",
+		S3AccessKey: "key",
+		S3SecretKey: "secret",
+		S3Token:     "token",
 	}
 
 	client, err := s3.NewMinioClient(cfg, transport)

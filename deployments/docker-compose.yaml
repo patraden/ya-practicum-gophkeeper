@@ -9,12 +9,17 @@ services:
     entrypoint: >
       sh -c "
         go install github.com/minio/certgen@latest &&
-        mkdir -p /certs && cd /certs &&
-        /go/bin/certgen -host "127.0.0.1,localhost" &&
-        cat /certs/public.crt
+        mkdir -p /certs/minio /certs/gophkeeper &&
+        cd /certs/minio &&
+        /go/bin/certgen -host 127.0.0.1,localhost -org-name PATRADEN -common-name gophkeeper-minio &&
+        cd /certs/gophkeeper &&
+        /go/bin/certgen -host 127.0.0.1,localhost -org-name PATRADEN -common-name gophkeeper-app &&
+        echo 'MinIO cert:' && cat /certs/minio/public.crt &&
+        echo 'GophKeeper cert:' && cat /certs/gophkeeper/public.crt
       "
     volumes:
-      - minio_certs:/certs
+      - minio_certs:/certs/minio
+      - gophkeeper_certs:/certs/gophkeeper
     networks:
       - gophkeeper
     restart: "no"
@@ -51,10 +56,25 @@ services:
       - minio_certs:/etc/ssl/certs
     networks:
       - gophkeeper
+  gophkeeper-server:
+    container_name: gophkeeper-server
+    build:
+      context: ./..
+      dockerfile: deployments/server/Dockerfile
+    restart: always
+    environment:
+      - SERVER_ADDRESS=${SERVER_ADDRESS:-localhost:3200}
+    depends_on:
+      - postgres
+    ports:
+      - "3200:3200"
+    networks:
+      - gophkeeper
+    volumes:
+      - gophkeeper_certs:/etc/ssl/certs/gophkeeper
+      - minio_certs:/etc/ssl/certs/minio
 
-networks:
-    gophkeeper:
-        name: gophkeeper
+
 volumes:
   postgres_data:
     name: gophkeeper_postgres_data
@@ -62,4 +82,9 @@ volumes:
     name: gophkeeper_minio_data
   minio_certs:
     name: gophkeeper_minio_certs
-    external: true
+  gophkeeper_certs:
+    name: gophkeeper_app_certs
+
+networks:
+    gophkeeper:
+        name: gophkeeper

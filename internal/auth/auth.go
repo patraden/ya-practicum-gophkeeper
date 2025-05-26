@@ -143,9 +143,6 @@ func (auth *Auth) VerifyContext(ctx context.Context, extractors ...TokenExtracto
 	for _, fn := range extractors {
 		tokenString = fn(ctx)
 		if tokenString != "" {
-			auth.log.Info().
-				Msg("token extracted successfully")
-
 			break
 		}
 	}
@@ -188,8 +185,17 @@ func GRPCServerVerifier(auth *Auth) grpc.UnaryServerInterceptor {
 // GRPCServerAuthenticator is a default authentication interceptor to enforce access from the
 // Verifier interceptor request context values. The GRPCServerAuthenticator sends a 401 Unauthorized
 // response for any unverified tokens and passes the good ones through.
-func GRPCServerAuthenticator() grpc.UnaryServerInterceptor {
-	return func(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+func GRPCServerAuthenticator(isPublicMethod func(method string) bool) grpc.UnaryServerInterceptor {
+	return func(
+		ctx context.Context,
+		req any,
+		info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler,
+	) (any, error) {
+		if isPublicMethod(info.FullMethod) {
+			return handler(ctx, req)
+		}
+
 		token, claims, err := FromContext(ctx)
 		if err != nil || token == nil || claims == nil {
 			return nil, status.Errorf(codes.Unauthenticated, "Unauthorized")

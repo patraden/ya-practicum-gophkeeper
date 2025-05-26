@@ -4,15 +4,16 @@
 // 	protoc        (unknown)
 // source: gophkeeper/v1/gophkeeper.proto
 
-package gophkeeper
+package proto
 
 import (
-	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
+
+	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -123,6 +124,110 @@ func (SealStatus) EnumDescriptor() ([]byte, []int) {
 	return file_gophkeeper_v1_gophkeeper_proto_rawDescGZIP(), []int{1}
 }
 
+type UnsealRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	KeyPiece      string                 `protobuf:"bytes,1,opt,name=key_piece,json=keyPiece,proto3" json:"key_piece,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnsealRequest) Reset() {
+	*x = UnsealRequest{}
+	mi := &file_gophkeeper_v1_gophkeeper_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnsealRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnsealRequest) ProtoMessage() {}
+
+func (x *UnsealRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_gophkeeper_v1_gophkeeper_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnsealRequest.ProtoReflect.Descriptor instead.
+func (*UnsealRequest) Descriptor() ([]byte, []int) {
+	return file_gophkeeper_v1_gophkeeper_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *UnsealRequest) GetKeyPiece() string {
+	if x != nil {
+		return x.KeyPiece
+	}
+	return ""
+}
+
+type UnsealResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Unsealed      bool                   `protobuf:"varint,1,opt,name=unsealed,proto3" json:"unsealed,omitempty"`
+	Status        SealStatus             `protobuf:"varint,2,opt,name=status,proto3,enum=gophkeeper.v1.SealStatus" json:"status,omitempty"`
+	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnsealResponse) Reset() {
+	*x = UnsealResponse{}
+	mi := &file_gophkeeper_v1_gophkeeper_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnsealResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnsealResponse) ProtoMessage() {}
+
+func (x *UnsealResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_gophkeeper_v1_gophkeeper_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnsealResponse.ProtoReflect.Descriptor instead.
+func (*UnsealResponse) Descriptor() ([]byte, []int) {
+	return file_gophkeeper_v1_gophkeeper_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *UnsealResponse) GetUnsealed() bool {
+	if x != nil {
+		return x.Unsealed
+	}
+	return false
+}
+
+func (x *UnsealResponse) GetStatus() SealStatus {
+	if x != nil {
+		return x.Status
+	}
+	return SealStatus_SEAL_STATUS_UNSPECIFIED
+}
+
+func (x *UnsealResponse) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
 type LoginRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
@@ -133,7 +238,7 @@ type LoginRequest struct {
 
 func (x *LoginRequest) Reset() {
 	*x = LoginRequest{}
-	mi := &file_gophkeeper_v1_gophkeeper_proto_msgTypes[0]
+	mi := &file_gophkeeper_v1_gophkeeper_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -145,7 +250,7 @@ func (x *LoginRequest) String() string {
 func (*LoginRequest) ProtoMessage() {}
 
 func (x *LoginRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_gophkeeper_v1_gophkeeper_proto_msgTypes[0]
+	mi := &file_gophkeeper_v1_gophkeeper_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -158,7 +263,7 @@ func (x *LoginRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginRequest.ProtoReflect.Descriptor instead.
 func (*LoginRequest) Descriptor() ([]byte, []int) {
-	return file_gophkeeper_v1_gophkeeper_proto_rawDescGZIP(), []int{0}
+	return file_gophkeeper_v1_gophkeeper_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *LoginRequest) GetUsername() string {
@@ -186,7 +291,7 @@ type LoginResponse struct {
 
 func (x *LoginResponse) Reset() {
 	*x = LoginResponse{}
-	mi := &file_gophkeeper_v1_gophkeeper_proto_msgTypes[1]
+	mi := &file_gophkeeper_v1_gophkeeper_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -198,7 +303,7 @@ func (x *LoginResponse) String() string {
 func (*LoginResponse) ProtoMessage() {}
 
 func (x *LoginResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_gophkeeper_v1_gophkeeper_proto_msgTypes[1]
+	mi := &file_gophkeeper_v1_gophkeeper_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -211,7 +316,7 @@ func (x *LoginResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LoginResponse.ProtoReflect.Descriptor instead.
 func (*LoginResponse) Descriptor() ([]byte, []int) {
-	return file_gophkeeper_v1_gophkeeper_proto_rawDescGZIP(), []int{1}
+	return file_gophkeeper_v1_gophkeeper_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *LoginResponse) GetToken() string {
@@ -235,28 +340,29 @@ func (x *LoginResponse) GetRole() UserRole {
 	return UserRole_USER_ROLE_UNSPECIFIED
 }
 
-type UnsealServerRequest struct {
+type RegisterRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	KeyPiece      string                 `protobuf:"bytes,1,opt,name=key_piece,json=keyPiece,proto3" json:"key_piece,omitempty"`
+	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
+	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *UnsealServerRequest) Reset() {
-	*x = UnsealServerRequest{}
-	mi := &file_gophkeeper_v1_gophkeeper_proto_msgTypes[2]
+func (x *RegisterRequest) Reset() {
+	*x = RegisterRequest{}
+	mi := &file_gophkeeper_v1_gophkeeper_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UnsealServerRequest) String() string {
+func (x *RegisterRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UnsealServerRequest) ProtoMessage() {}
+func (*RegisterRequest) ProtoMessage() {}
 
-func (x *UnsealServerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_gophkeeper_v1_gophkeeper_proto_msgTypes[2]
+func (x *RegisterRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_gophkeeper_v1_gophkeeper_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -267,42 +373,48 @@ func (x *UnsealServerRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UnsealServerRequest.ProtoReflect.Descriptor instead.
-func (*UnsealServerRequest) Descriptor() ([]byte, []int) {
-	return file_gophkeeper_v1_gophkeeper_proto_rawDescGZIP(), []int{2}
+// Deprecated: Use RegisterRequest.ProtoReflect.Descriptor instead.
+func (*RegisterRequest) Descriptor() ([]byte, []int) {
+	return file_gophkeeper_v1_gophkeeper_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *UnsealServerRequest) GetKeyPiece() string {
+func (x *RegisterRequest) GetUsername() string {
 	if x != nil {
-		return x.KeyPiece
+		return x.Username
 	}
 	return ""
 }
 
-type UnsealServerResponse struct {
+func (x *RegisterRequest) GetPassword() string {
+	if x != nil {
+		return x.Password
+	}
+	return ""
+}
+
+type RegisterResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Unsealed      bool                   `protobuf:"varint,1,opt,name=unsealed,proto3" json:"unsealed,omitempty"`
-	Status        SealStatus             `protobuf:"varint,2,opt,name=status,proto3,enum=gophkeeper.v1.SealStatus" json:"status,omitempty"`
-	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *UnsealServerResponse) Reset() {
-	*x = UnsealServerResponse{}
-	mi := &file_gophkeeper_v1_gophkeeper_proto_msgTypes[3]
+func (x *RegisterResponse) Reset() {
+	*x = RegisterResponse{}
+	mi := &file_gophkeeper_v1_gophkeeper_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UnsealServerResponse) String() string {
+func (x *RegisterResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UnsealServerResponse) ProtoMessage() {}
+func (*RegisterResponse) ProtoMessage() {}
 
-func (x *UnsealServerResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_gophkeeper_v1_gophkeeper_proto_msgTypes[3]
+func (x *RegisterResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_gophkeeper_v1_gophkeeper_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -313,26 +425,19 @@ func (x *UnsealServerResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UnsealServerResponse.ProtoReflect.Descriptor instead.
-func (*UnsealServerResponse) Descriptor() ([]byte, []int) {
-	return file_gophkeeper_v1_gophkeeper_proto_rawDescGZIP(), []int{3}
+// Deprecated: Use RegisterResponse.ProtoReflect.Descriptor instead.
+func (*RegisterResponse) Descriptor() ([]byte, []int) {
+	return file_gophkeeper_v1_gophkeeper_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *UnsealServerResponse) GetUnsealed() bool {
+func (x *RegisterResponse) GetUserId() string {
 	if x != nil {
-		return x.Unsealed
+		return x.UserId
 	}
-	return false
+	return ""
 }
 
-func (x *UnsealServerResponse) GetStatus() SealStatus {
-	if x != nil {
-		return x.Status
-	}
-	return SealStatus_SEAL_STATUS_UNSPECIFIED
-}
-
-func (x *UnsealServerResponse) GetMessage() string {
+func (x *RegisterResponse) GetMessage() string {
 	if x != nil {
 		return x.Message
 	}
@@ -343,20 +448,26 @@ var File_gophkeeper_v1_gophkeeper_proto protoreflect.FileDescriptor
 
 const file_gophkeeper_v1_gophkeeper_proto_rawDesc = "" +
 	"\n" +
-	"\x1egophkeeper/v1/gophkeeper.proto\x12\rgophkeeper.v1\x1a\x1bbuf/validate/validate.proto\"X\n" +
+	"\x1egophkeeper/v1/gophkeeper.proto\x12\rgophkeeper.v1\x1a\x1bbuf/validate/validate.proto\"5\n" +
+	"\rUnsealRequest\x12$\n" +
+	"\tkey_piece\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bkeyPiece\"y\n" +
+	"\x0eUnsealResponse\x12\x1a\n" +
+	"\bunsealed\x18\x01 \x01(\bR\bunsealed\x121\n" +
+	"\x06status\x18\x02 \x01(\x0e2\x19.gophkeeper.v1.SealStatusR\x06status\x12\x18\n" +
+	"\amessage\x18\x03 \x01(\tR\amessage\"X\n" +
 	"\fLoginRequest\x12#\n" +
 	"\busername\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x03R\busername\x12#\n" +
 	"\bpassword\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\bR\bpassword\"k\n" +
 	"\rLoginResponse\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12+\n" +
-	"\x04role\x18\x03 \x01(\x0e2\x17.gophkeeper.v1.UserRoleR\x04role\";\n" +
-	"\x13UnsealServerRequest\x12$\n" +
-	"\tkey_piece\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bkeyPiece\"\x7f\n" +
-	"\x14UnsealServerResponse\x12\x1a\n" +
-	"\bunsealed\x18\x01 \x01(\bR\bunsealed\x121\n" +
-	"\x06status\x18\x02 \x01(\x0e2\x19.gophkeeper.v1.SealStatusR\x06status\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage*N\n" +
+	"\x04role\x18\x03 \x01(\x0e2\x17.gophkeeper.v1.UserRoleR\x04role\"[\n" +
+	"\x0fRegisterRequest\x12#\n" +
+	"\busername\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x03R\busername\x12#\n" +
+	"\bpassword\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\bR\bpassword\"E\n" +
+	"\x10RegisterResponse\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage*N\n" +
 	"\bUserRole\x12\x19\n" +
 	"\x15USER_ROLE_UNSPECIFIED\x10\x00\x12\x12\n" +
 	"\x0eUSER_ROLE_USER\x10\x01\x12\x13\n" +
@@ -366,11 +477,13 @@ const file_gophkeeper_v1_gophkeeper_proto_rawDesc = "" +
 	"\x17SEAL_STATUS_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12SEAL_STATUS_SEALED\x10\x01\x12 \n" +
 	"\x1cSEAL_STATUS_PARTIALLY_SEALED\x10\x02\x12\x18\n" +
-	"\x14SEAL_STATUS_UNSEALED\x10\x032\xb0\x01\n" +
-	"\x11GophKeeperService\x12B\n" +
-	"\x05Login\x12\x1b.gophkeeper.v1.LoginRequest\x1a\x1c.gophkeeper.v1.LoginResponse\x12W\n" +
-	"\fUnsealServer\x12\".gophkeeper.v1.UnsealServerRequest\x1a#.gophkeeper.v1.UnsealServerResponseB\xc3\x01\n" +
-	"\x11com.gophkeeper.v1B\x0fGophkeeperProtoP\x01ZHgithub.com/patraden/ya-practicum-gophkeeper/api/gophkeeper/v1;gophkeeper\xa2\x02\x03GXX\xaa\x02\rGophkeeper.V1\xca\x02\rGophkeeper\\V1\xe2\x02\x19Gophkeeper\\V1\\GPBMetadata\xea\x02\x0eGophkeeper::V1b\x06proto3"
+	"\x14SEAL_STATUS_UNSEALED\x10\x032U\n" +
+	"\fAdminService\x12E\n" +
+	"\x06Unseal\x12\x1c.gophkeeper.v1.UnsealRequest\x1a\x1d.gophkeeper.v1.UnsealResponse2\x9e\x01\n" +
+	"\vUserService\x12B\n" +
+	"\x05Login\x12\x1b.gophkeeper.v1.LoginRequest\x1a\x1c.gophkeeper.v1.LoginResponse\x12K\n" +
+	"\bRegister\x12\x1e.gophkeeper.v1.RegisterRequest\x1a\x1f.gophkeeper.v1.RegisterResponseB\xbe\x01\n" +
+	"\x11com.gophkeeper.v1B\x0fGophkeeperProtoP\x01ZCgithub.com/patraden/ya-practicum-gophkeeper/api/gophkeeper/v1;proto\xa2\x02\x03GXX\xaa\x02\rGophkeeper.V1\xca\x02\rGophkeeper\\V1\xe2\x02\x19Gophkeeper\\V1\\GPBMetadata\xea\x02\x0eGophkeeper::V1b\x06proto3"
 
 var (
 	file_gophkeeper_v1_gophkeeper_proto_rawDescOnce sync.Once
@@ -385,24 +498,28 @@ func file_gophkeeper_v1_gophkeeper_proto_rawDescGZIP() []byte {
 }
 
 var file_gophkeeper_v1_gophkeeper_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_gophkeeper_v1_gophkeeper_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_gophkeeper_v1_gophkeeper_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_gophkeeper_v1_gophkeeper_proto_goTypes = []any{
-	(UserRole)(0),                // 0: gophkeeper.v1.UserRole
-	(SealStatus)(0),              // 1: gophkeeper.v1.SealStatus
-	(*LoginRequest)(nil),         // 2: gophkeeper.v1.LoginRequest
-	(*LoginResponse)(nil),        // 3: gophkeeper.v1.LoginResponse
-	(*UnsealServerRequest)(nil),  // 4: gophkeeper.v1.UnsealServerRequest
-	(*UnsealServerResponse)(nil), // 5: gophkeeper.v1.UnsealServerResponse
+	(UserRole)(0),            // 0: gophkeeper.v1.UserRole
+	(SealStatus)(0),          // 1: gophkeeper.v1.SealStatus
+	(*UnsealRequest)(nil),    // 2: gophkeeper.v1.UnsealRequest
+	(*UnsealResponse)(nil),   // 3: gophkeeper.v1.UnsealResponse
+	(*LoginRequest)(nil),     // 4: gophkeeper.v1.LoginRequest
+	(*LoginResponse)(nil),    // 5: gophkeeper.v1.LoginResponse
+	(*RegisterRequest)(nil),  // 6: gophkeeper.v1.RegisterRequest
+	(*RegisterResponse)(nil), // 7: gophkeeper.v1.RegisterResponse
 }
 var file_gophkeeper_v1_gophkeeper_proto_depIdxs = []int32{
-	0, // 0: gophkeeper.v1.LoginResponse.role:type_name -> gophkeeper.v1.UserRole
-	1, // 1: gophkeeper.v1.UnsealServerResponse.status:type_name -> gophkeeper.v1.SealStatus
-	2, // 2: gophkeeper.v1.GophKeeperService.Login:input_type -> gophkeeper.v1.LoginRequest
-	4, // 3: gophkeeper.v1.GophKeeperService.UnsealServer:input_type -> gophkeeper.v1.UnsealServerRequest
-	3, // 4: gophkeeper.v1.GophKeeperService.Login:output_type -> gophkeeper.v1.LoginResponse
-	5, // 5: gophkeeper.v1.GophKeeperService.UnsealServer:output_type -> gophkeeper.v1.UnsealServerResponse
-	4, // [4:6] is the sub-list for method output_type
-	2, // [2:4] is the sub-list for method input_type
+	1, // 0: gophkeeper.v1.UnsealResponse.status:type_name -> gophkeeper.v1.SealStatus
+	0, // 1: gophkeeper.v1.LoginResponse.role:type_name -> gophkeeper.v1.UserRole
+	2, // 2: gophkeeper.v1.AdminService.Unseal:input_type -> gophkeeper.v1.UnsealRequest
+	4, // 3: gophkeeper.v1.UserService.Login:input_type -> gophkeeper.v1.LoginRequest
+	6, // 4: gophkeeper.v1.UserService.Register:input_type -> gophkeeper.v1.RegisterRequest
+	3, // 5: gophkeeper.v1.AdminService.Unseal:output_type -> gophkeeper.v1.UnsealResponse
+	5, // 6: gophkeeper.v1.UserService.Login:output_type -> gophkeeper.v1.LoginResponse
+	7, // 7: gophkeeper.v1.UserService.Register:output_type -> gophkeeper.v1.RegisterResponse
+	5, // [5:8] is the sub-list for method output_type
+	2, // [2:5] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
 	2, // [2:2] is the sub-list for extension extendee
 	0, // [0:2] is the sub-list for field type_name
@@ -419,9 +536,9 @@ func file_gophkeeper_v1_gophkeeper_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_gophkeeper_v1_gophkeeper_proto_rawDesc), len(file_gophkeeper_v1_gophkeeper_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   4,
+			NumMessages:   6,
 			NumExtensions: 0,
-			NumServices:   1,
+			NumServices:   2,
 		},
 		GoTypes:           file_gophkeeper_v1_gophkeeper_proto_goTypes,
 		DependencyIndexes: file_gophkeeper_v1_gophkeeper_proto_depIdxs,

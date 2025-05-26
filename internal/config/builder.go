@@ -25,19 +25,8 @@ func (b *builder) loadEnv() {
 }
 
 func (b *builder) loadFlags() {
-	flag.StringVar(
-		&b.cfg.ObjectStorage.Endpoint,
-		"object-storage-endpoint",
-		b.cfg.ObjectStorage.Endpoint,
-		"object storage endpoint {host}:{port}",
-	)
-	flag.StringVar(
-		&b.cfg.ObjectStorage.CertPath,
-		"object-storage-cert",
-		b.cfg.ObjectStorage.CertPath,
-		"object storage certificate file path",
-	)
-
+	flag.StringVar(&b.cfg.S3Endpoint, "s3-endpoint", b.cfg.S3Endpoint, "s3 endpoint {host}:{port}")
+	flag.StringVar(&b.cfg.S3TLSCertPath, "s3-tls-cert", b.cfg.S3TLSCertPath, "s3 tls cert file path")
 	flag.Parse()
 }
 

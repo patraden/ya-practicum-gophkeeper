@@ -92,7 +92,7 @@ func TestCreateTemplateUsage(t *testing.T) {
 				ValidFor:  time.Hour,
 			},
 			wantKeyUsage:  x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
-			wantExtUsages: nil, // no inferred usages
+			wantExtUsages: nil,
 		},
 	}
 
@@ -181,7 +181,10 @@ func TestGenerateAndVerifyCASignedCertificate(t *testing.T) {
 	roots := x509.NewCertPool()
 	roots.AddCert(caCert)
 
-	opts := x509.VerifyOptions{Roots: roots}
+	opts := x509.VerifyOptions{
+		Roots:   roots,
+		DNSName: "localhost",
+	}
 
 	_, err = serverCert.Verify(opts)
 	require.NoError(t, err, "certificate verification by CA should pass")

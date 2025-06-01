@@ -88,3 +88,8 @@ proto:
 	@echo "🧹 Tidying go.mod..."
 	@go mod tidy
 	@echo "✅ Proto generation complete."
+
+.PHONY: mocks
+mocks:
+	@mockgen -source=internal/server/adpaters.go -destination=internal/mock/server.go -package=mock UserServiceServer
+	@mockgen -source=internal/server/adpaters.go -destination=internal/mock/server.go -package=mock AdminServiceServer

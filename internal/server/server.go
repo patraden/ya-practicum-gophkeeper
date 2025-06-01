@@ -17,16 +17,16 @@ import (
 type Server struct {
 	grpcSrv  *grpc.Server
 	config   *config.Config
-	adminSrv pb.AdminServiceServer
-	userSrv  pb.UserServiceServer
+	adminSrv AdminServiceServer
+	userSrv  UserServiceServer
 	log      *zerolog.Logger
 }
 
 // New creates instance of the application gRPC server.
 func New(
 	config *config.Config,
-	adminSrv *AdminServer,
-	userSrv *UserServer,
+	adminSrv AdminServiceServer,
+	userSrv UserServiceServer,
 	log *zerolog.Logger,
 ) (*Server, error) {
 	cert, err := tls.LoadX509KeyPair(config.ServerTLSCertPath, config.ServerTLSKeyPath)
@@ -43,6 +43,8 @@ func New(
 		CipherSuites: []uint16{
 			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
 			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
 		},
 		PreferServerCipherSuites: true,
 	}
@@ -74,8 +76,8 @@ func (s *Server) Run() error {
 		return errors.ErrServerStart
 	}
 
-	pb.RegisterUserServiceServer(s.grpcSrv, s.userSrv)
-	pb.RegisterAdminServiceServer(s.grpcSrv, s.adminSrv)
+	pb.RegisterUserServiceServer(s.grpcSrv, &UserServiceAdapter{impl: s.userSrv})
+	pb.RegisterAdminServiceServer(s.grpcSrv, &AdminServiceAdapter{impl: s.adminSrv})
 
 	if err := s.grpcSrv.Serve(listen); err != nil {
 		s.log.Error().Err(err).

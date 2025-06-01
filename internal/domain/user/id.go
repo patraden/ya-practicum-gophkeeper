@@ -2,26 +2,26 @@ package user
 
 import "github.com/google/uuid"
 
-// UserID represents a unique identifier for a user.
+// ID represents a unique identifier for a user.
 type ID uuid.UUID
 
-// String returns the string representation of the UserID.
+// String returns the string representation of the ID.
 func (u ID) String() string {
 	return uuid.UUID(u).String()
 }
 
-// IsNil checks whether the UserID is nil (zero value).
+// IsNil checks whether the ID is nil (zero value).
 func (u ID) IsNil() bool {
 	return uuid.UUID(u) == uuid.Nil
 }
 
-// NewUserID generates and returns a new unique UserID.
+// NewUserID generates and returns a new unique ID.
 func NewUserID() ID {
 	return ID(uuid.New())
 }
 
-// ParseUserID converts a string representation of a UUID into a UserID.
-func ParseUserID(id string) (ID, error) {
+// ParseID converts a string representation of a UUID into a ID.
+func ParseID(id string) (ID, error) {
 	uid, err := uuid.Parse(id)
 	if err != nil {
 		return ID(uuid.Nil), err

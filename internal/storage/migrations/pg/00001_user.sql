@@ -3,8 +3,9 @@
 CREATE TABLE "user" (
   id UUID PRIMARY KEY,
   username VARCHAR(255) UNIQUE NOT NULL,
-  password BYTEA NOT NULL,
   role VARCHAR(5) NOT NULL,
+  password BYTEA NOT NULL,
+  salt BYTEA NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP
 );
@@ -12,5 +13,5 @@ CREATE TABLE "user" (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS user;
+DROP TABLE "user" 
 -- +goose StatementEnd

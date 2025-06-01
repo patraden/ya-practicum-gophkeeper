@@ -46,7 +46,7 @@ func (db *DB) Init(ctx context.Context) error {
 			Str("conn_string", db.connString).
 			Msg("failed to parse pg conn string")
 
-		return errors.ErrPGInit
+		return errors.ErrDBInit
 	}
 
 	config.MaxConns = 30
@@ -57,7 +57,7 @@ func (db *DB) Init(ctx context.Context) error {
 			Str("conn_string", config.ConnString()).
 			Msg("failed to create connection pool")
 
-		return errors.ErrPGInit
+		return errors.ErrDBInit
 	}
 
 	db.ConnPool = pool
@@ -71,13 +71,13 @@ func (db *DB) Ping(ctx context.Context) error {
 	if db.ConnPool == nil {
 		db.log.Error().
 			Msg("pg connection pool is empty")
-		return errors.ErrPGInit
+		return errors.ErrDBInit
 	}
 
 	if err := db.ConnPool.Ping(ctx); err != nil {
 		db.log.Error().
 			Msg("pg is not reachibale")
-		return errors.ErrPGConn
+		return errors.ErrDBConn
 	}
 
 	return nil

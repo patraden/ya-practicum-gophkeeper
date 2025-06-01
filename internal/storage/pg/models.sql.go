@@ -13,23 +13,22 @@ import (
 )
 
 const CreateUser = `-- name: CreateUser :one
-INSERT INTO "user" (id, username, password, role, created_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO "user" (id, username, role, password, salt, created_at, updated_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 ON CONFLICT (username) DO UPDATE
 SET id = "user".id,
-    username = "user".username,
-    password = "user".password,
     role = "user".role,
     created_at = "user".created_at,
     updated_at = "user".updated_at
-RETURNING id, username, password, role, created_at, updated_at
+RETURNING id, username, role, password, salt, created_at, updated_at
 `
 
 type CreateUserParams struct {
 	ID        user.ID   `db:"id"`
 	Username  string    `db:"username"`
-	Password  []byte    `db:"password"`
 	Role      user.Role `db:"role"`
+	Password  []byte    `db:"password"`
+	Salt      []byte    `db:"salt"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
@@ -38,8 +37,9 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	row := q.db.QueryRow(ctx, CreateUser,
 		arg.ID,
 		arg.Username,
-		arg.Password,
 		arg.Role,
+		arg.Password,
+		arg.Salt,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 	)
@@ -47,8 +47,9 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
-		&i.Password,
 		&i.Role,
+		&i.Password,
+		&i.Salt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

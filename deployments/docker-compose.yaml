@@ -2,24 +2,35 @@ version: "3.9"
 
 services:
   certgen:
-    image: golang:1.21
+    build:
+      context: ./..
+      dockerfile: deployments/certgen/Dockerfile
+    image: gophkeeper/certgen:latest
     profiles: ["manual"]
     container_name: certgen
     working_dir: /go/certgen
     entrypoint: >
       sh -c "
-        go install github.com/minio/certgen@latest &&
-        mkdir -p /certs/minio /certs/gophkeeper &&
-        cd /certs/minio &&
-        /go/bin/certgen -host 127.0.0.1,localhost -org-name PATRADEN -common-name gophkeeper-minio &&
-        cd /certs/gophkeeper &&
-        /go/bin/certgen -host 127.0.0.1,localhost -org-name PATRADEN -common-name gophkeeper-app &&
-        echo 'MinIO cert:' && cat /certs/minio/public.crt &&
-        echo 'GophKeeper cert:' && cat /certs/gophkeeper/public.crt
+        mkdir -p /certs/gophkeeper/ca /certs/gophkeeper/minio /certs/gophkeeper/backend &&
+        echo 'Generating CA certificate...' &&
+        /usr/local/bin/certgen -org-name GophKeeper -ca &&
+        mv ca-public.crt /certs/gophkeeper/ca/ &&
+        mv ca-private.key /certs/gophkeeper/ca/ &&
+
+        echo 'Generating GophKeeper certificate signed by CA...' &&
+        /usr/local/bin/certgen -host 127.0.0.1,localhost -org-name GophKeeper -ca-cert /certs/gophkeeper/ca/ca-public.crt -ca-key /certs/gophkeeper/ca/ca-private.key &&
+        mv public.crt /certs/gophkeeper/backend/ &&
+        mv private.key /certs/gophkeeper/backend/ &&
+        
+        echo 'Generating GophKeeper Minio certificate signed by CA...' &&
+        /usr/local/bin/certgen -host 127.0.0.1,localhost -org-name GophKeeper -ca-cert /certs/gophkeeper/ca/ca-public.crt -ca-key /certs/gophkeeper/ca/ca-private.key &&
+        mv public.crt /certs/gophkeeper/minio/ &&
+        mv private.key /certs/gophkeeper/minio/ &&
+        echo 'MinIO cert:' && cat /certs/gophkeeper/minio/public.crt &&
+        echo 'GophKeeper cert:' && cat /certs/gophkeeper/backend/public.crt
       "
     volumes:
-      - minio_certs:/certs/minio
-      - gophkeeper_certs:/certs/gophkeeper
+      - gophkeeper_certs:/certs
     networks:
       - gophkeeper
     restart: "no"
@@ -49,11 +60,11 @@ services:
     ports:
       - "9000:9000"
       - "9001:9001"
-    command: server /data --console-address ":9001" --certs-dir="/etc/ssl/certs/"
+    command: server /data --console-address ":9001" --certs-dir="/etc/ssl/certs/minio/"
     restart: unless-stopped
     volumes:
       - minio_data:/data
-      - minio_certs:/etc/ssl/certs
+      - gophkeeper_certs:/etc/ssl/certs
     networks:
       - gophkeeper
   gophkeeper-server:
@@ -71,8 +82,7 @@ services:
     networks:
       - gophkeeper
     volumes:
-      - gophkeeper_certs:/etc/ssl/certs/gophkeeper
-      - minio_certs:/etc/ssl/certs/minio
+      - gophkeeper_certs:/etc/ssl/certs
 
 
 volumes:
@@ -80,8 +90,6 @@ volumes:
     name: gophkeeper_postgres_data
   minio_data:
     name: gophkeeper_minio_data
-  minio_certs:
-    name: gophkeeper_minio_certs
   gophkeeper_certs:
     name: gophkeeper_app_certs
 

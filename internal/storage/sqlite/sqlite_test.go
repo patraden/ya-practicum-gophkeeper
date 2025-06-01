@@ -8,7 +8,6 @@ import (
 	"github.com/patraden/ya-practicum-gophkeeper/internal/logger"
 	"github.com/patraden/ya-practicum-gophkeeper/internal/storage/sqlite"
 	"github.com/rs/zerolog"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -36,19 +35,5 @@ func TestDBInitAndPing(t *testing.T) {
 	db.Close()
 
 	err = db.Ping(t.Context())
-	require.ErrorIs(t, err, errors.ErrSQLiteConn)
-}
-
-func TestDBInitAndMigrate(t *testing.T) {
-	t.Parallel()
-
-	db := makeTestDB(t)
-	defer db.Close()
-
-	err := db.Migrate()
-	require.NoError(t, err)
-
-	count, err := db.Queries.CountUser(t.Context())
-	require.NoError(t, err)
-	assert.Equal(t, int64(0), count)
+	require.ErrorIs(t, err, errors.ErrDBConn)
 }

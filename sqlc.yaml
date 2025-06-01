@@ -1,10 +1,10 @@
 version: "2"
 sql:
   - engine:  "postgresql"
-    queries: "internal/storage/pg/models"
+    queries: "internal/storage/models/pg"
     schema:
-      - "internal/storage/pg/migrations"
-      - "internal/storage/pg/models"
+      - "internal/storage/migrations/pg"
+      - "internal/storage/models/pg"
     gen:
       go:
         package: "pg"
@@ -36,9 +36,9 @@ sql:
 
   - engine: "sqlite"
     schema: 
-      - "internal/storage/sqlite/migrations"
-      - "internal/storage/sqlite/models"
-    queries: "internal/storage/sqlite/models"
+      - "internal/storage/migrations/sqlite"
+      - "internal/storage/models/sqlite"
+    queries: "internal/storage/models/sqlite"
     gen:
       go:
         package: "sqlite"

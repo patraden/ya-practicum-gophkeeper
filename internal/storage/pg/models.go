@@ -13,8 +13,9 @@ import (
 type User struct {
 	ID        user.ID   `db:"id"`
 	Username  string    `db:"username"`
-	Password  []byte    `db:"password"`
 	Role      user.Role `db:"role"`
+	Password  []byte    `db:"password"`
+	Salt      []byte    `db:"salt"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }

@@ -2,10 +2,12 @@ package main
 
 import (
 	"github.com/patraden/ya-practicum-gophkeeper/internal/app"
-	"github.com/rs/zerolog"
+	"github.com/patraden/ya-practicum-gophkeeper/internal/config"
 )
 
 func main() {
-	app := app.App(zerolog.DebugLevel)
+	config := config.LoadConfig()
+	app := app.App(config)
+
 	app.Run()
 }

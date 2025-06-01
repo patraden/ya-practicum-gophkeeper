@@ -16,15 +16,15 @@ import (
 )
 
 // App returns main app function as fx.App.
-func App(logLevel zerolog.Level) *fx.App {
-	appLogger := logger.Stdout(logLevel)
+func App(config *config.Config) *fx.App {
+	appLogger := logger.Stdout(config.LogLevel)
 
 	return fx.New(
 		fx.StartTimeout(time.Minute),
 		fx.StopTimeout(time.Minute),
 		fx.Provide(func(l *logger.Logger) *zerolog.Logger { return l.GetZeroLog() }),
 		fx.Supply(appLogger),
-		fx.Provide(config.LoadConfig),
+		fx.Supply(config),
 		fx.Provide(server.NewAdminServer),
 		fx.Provide(server.NewUserServer),
 		fx.Provide(version.New),

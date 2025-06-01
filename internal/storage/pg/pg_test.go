@@ -45,10 +45,10 @@ func TestDBInitFailureBadDSN(t *testing.T) {
 	defer db.Close()
 
 	err := db.Init(ctx)
-	require.ErrorIs(t, err, errors.ErrPGInit)
+	require.ErrorIs(t, err, errors.ErrDBInit)
 
 	err = db.Ping(ctx)
-	require.ErrorIs(t, err, errors.ErrPGInit)
+	require.ErrorIs(t, err, errors.ErrDBInit)
 }
 
 func TestDBPingFailure(t *testing.T) {
@@ -71,7 +71,7 @@ func TestDBPingFailure(t *testing.T) {
 
 	db = db.WithPool(mockPool)
 	err = db.Ping(ctx)
-	require.ErrorIs(t, err, errors.ErrPGConn)
+	require.ErrorIs(t, err, errors.ErrDBConn)
 }
 
 // Test replacing the connection pool using WithPool.

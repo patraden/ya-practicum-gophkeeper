@@ -4,6 +4,7 @@ BUILD_DATE := $(shell date -u +"%d.%m.%Y")
 BUILD_COMMIT := $(shell git rev-parse --short HEAD)
 BUILD_VERSION := $(shell git describe --tags --abbrev=0 2>/dev/null || echo "N/A")
 VERSION_PACKAGE := github.com/patraden/ya-practicum-gophkeeper/internal/version
+DATABASE_DSN ?= postgres://postgres:postgres@localhost:5432/gophkeeper?sslmode=disable
 TEST_COVERAGE_REPORT := coverage.txt
 
 .PHONY: lint
@@ -12,8 +13,7 @@ lint:
 	@goimports -e -w -local "github.com/patraden/ya-practicum-gophkeeper" .
 	@echo "🧼 Organizing imports with gci..."
 	@gci write ./cmd ./internal ./pkg
-	@echo "🧹 Formatting with gofumpt..."
-	@gofumpt -w ./cmd ./internal ./pkg
+	@echo "🧹 Formatting with gofumpt..." gofumpt -w ./cmd ./internal ./pkg
 	@echo "🔎 Running golangci-lint..."
 	@golangci-lint run ./...
 	@echo "✅ Linting complete."
@@ -28,7 +28,9 @@ test:
 
 .PHONY: clean
 clean:
-	@rm -f ./$(TEST_COVERAGE_REPORT)
+	@rm -f $(TEST_COVERAGE_REPORT)
+	@rm -f *.key
+	@rm -f *.crt
 
 .PHONY: docker-certgen
 docker-certgen:
@@ -86,4 +88,3 @@ proto:
 	@echo "🧹 Tidying go.mod..."
 	@go mod tidy
 	@echo "✅ Proto generation complete."
-

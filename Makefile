@@ -12,8 +12,8 @@ lint:
 	@echo "🔍 Running goimports..."
 	@goimports -e -w -local "github.com/patraden/ya-practicum-gophkeeper" .
 	@echo "🧼 Organizing imports with gci..."
-	@gci write ./cmd ./internal ./pkg
-	@echo "🧹 Formatting with gofumpt..." gofumpt -w ./cmd ./internal ./pkg
+	@gci write ./client ./server ./pkg ./certgen
+	@echo "🧹 Formatting with gofumpt..." gofumpt -w ./client ./server ./pkg ./certgen
 	@echo "🔎 Running golangci-lint..."
 	@golangci-lint run ./...
 	@echo "✅ Linting complete."
@@ -31,6 +31,10 @@ clean:
 	@rm -f $(TEST_COVERAGE_REPORT)
 	@rm -f *.key
 	@rm -f *.crt
+
+.PHONY: docker-pg
+docker-pg:
+	@docker-compose -f $(DOCKER_COMPOSE_PATH) up -d postgres
 
 .PHONY: docker-certgen
 docker-certgen:
@@ -68,8 +72,8 @@ docker-down-all:
 
 .PHONY: avro
 avro:
-	@avrogen -pkg card -o ./internal/domain/card/avro_card.go -tags json:snake ./avro/card.avsc
-	@avrogen -pkg creds -o ./internal/domain/creds/avro_creds.go -tags json:snake ./avro/creds.avsc
+	@avrogen -pkg card -o ./pkg/domain/card/avro_card.go -tags json:snake ./avro/card.avsc
+	@avrogen -pkg creds -o ./pkg/domain/creds/avro_creds.go -tags json:snake ./avro/creds.avsc
 
 .PHONY: sql
 sql:
@@ -91,5 +95,5 @@ proto:
 
 .PHONY: mocks
 mocks:
-	@mockgen -source=internal/server/adpaters.go -destination=internal/mock/server.go -package=mock UserServiceServer
-	@mockgen -source=internal/server/adpaters.go -destination=internal/mock/server.go -package=mock AdminServiceServer
+	@mockgen -source=server/internal/handler/grpc/adpaters.go -destination=server/internal/mock/grpc.go -package=mock UserServiceServer
+	@mockgen -source=server/internal/handler/grpc/adpaters.go -destination=server/internal/mock/grpc.go -package=mock AdminServiceServer

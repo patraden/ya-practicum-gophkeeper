@@ -18,7 +18,7 @@ RUN go build -ldflags="\
   -X ${VERSION_PACKAGE}.buildVersion=${BUILD_VERSION} \
   -X ${VERSION_PACKAGE}.buildDate=${BUILD_DATE} \
   -X ${VERSION_PACKAGE}.buildCommit=${BUILD_COMMIT}" \
-  -o /app/gophkeeper ./cmd/server
+  -o /app/gophkeeper ./server/cmd
 
 FROM golang:1.24.3
 
@@ -31,4 +31,5 @@ RUN apt-get update && \
 
 COPY --from=builder /app/gophkeeper /usr/local/bin/gophkeeper
 
-CMD /usr/local/bin/gophkeeper
+COPY deployments/server/entrypoint.sh /usr/local/bin/entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

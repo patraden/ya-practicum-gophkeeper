@@ -7,7 +7,7 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o /out/certgen ./cmd/certgen
+RUN go build -o /out/certgen ./certgen/cmd
 
 FROM golang:1.24.3
 

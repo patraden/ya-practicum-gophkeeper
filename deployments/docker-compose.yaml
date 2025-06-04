@@ -26,8 +26,7 @@ services:
         /usr/local/bin/certgen -host 127.0.0.1,localhost -org-name GophKeeper -ca-cert /certs/gophkeeper/ca/ca-public.crt -ca-key /certs/gophkeeper/ca/ca-private.key &&
         mv public.crt /certs/gophkeeper/minio/ &&
         mv private.key /certs/gophkeeper/minio/ &&
-        echo 'MinIO cert:' && cat /certs/gophkeeper/minio/public.crt &&
-        echo 'GophKeeper cert:' && cat /certs/gophkeeper/backend/public.crt
+        echo 'CA certificate:' && cat /certs/gophkeeper/ca/ca-public.crt
       "
     volumes:
       - gophkeeper_certs:/certs
@@ -40,13 +39,11 @@ services:
     image: postgres:15.1
     env_file: .env
     healthcheck:
-      test: >
-        CMD-SHELL pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h localhost -p 5432
-      interval: 10s
-      timeout: 5s
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB -h 127.0.0.1"]
+      interval: 1s
+      timeout: 3s
       retries: 5
-      start_period: 10s
-    restart: unless-stopped
+      start_period: 15s
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -74,9 +71,11 @@ services:
       dockerfile: deployments/server/Dockerfile
     restart: always
     environment:
-      - SERVER_ADDRESS=${SERVER_ADDRESS:-localhost:3200}
+      - SERVER_ADDRESS=${SERVER_ADDRESS}
+      - DATABASE_DSN=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     ports:
       - "3200:3200"
     networks:

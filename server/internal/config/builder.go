@@ -2,10 +2,11 @@ package config
 
 import (
 	"flag"
+	"fmt"
 	"log"
 
 	"github.com/caarlos0/env/v6"
-	"github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
+	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
 )
 
 type builder struct {
@@ -20,7 +21,7 @@ func newBuilder() *builder {
 
 func (b *builder) loadEnv() {
 	if err := env.Parse(b.cfg); err != nil {
-		log.Fatal(errors.ErrConfigEnvParse)
+		log.Fatal(fmt.Errorf("failed to parse env: %w", e.ErrInvalidInput))
 	}
 }
 

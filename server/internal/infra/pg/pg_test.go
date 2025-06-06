@@ -5,17 +5,14 @@ import (
 	"testing"
 
 	"github.com/pashagolub/pgxmock/v4"
-	"github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
-	"github.com/patraden/ya-practicum-gophkeeper/pkg/logger"
+	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/infra/pg"
-	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 )
 
 func TestDBInitAndPingSuccess(t *testing.T) {
 	t.Parallel()
 
-	log := logger.Stdout(zerolog.DebugLevel).GetZeroLog()
 	dsn := "postgres://postgres:postgres@localhost:5432/praktikum?sslmode=disable"
 	ctx := context.Background()
 	mockPool, err := pgxmock.NewPool()
@@ -23,7 +20,7 @@ func TestDBInitAndPingSuccess(t *testing.T) {
 
 	mockPool.ExpectPing()
 
-	db := pg.NewDB(dsn, log)
+	db := pg.NewDB(dsn)
 	defer db.Close()
 
 	err = db.Init(ctx)
@@ -37,33 +34,31 @@ func TestDBInitAndPingSuccess(t *testing.T) {
 func TestDBInitFailureBadDSN(t *testing.T) {
 	t.Parallel()
 
-	log := logger.Stdout(zerolog.DebugLevel).GetZeroLog()
 	dsn := "bad_dsn"
 	ctx := context.Background()
 
-	db := pg.NewDB(dsn, log)
+	db := pg.NewDB(dsn)
 	defer db.Close()
 
 	err := db.Init(ctx)
-	require.ErrorIs(t, err, errors.ErrDBInit)
+	require.ErrorIs(t, err, e.ErrParse)
 
 	err = db.Ping(ctx)
-	require.ErrorIs(t, err, errors.ErrDBInit)
+	require.ErrorIs(t, err, e.ErrNotReady)
 }
 
 func TestDBPingFailure(t *testing.T) {
 	t.Parallel()
 
-	log := logger.Stdout(zerolog.DebugLevel).GetZeroLog()
 	mockPool, err := pgxmock.NewPool()
 	dsn := "postgres://postgres:postgres@localhost:5432/praktikum?sslmode=disable"
 	ctx := context.Background()
 
 	require.NoError(t, err)
 
-	mockPool.ExpectPing().WillReturnError(errors.ErrTesting)
+	mockPool.ExpectPing().WillReturnError(e.ErrInternal)
 
-	db := pg.NewDB(dsn, log)
+	db := pg.NewDB(dsn)
 	defer db.Close()
 
 	err = db.Init(ctx)
@@ -71,20 +66,19 @@ func TestDBPingFailure(t *testing.T) {
 
 	db = db.WithPool(mockPool)
 	err = db.Ping(ctx)
-	require.ErrorIs(t, err, errors.ErrDBConn)
+	require.ErrorIs(t, err, e.ErrUnavailable)
 }
 
 // Test replacing the connection pool using WithPool.
 func TestDBWithPool(t *testing.T) {
 	t.Parallel()
 
-	log := logger.Stdout(zerolog.DebugLevel).GetZeroLog()
 	mockPool, err := pgxmock.NewPool()
 	dsn := "postgres://fake-dsn"
 
 	require.NoError(t, err)
 
-	db := pg.NewDB(dsn, log)
+	db := pg.NewDB(dsn)
 	db = db.WithPool(mockPool)
 
 	require.Equal(t, mockPool, db.ConnPool, "connection pool should be set correctly")
@@ -95,9 +89,8 @@ func TestDBWithPool(t *testing.T) {
 func TestDBCloseWithoutInit(t *testing.T) {
 	t.Parallel()
 
-	log := logger.Stdout(zerolog.DebugLevel).GetZeroLog()
 	dsn := "postgres://fake-dsn"
-	db := pg.NewDB(dsn, log)
+	db := pg.NewDB(dsn)
 
 	require.NotPanics(t, func() {
 		db.Close()

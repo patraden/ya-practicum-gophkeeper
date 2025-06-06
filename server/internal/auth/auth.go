@@ -40,7 +40,7 @@ func FromContext(ctx context.Context) (*jwt.Token, *Claims, error) {
 		if c, ok := token.Claims.(*Claims); ok {
 			claims = c
 		} else {
-			return token, nil, e.ErrAuthTokenInvalid
+			return token, nil, e.ErrInvalidInput
 		}
 	}
 
@@ -61,17 +61,16 @@ func New(keyFunc jwt.Keyfunc, log *zerolog.Logger) *Auth {
 	}
 }
 
-// Validate validates the JWT stoken tring and returns jwt.Token pointer if string is valid.
+// Validate validates the JWT token tring and returns jwt.Token pointer if string is valid.
 func (auth *Auth) Validate(tokenString string) (*jwt.Token, error) {
 	claims := &Claims{}
 
 	token, err := jwt.ParseWithClaims(tokenString, claims, auth.keyFunc)
 	if err != nil {
-		auth.log.Error().
-			Err(err).
+		auth.log.Error().Err(err).
 			Msg("failed to parse JWT token")
 
-		return nil, e.ErrAuthTokenInvalid
+		return nil, e.ErrInvalidInput
 	}
 
 	claims, ok := token.Claims.(*Claims)
@@ -80,7 +79,7 @@ func (auth *Auth) Validate(tokenString string) (*jwt.Token, error) {
 			Str("user_id", claims.UserID).
 			Msg("invalid claims")
 
-		return nil, e.ErrAuthTokenInvalid
+		return nil, e.ErrUnauthenticated
 	}
 
 	return token, nil
@@ -110,7 +109,7 @@ func (auth *Auth) Encoder() TokenEncoder {
 				Str("username", user.Username).
 				Msg("failed to retrieve signing key")
 
-			return "", e.ErrAuthTokenGenerate
+			return "", e.ErrGenerate
 		}
 
 		tokenString, err := token.SignedString(signingKey)
@@ -120,7 +119,7 @@ func (auth *Auth) Encoder() TokenEncoder {
 				Str("username", user.Username).
 				Msg("failed to sign token")
 
-			return "", e.ErrAuthTokenGenerate
+			return "", e.ErrGenerate
 		}
 
 		auth.log.Info().
@@ -151,7 +150,7 @@ func (auth *Auth) VerifyContext(ctx context.Context, extractors ...TokenExtracto
 		auth.log.Error().
 			Msg("token not found in request")
 
-		return nil, e.ErrAuthTokenNotFound
+		return nil, e.ErrNotFound
 	}
 
 	return auth.Validate(tokenString)

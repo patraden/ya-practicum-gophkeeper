@@ -28,7 +28,7 @@ func RunSQLite(dsn string, embedFS embed.FS, dir string, logger *logger.Logger) 
 			Str("driver_name", DriverSQLite).
 			Msg("Failed to open db connection")
 
-		return errors.ErrDBMigration
+		return errors.ErrOpen
 	}
 
 	return Run(db, embedFS, string(goose.DialectSQLite3), dir, logger)
@@ -44,7 +44,7 @@ func RunPG(dsn string, embedFS embed.FS, dir string, logger *logger.Logger) erro
 			Str("driver_name", DriverPostgres).
 			Msg("Failed to open db connection")
 
-		return errors.ErrDBMigration
+		return errors.ErrOpen
 	}
 
 	return Run(db, embedFS, string(goose.DialectPostgres), dir, logger)
@@ -63,7 +63,7 @@ func Run(db *sql.DB, embedFS embed.FS, dialect, dir string, logger *logger.Logge
 		logger.GetZeroLog().Error().Err(err).
 			Msg("DB is unreachable")
 
-		return errors.ErrDBMigration
+		return errors.ErrUnavailable
 	}
 
 	goose.SetBaseFS(embedFS)
@@ -74,7 +74,7 @@ func Run(db *sql.DB, embedFS embed.FS, dialect, dir string, logger *logger.Logge
 			Str("dialect", dialect).
 			Msg("Failed to set db dialect")
 
-		return errors.ErrDBMigration
+		return errors.ErrInvalidInput
 	}
 
 	if err := goose.Up(db, dir); err != nil {
@@ -82,7 +82,7 @@ func Run(db *sql.DB, embedFS embed.FS, dialect, dir string, logger *logger.Logge
 			Str("dialect", dialect).
 			Msg("Failed to apply migrations")
 
-		return errors.ErrDBMigration
+		return errors.ErrInternal
 	}
 
 	log.Info().

@@ -1,4 +1,4 @@
-package usecase
+package app
 
 import (
 	"context"
@@ -36,7 +36,7 @@ func (u *UserUC) RegisterUser(ctx context.Context, creds *dto.UserCredentials) (
 			Str("username", creds.Username).
 			Msg("failed to get auth user info")
 
-		return nil, e.ErrServerInternal
+		return nil, e.ErrInternal
 	}
 
 	authUserRole := claims.Role
@@ -46,7 +46,7 @@ func (u *UserUC) RegisterUser(ctx context.Context, creds *dto.UserCredentials) (
 			Str("username", creds.Username).
 			Msg("user is not authorised to register admin user")
 
-		return nil, e.ErrUnauthorised
+		return nil, e.ErrUnauthorized
 	}
 
 	usr := user.New(creds.Username, user.Role(creds.Role))
@@ -61,7 +61,7 @@ func (u *UserUC) RegisterUser(ctx context.Context, creds *dto.UserCredentials) (
 
 	repoUser, err := u.repo.CreateUser(ctx, usr)
 
-	if errors.Is(err, e.ErrUserExists) {
+	if errors.Is(err, e.ErrExists) {
 		return nil, err
 	}
 
@@ -70,7 +70,7 @@ func (u *UserUC) RegisterUser(ctx context.Context, creds *dto.UserCredentials) (
 			Str("username", creds.Username).
 			Msg("user registration error")
 
-		return nil, e.ErrServerInternal
+		return nil, e.ErrInternal
 	}
 
 	return repoUser, nil

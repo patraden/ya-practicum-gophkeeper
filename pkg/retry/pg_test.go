@@ -36,7 +36,7 @@ func TestRetriablePG(t *testing.T) {
 		},
 		{
 			name:     "Non-PgError",
-			err:      e.ErrTesting,
+			err:      e.ErrInternal,
 			expected: false,
 		},
 	}
@@ -90,9 +90,9 @@ func PGRetryTests(t *testing.T) []RetryTest {
 			func(attempts *int) error {
 				*attempts++
 
-				return e.ErrTesting
+				return e.ErrInternal
 			},
-			e.ErrTesting,
+			e.ErrInternal,
 			0,
 		},
 	}

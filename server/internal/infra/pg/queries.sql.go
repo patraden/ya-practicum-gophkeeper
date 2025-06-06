@@ -13,24 +13,25 @@ import (
 )
 
 const CreateUser = `-- name: CreateUser :one
-INSERT INTO users (id, username, role, password, salt, created_at, updated_at)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
+INSERT INTO users (id, username, role, created_at, updated_at, password, salt, verifier)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 ON CONFLICT (username) DO UPDATE
 SET id = users.id,
     role = users.role,
     created_at = users.created_at,
     updated_at = users.updated_at
-RETURNING id, username, role, password, salt, created_at, updated_at
+RETURNING id, username, role, created_at, updated_at, password, salt, verifier
 `
 
 type CreateUserParams struct {
 	ID        user.ID   `db:"id"`
 	Username  string    `db:"username"`
 	Role      user.Role `db:"role"`
-	Password  []byte    `db:"password"`
-	Salt      []byte    `db:"salt"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
+	Password  []byte    `db:"password"`
+	Salt      []byte    `db:"salt"`
+	Verifier  []byte    `db:"verifier"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -38,18 +39,53 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.ID,
 		arg.Username,
 		arg.Role,
-		arg.Password,
-		arg.Salt,
 		arg.CreatedAt,
 		arg.UpdatedAt,
+		arg.Password,
+		arg.Salt,
+		arg.Verifier,
 	)
 	var i User
 	err := row.Scan(
 		&i.ID,
 		&i.Username,
 		&i.Role,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 		&i.Password,
 		&i.Salt,
+		&i.Verifier,
+	)
+	return i, err
+}
+
+const CreateUserKey = `-- name: CreateUserKey :one
+INSERT INTO keys (user_id, kek, algorithm, created_at, updated_at)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING user_id, kek, algorithm, created_at, updated_at
+`
+
+type CreateUserKeyParams struct {
+	UserID    user.ID   `db:"user_id"`
+	Kek       []byte    `db:"kek"`
+	Algorithm string    `db:"algorithm"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
+func (q *Queries) CreateUserKey(ctx context.Context, arg CreateUserKeyParams) (Key, error) {
+	row := q.db.QueryRow(ctx, CreateUserKey,
+		arg.UserID,
+		arg.Kek,
+		arg.Algorithm,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+	)
+	var i Key
+	err := row.Scan(
+		&i.UserID,
+		&i.Kek,
+		&i.Algorithm,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -57,7 +93,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const GetUser = `-- name: GetUser :one
-SELECT id, username, role, password, salt, created_at, updated_at
+SELECT id, username, role, created_at, updated_at, password, salt, verifier
 FROM users
 WHERE username = $1
 `
@@ -69,10 +105,11 @@ func (q *Queries) GetUser(ctx context.Context, username string) (User, error) {
 		&i.ID,
 		&i.Username,
 		&i.Role,
-		&i.Password,
-		&i.Salt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Password,
+		&i.Salt,
+		&i.Verifier,
 	)
 	return i, err
 }

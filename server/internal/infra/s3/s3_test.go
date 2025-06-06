@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
+	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/config"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/infra/s3"
 	"github.com/stretchr/testify/require"
@@ -22,6 +22,6 @@ func TestNewMinioClient_Invalid(t *testing.T) {
 	}
 
 	client, err := s3.NewMinioClient(cfg, transport)
-	require.ErrorIs(t, err, errors.ErrMinioClientCreate)
+	require.ErrorIs(t, err, e.ErrInternal)
 	require.Nil(t, client)
 }

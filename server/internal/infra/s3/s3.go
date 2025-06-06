@@ -32,7 +32,7 @@ func NewMinioClient(cfg *config.Config, transport *http.Transport) (*minio.Clien
 		Transport: transport,
 	})
 	if err != nil {
-		return nil, e.ErrMinioClientCreate
+		return nil, e.ErrInternal
 	}
 
 	return client, nil

@@ -32,13 +32,22 @@ RETURNING id, username, verifier, role, created_at, updated_at
 type CreateUserParams struct {
 	ID        string
 	Username  string
-	Verifier  []byte
+	Verifier  string
 	Role      user.Role
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+type CreateUserRow struct {
+	ID        string
+	Username  string
+	Verifier  string
+	Role      user.Role
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
 	row := q.db.QueryRowContext(ctx, createUser,
 		arg.ID,
 		arg.Username,
@@ -47,7 +56,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.CreatedAt,
 		arg.UpdatedAt,
 	)
-	var i User
+	var i CreateUserRow
 	err := row.Scan(
 		&i.ID,
 		&i.Username,

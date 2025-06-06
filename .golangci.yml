@@ -27,10 +27,7 @@ linters-settings:
 
   wrapcheck:
     ignorePackageGlobs:
-      - os
-      - github.com/google/uuid
       - github.com/cenkalti/backoff/*
-      - github.com/hamba/avro/v2
       - github.com/patraden/ya-practicum-gophkeeper/pkg/**
       - github.com/patraden/ya-practicum-gophkeeper/server/internal/**
       - github.com/patraden/ya-practicum-gophkeeper/client/internal/**

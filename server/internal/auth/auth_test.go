@@ -65,7 +65,7 @@ func ExpiredToken(t *testing.T) (string, error) {
 
 	signedToken, err := token.SignedString([]byte(jwtSecret))
 	if err != nil {
-		return ``, e.ErrTesting
+		return ``, e.ErrInvalidInput
 	}
 
 	return signedToken, nil
@@ -98,10 +98,10 @@ func TestAuthEncoder(t *testing.T) {
 		{
 			name: "keyFunc returns error",
 			keyFunc: func(_ *jwt.Token) (any, error) {
-				return nil, e.ErrAuthTokenGenerate
+				return nil, e.ErrGenerate
 			},
 			user:        usr,
-			expectErr:   e.ErrAuthTokenGenerate,
+			expectErr:   e.ErrGenerate,
 			expectToken: false,
 		},
 		{
@@ -110,7 +110,7 @@ func TestAuthEncoder(t *testing.T) {
 				return struct{}{}, nil // incompatible key type
 			},
 			user:        usr,
-			expectErr:   e.ErrAuthTokenGenerate,
+			expectErr:   e.ErrGenerate,
 			expectToken: false,
 		},
 	}
@@ -165,7 +165,7 @@ func TestAuthVerifyInvalid(t *testing.T) {
 	jwtauth := auth.New(mockKeyFunc, logger)
 
 	token, err := jwtauth.Validate("invalid.token")
-	require.ErrorIs(t, err, e.ErrAuthTokenInvalid, "Verification of an invalid token should error")
+	require.ErrorIs(t, err, e.ErrInvalidInput, "Verification of an invalid token should error")
 	assert.Nil(t, token)
 
 	encoder := jwtauth.Encoder()
@@ -173,13 +173,13 @@ func TestAuthVerifyInvalid(t *testing.T) {
 	require.NoError(t, err)
 
 	token, err = jwtauth.Validate(tokenString)
-	require.ErrorIs(t, err, e.ErrAuthTokenInvalid, "Verification of a token with nil user_id should error")
+	require.ErrorIs(t, err, e.ErrUnauthenticated, "Verification of a token with nil user_id should error")
 	assert.Nil(t, token)
 
 	expiredToken, err := ExpiredToken(t)
 	require.NoError(t, err)
 	token, err = jwtauth.Validate(expiredToken)
-	require.ErrorIs(t, err, e.ErrAuthTokenInvalid, "Verification of an expired token should error")
+	require.ErrorIs(t, err, e.ErrInvalidInput, "Verification of an expired token should error")
 	assert.Nil(t, token)
 
 	// Create token with wrong key
@@ -189,7 +189,7 @@ func TestAuthVerifyInvalid(t *testing.T) {
 	require.NoError(t, err)
 
 	token, err = jwtauth.Validate(tokenString)
-	require.ErrorIs(t, err, e.ErrAuthTokenInvalid, "Verification of a token with bad secret should error")
+	require.ErrorIs(t, err, e.ErrInvalidInput, "Verification of a token with bad secret should error")
 	assert.Nil(t, token)
 }
 
@@ -211,10 +211,10 @@ func TestAuthVerifyContext(t *testing.T) {
 		expectErr   error
 	}{
 		{"valid token", map[string]string{"authorization": "Bearer " + validToken}, true, nil},
-		{"missing metadata", nil, false, e.ErrAuthTokenNotFound},
-		{"no header", map[string]string{"x-custom-header": "value"}, false, e.ErrAuthTokenNotFound},
-		{"header is empty", map[string]string{"authorization": ""}, false, e.ErrAuthTokenNotFound},
-		{"no Bearer prefix", map[string]string{"authorization": "Token " + validToken}, false, e.ErrAuthTokenNotFound},
+		{"missing metadata", nil, false, e.ErrNotFound},
+		{"no header", map[string]string{"x-custom-header": "value"}, false, e.ErrNotFound},
+		{"header is empty", map[string]string{"authorization": ""}, false, e.ErrNotFound},
+		{"no Bearer prefix", map[string]string{"authorization": "Token " + validToken}, false, e.ErrNotFound},
 	}
 
 	for _, tt := range tests {

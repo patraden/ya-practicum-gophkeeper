@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
+	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
 	"github.com/rs/zerolog"
 )
 
@@ -36,7 +36,7 @@ func (b *HTTPTransportBuilder) Build() (*http.Transport, error) {
 			b.log.Error().
 				Msg("path to certificate file is empty")
 
-			return nil, errors.ErrMinioClientTransport
+			return nil, e.ErrEmptyInput
 		}
 
 		certData, err := os.ReadFile(b.CertPath)
@@ -45,7 +45,7 @@ func (b *HTTPTransportBuilder) Build() (*http.Transport, error) {
 				Str("file_path", b.CertPath).
 				Msg("failed to read certificate from file")
 
-			return nil, errors.ErrMinioClientTransport
+			return nil, e.ErrRead
 		}
 
 		b.CertBytes = certData
@@ -54,10 +54,9 @@ func (b *HTTPTransportBuilder) Build() (*http.Transport, error) {
 	certPool := x509.NewCertPool()
 	if !certPool.AppendCertsFromPEM(b.CertBytes) {
 		b.log.Error().
-			Str("certificate", string(b.CertBytes)).
 			Msg("failed to add certificate to the pool")
 
-		return nil, errors.ErrMinioClientTransport
+		return nil, e.ErrInvalidInput
 	}
 
 	tlsConfig := &tls.Config{

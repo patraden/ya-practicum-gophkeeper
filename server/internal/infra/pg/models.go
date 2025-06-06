@@ -10,12 +10,21 @@ import (
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/domain/user"
 )
 
+type Key struct {
+	UserID    user.ID   `db:"user_id"`
+	Kek       []byte    `db:"kek"`
+	Algorithm string    `db:"algorithm"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
 type User struct {
 	ID        user.ID   `db:"id"`
 	Username  string    `db:"username"`
 	Role      user.Role `db:"role"`
-	Password  []byte    `db:"password"`
-	Salt      []byte    `db:"salt"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
+	Password  []byte    `db:"password"`
+	Salt      []byte    `db:"salt"`
+	Verifier  []byte    `db:"verifier"`
 }

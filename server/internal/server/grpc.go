@@ -5,7 +5,7 @@ import (
 	"crypto/tls"
 	"net"
 
-	"github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
+	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
 	pb "github.com/patraden/ya-practicum-gophkeeper/pkg/proto/gophkeeper/v1"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/config"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/grpchandler"
@@ -35,7 +35,7 @@ func New(
 		log.Error().Err(err).
 			Msg("gRPC failed to load tls keypair")
 
-		return nil, errors.ErrServerTLS
+		return nil, e.ErrRead
 	}
 
 	tlsCfg := &tls.Config{
@@ -74,7 +74,7 @@ func (s *GRPCServer) Run() error {
 			Str("server_address", s.config.ServerAddr).
 			Msg("failed to listen tcp address")
 
-		return errors.ErrServerStart
+		return e.ErrUnavailable
 	}
 
 	pb.RegisterUserServiceServer(s.grpcSrv, grpchandler.NewUserServiceAdapter(s.userSrv))
@@ -83,9 +83,9 @@ func (s *GRPCServer) Run() error {
 	if err := s.grpcSrv.Serve(listen); err != nil {
 		s.log.Error().Err(err).
 			Str("server_address", s.config.ServerAddr).
-			Msg("failed to server gRPC server")
+			Msg("failed to serve gRPC server")
 
-		return errors.ErrServerStart
+		return e.ErrInternal
 	}
 
 	return nil
@@ -106,7 +106,7 @@ func (s *GRPCServer) Shutdown(ctx context.Context) error {
 		s.log.Error().Err(ctx.Err()).
 			Msg("Forced gRPC shutdown due to context cancel")
 
-		return errors.ErrServerShutdown
+		return e.ErrTimeout
 	case <-stopped:
 		s.log.Info().
 			Str("server_address", s.config.ServerAddr).

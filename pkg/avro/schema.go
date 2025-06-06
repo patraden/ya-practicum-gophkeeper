@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/hamba/avro/v2"
+	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
 )
 
 type SchemaFile struct {
@@ -34,12 +35,12 @@ func (s *SchemaFile) Read() (avro.Schema, error) {
 func loadSchema(filePath string) (avro.Schema, error) {
 	schemaData, err := os.ReadFile(filePath)
 	if err != nil {
-		return nil, err
+		return nil, e.ErrRead
 	}
 
 	schema, err := avro.Parse(string(schemaData))
 	if err != nil {
-		return nil, err
+		return nil, e.ErrParse
 	}
 
 	return schema, nil

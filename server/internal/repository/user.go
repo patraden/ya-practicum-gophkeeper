@@ -74,7 +74,7 @@ func (repo *UserRepo) CreateUser(ctx context.Context, usr *user.User) (*user.Use
 		logCtx.Error().Err(bucketErr).
 			Msg("failed to create user bucket")
 
-		return nil, e.ErrServerInternal
+		return nil, e.ErrInternal
 	}
 
 	var dbUser *user.User
@@ -86,13 +86,14 @@ func (repo *UserRepo) CreateUser(ctx context.Context, usr *user.User) (*user.Use
 			Role:      usr.Role,
 			Password:  usr.Password,
 			Salt:      usr.Salt,
+			Verifier:  usr.Verifier,
 			CreatedAt: usr.CreatedAt,
 			UpdatedAt: usr.UpdatedAt,
 		})
 
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
-			return e.ErrUserExists
+			return e.ErrExists
 		}
 
 		if err != nil {
@@ -107,10 +108,11 @@ func (repo *UserRepo) CreateUser(ctx context.Context, usr *user.User) (*user.Use
 			UpdatedAt: sqlUser.UpdatedAt,
 			Password:  []byte{},
 			Salt:      sqlUser.Salt,
+			Verifier:  sqlUser.Verifier,
 		}
 
 		if dbUser.ID != usr.ID {
-			return e.ErrUserExists
+			return e.ErrExists
 		}
 
 		return nil
@@ -131,7 +133,7 @@ func (repo *UserRepo) CreateUser(ctx context.Context, usr *user.User) (*user.Use
 	// It is non-critical and can be later compensated by background reconciliation.
 	repo.compensateBucket(ctx, bucketName, "user_creation_failed", logCtx)
 
-	return nil, e.ErrServerInternal
+	return nil, e.ErrInternal
 }
 
 func (repo *UserRepo) compensateBucket(ctx context.Context, bucketName, reason string, logCtx zerolog.Logger) {

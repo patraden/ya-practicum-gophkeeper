@@ -30,31 +30,31 @@ func TestWithTransaction(t *testing.T) {
 		},
 		{
 			name:          "query function fails",
-			queryFn:       func(*pg.Queries) error { return e.ErrTesting },
+			queryFn:       func(*pg.Queries) error { return e.ErrInternal },
 			mockSetup:     func(p pgxmock.PgxPoolIface) { p.ExpectBegin(); p.ExpectRollback() },
-			expectedError: e.ErrTesting,
+			expectedError: e.ErrInternal,
 		},
 		{
 			name:          "begin transaction fails",
 			queryFn:       func(*pg.Queries) error { return nil },
-			mockSetup:     func(p pgxmock.PgxPoolIface) { p.ExpectBegin().WillReturnError(e.ErrTesting) },
-			expectedError: e.ErrTesting,
+			mockSetup:     func(p pgxmock.PgxPoolIface) { p.ExpectBegin().WillReturnError(e.ErrInternal) },
+			expectedError: e.ErrInternal,
 		},
 		{
 			name:    "commit transaction fails",
 			queryFn: func(*pg.Queries) error { return nil },
 			mockSetup: func(p pgxmock.PgxPoolIface) {
 				p.ExpectBegin()
-				p.ExpectCommit().WillReturnError(e.ErrTesting)
+				p.ExpectCommit().WillReturnError(e.ErrInternal)
 				p.ExpectRollback()
 			},
-			expectedError: e.ErrTesting,
+			expectedError: e.ErrInternal,
 		},
 		{
 			name:          "rollback transaction fails",
-			queryFn:       func(*pg.Queries) error { return e.ErrTesting },
-			mockSetup:     func(p pgxmock.PgxPoolIface) { p.ExpectBegin(); p.ExpectRollback().WillReturnError(e.ErrTesting) },
-			expectedError: e.ErrTesting,
+			queryFn:       func(*pg.Queries) error { return e.ErrInternal },
+			mockSetup:     func(p pgxmock.PgxPoolIface) { p.ExpectBegin(); p.ExpectRollback().WillReturnError(e.ErrInternal) },
+			expectedError: e.ErrInternal,
 		},
 	}
 

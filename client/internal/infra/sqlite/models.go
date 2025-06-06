@@ -13,8 +13,9 @@ import (
 type User struct {
 	ID        string
 	Username  string
-	Verifier  []byte
+	Verifier  string
 	Role      user.Role
+	Salt      string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

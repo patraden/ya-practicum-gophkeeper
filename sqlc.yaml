@@ -33,6 +33,18 @@ sql:
             go_type:
               import: "github.com/patraden/ya-practicum-gophkeeper/pkg/domain/user"
               type: "Role"
+          - column: "keys.updated_at"
+            go_type:
+              import: "time"
+              type: "Time"
+          - column: "keys.created_at"
+            go_type:
+              import: "time"
+              type: "Time"
+          - column: "keys.user_id"
+            go_type:
+              import: "github.com/patraden/ya-practicum-gophkeeper/pkg/domain/user"
+              type: "ID"
 
   - engine: "sqlite"
     schema: 

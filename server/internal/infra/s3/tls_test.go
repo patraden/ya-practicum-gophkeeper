@@ -41,12 +41,12 @@ func TestHTTPTransportBuilder_FromBytes(t *testing.T) {
 		{
 			name:      "invalid certificate",
 			certBytes: []byte("not a cert"),
-			wantErr:   errors.ErrMinioClientTransport,
+			wantErr:   errors.ErrInvalidInput,
 		},
 		{
 			name:      "empty certificate",
 			certBytes: []byte{},
-			wantErr:   errors.ErrMinioClientTransport,
+			wantErr:   errors.ErrEmptyInput,
 		},
 	}
 
@@ -90,12 +90,12 @@ func TestHTTPTransportBuilder_FromFile(t *testing.T) {
 		{
 			name:     "non-existent file",
 			certPath: filepath.Join(t.TempDir(), "no-such-file.pem"),
-			wantErr:  errors.ErrMinioClientTransport,
+			wantErr:  errors.ErrRead,
 		},
 		{
 			name:     "empty file path",
 			certPath: "",
-			wantErr:  errors.ErrMinioClientTransport,
+			wantErr:  errors.ErrEmptyInput,
 		},
 	}
 

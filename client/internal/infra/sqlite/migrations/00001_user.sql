@@ -3,8 +3,9 @@
 CREATE TABLE users (
   id TEXT PRIMARY KEY,
   username TEXT UNIQUE NOT NULL,
-  verifier BLOB NOT NULL,
+  verifier TEXT NOT NULL,
   role TEXT NOT NULL,
+  salt TEXT NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL
 );

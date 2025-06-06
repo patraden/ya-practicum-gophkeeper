@@ -3,6 +3,7 @@ package card
 import (
 	"github.com/hamba/avro/v2"
 	uavro "github.com/patraden/ya-practicum-gophkeeper/pkg/avro"
+	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
 )
 
 const cardNumberLength = 16
@@ -13,11 +14,11 @@ func UnmarshalBankCard(schemaFile *uavro.SchemaFile, val []byte) (*BankCard, err
 
 	schema, err := schemaFile.Read()
 	if err != nil {
-		return nil, err
+		return nil, e.ErrRead
 	}
 
 	if err := avro.Unmarshal(schema, val, card); err != nil {
-		return nil, err
+		return nil, e.ErrUnmarshal
 	}
 
 	return card, nil
@@ -37,5 +38,10 @@ func (b *BankCard) Marshal(schemaFile *uavro.SchemaFile) ([]byte, error) {
 		return []byte{}, err
 	}
 
-	return avro.Marshal(schema, b)
+	avro, err := avro.Marshal(schema, b)
+	if err != nil {
+		return []byte{}, e.ErrMarshal
+	}
+
+	return avro, nil
 }

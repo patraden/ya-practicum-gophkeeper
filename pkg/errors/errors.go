@@ -3,27 +3,49 @@ package errors
 import "errors"
 
 var (
-	ErrCryptoKeyGenerate    = errors.New("crypto key generation error")
-	ErrCryptoKeyEncrypt     = errors.New("crypto key encryption error")
-	ErrCryptoKeyDecrypt     = errors.New("crypto key decryption error")
-	ErrConfigEnvParse       = errors.New("env vars parsing error")
-	ErrMinioClientTransport = errors.New("minio http transport error")
-	ErrMinioClientCreate    = errors.New("minio http client create error")
-	ErrUserParse            = errors.New("parse user string error")
-	ErrAuthTokenNotFound    = errors.New("jwt token not found")
-	ErrAuthTokenGenerate    = errors.New("jwt token generation error")
-	ErrAuthTokenInvalid     = errors.New("jwt token invalid")
-	ErrDBInit               = errors.New("sql db init error")
-	ErrDBConn               = errors.New("sql db connection error")
-	ErrDBClose              = errors.New("sql db close error")
-	ErrDBMigration          = errors.New("sql db migration error")
-	ErrServerStart          = errors.New("grpc server start error")
-	ErrServerShutdown       = errors.New("grpc server shutdown error")
-	ErrServerTLS            = errors.New("grpc server tls error")
-	ErrUseCaseRegisterUser  = errors.New("user creating error")
-	ErrServerInternal       = errors.New("internal server error")
-	ErrUnauthorised         = errors.New("authorization error")
-	ErrUserExists           = errors.New("user already exists")
-	ErrUserPassHashing      = errors.New("user password hashing error")
-	ErrTesting              = errors.New("testing error")
+	// Validation and Input.
+	ErrInvalidInput = errors.New("invalid input")
+	ErrEmptyInput   = errors.New("empty input")
+	ErrValidation   = errors.New("validation error")
+	ErrGenerate     = errors.New("generation error")
+
+	// Serialization.
+	ErrParse     = errors.New("parse error")
+	ErrMarshal   = errors.New("marshal error")
+	ErrUnmarshal = errors.New("unmarshal error")
+	ErrEncode    = errors.New("encode error")
+	ErrDecode    = errors.New("decode error")
+
+	// Security.
+	ErrEncrypt = errors.New("encryption error")
+	ErrDecrypt = errors.New("decryption error")
+
+	// I/O.
+	ErrOpen  = errors.New("open error")
+	ErrRead  = errors.New("read error")
+	ErrWrite = errors.New("write error")
+	ErrSeek  = errors.New("seek error")
+	ErrClose = errors.New("close error")
+
+	// State and Existence.
+	ErrNotFound = errors.New("not found")
+	ErrExists   = errors.New("already exists")
+	ErrConflict = errors.New("conflict")
+	ErrCorrupt  = errors.New("corrupted data")
+	ErrNotReady = errors.New("not ready")
+
+	// Runtime / System.
+	ErrInternal       = errors.New("internal error")
+	ErrUnavailable    = errors.New("service unavailable")
+	ErrNotImplemented = errors.New("not implemented")
+	ErrRuntime        = errors.New("runtime error")
+	ErrTimeout        = errors.New("timeout")
+	ErrCanceled       = errors.New("operation canceled")
+	ErrUnsupported    = errors.New("unsupported operation")
+
+	// Access / Auth.
+	ErrUnauthorized     = errors.New("unauthorized")
+	ErrUnauthenticated  = errors.New("unauthenticated")
+	ErrPermissionDenied = errors.New("permission denied")
+	ErrForbidden        = errors.New("forbidden")
 )

@@ -7,6 +7,7 @@ import (
 
 	"github.com/hamba/avro/v2"
 	uavro "github.com/patraden/ya-practicum-gophkeeper/pkg/avro"
+	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
 	"github.com/stretchr/testify/require"
 )
 
@@ -54,6 +55,5 @@ func TestAvroSchemaFileNotFound(t *testing.T) {
 
 	schemaFile := uavro.NewSchemaFile("nonexistent.avsc")
 	_, err := schemaFile.Read()
-	require.Error(t, err)
-	require.ErrorContains(t, err, "no such file or directory")
+	require.ErrorIs(t, err, e.ErrRead)
 }

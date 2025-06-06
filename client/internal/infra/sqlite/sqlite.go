@@ -6,39 +6,29 @@ import (
 
 	// Import SQLite driver anonymously to register with database/sql.
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
-	"github.com/rs/zerolog"
+	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
 )
 
 type DB struct {
 	conn    *sql.DB
 	Queries *Queries
-	log     *zerolog.Logger
 }
 
-func NewDB(dbPath string, log *zerolog.Logger) (*DB, error) {
+func NewDB(dbPath string) (*DB, error) {
 	conn, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
-		log.Error().Err(err).
-			Str("db_path", dbPath).
-			Msg("failed to open db")
-
-		return nil, errors.ErrDBInit
+		return nil, e.ErrOpen
 	}
 
 	return &DB{
 		conn:    conn,
 		Queries: New(conn),
-		log:     log,
 	}, nil
 }
 
 func (db *DB) Ping(ctx context.Context) error {
 	if err := db.conn.PingContext(ctx); err != nil {
-		db.log.Error().Err(err).
-			Msg("failed to ping sqlite db")
-
-		return errors.ErrDBConn
+		return e.ErrUnavailable
 	}
 
 	return nil
@@ -46,9 +36,7 @@ func (db *DB) Ping(ctx context.Context) error {
 
 func (db *DB) Close() error {
 	if err := db.conn.Close(); err != nil {
-		db.log.Info().Msg("closed sqlite db")
-
-		return errors.ErrDBClose
+		return e.ErrClose
 	}
 
 	return nil

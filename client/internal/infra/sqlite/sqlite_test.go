@@ -6,8 +6,6 @@ import (
 
 	"github.com/patraden/ya-practicum-gophkeeper/client/internal/infra/sqlite"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
-	"github.com/patraden/ya-practicum-gophkeeper/pkg/logger"
-	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,9 +14,8 @@ func makeTestDB(t *testing.T) *sqlite.DB {
 
 	tmpDir := t.TempDir()
 	dbPath := filepath.Join(tmpDir, "test.db")
-	log := logger.Stdout(zerolog.DebugLevel).GetZeroLog()
 
-	db, err := sqlite.NewDB(dbPath, log)
+	db, err := sqlite.NewDB(dbPath)
 	require.NoError(t, err)
 
 	return db
@@ -35,5 +32,5 @@ func TestDBInitAndPing(t *testing.T) {
 	db.Close()
 
 	err = db.Ping(t.Context())
-	require.ErrorIs(t, err, errors.ErrDBConn)
+	require.ErrorIs(t, err, errors.ErrUnavailable)
 }

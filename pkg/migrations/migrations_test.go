@@ -50,14 +50,14 @@ func TestRunSQLite(t *testing.T) {
 			dsn:     validDSN,
 			dir:     "testdata/unknown",
 			fs:      testMigrations,
-			wantErr: errors.ErrDBMigration,
+			wantErr: errors.ErrInternal,
 		},
 		{
 			name:    "invalid dsn path",
 			dsn:     "/nonexistingpath/test.db",
 			dir:     "testdata/sqlite",
 			fs:      testMigrations,
-			wantErr: errors.ErrDBMigration,
+			wantErr: errors.ErrUnavailable,
 		},
 	}
 

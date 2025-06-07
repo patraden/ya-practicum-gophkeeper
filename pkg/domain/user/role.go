@@ -10,3 +10,7 @@ type Role string
 func (r Role) String() string {
 	return string(r)
 }
+
+func (r Role) IsAdmin() bool {
+	return r == RoleAdmin
+}

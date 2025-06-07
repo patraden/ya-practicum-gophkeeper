@@ -1,3 +1,4 @@
+//nolint:funlen // reason: testing internal logic and long test functions are acceptable
 package pg_test
 
 import (
@@ -51,9 +52,12 @@ func TestWithTransaction(t *testing.T) {
 			expectedError: e.ErrInternal,
 		},
 		{
-			name:          "rollback transaction fails",
-			queryFn:       func(*pg.Queries) error { return e.ErrInternal },
-			mockSetup:     func(p pgxmock.PgxPoolIface) { p.ExpectBegin(); p.ExpectRollback().WillReturnError(e.ErrInternal) },
+			name:    "rollback transaction fails",
+			queryFn: func(*pg.Queries) error { return e.ErrInternal },
+			mockSetup: func(p pgxmock.PgxPoolIface) {
+				p.ExpectBegin()
+				p.ExpectRollback().WillReturnError(e.ErrInternal)
+			},
 			expectedError: e.ErrInternal,
 		},
 	}

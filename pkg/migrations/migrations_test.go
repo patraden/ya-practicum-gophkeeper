@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
+	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/logger"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/migrations"
 	"github.com/rs/zerolog"
@@ -50,14 +50,14 @@ func TestRunSQLite(t *testing.T) {
 			dsn:     validDSN,
 			dir:     "testdata/unknown",
 			fs:      testMigrations,
-			wantErr: errors.ErrInternal,
+			wantErr: e.ErrInternal,
 		},
 		{
 			name:    "invalid dsn path",
 			dsn:     "/nonexistingpath/test.db",
 			dir:     "testdata/sqlite",
 			fs:      testMigrations,
-			wantErr: errors.ErrUnavailable,
+			wantErr: e.ErrUnavailable,
 		},
 	}
 

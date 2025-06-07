@@ -2,11 +2,15 @@ package pg
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/jackc/pgx/v5"
 )
 
-// query function wrapper into pg database transaction.
+// WithinTrx wraps a query function in a db transaction using the provided connection pool and options.
+// If the function returns an error, the transaction is rolled back.
+// If the function succeeds, the transaction is committed.
+// The original error is preserved even if rollback also fails.
 func WithinTrx(
 	ctx context.Context,
 	connPool ConnenctionPool,
@@ -24,19 +28,19 @@ func WithinTrx(
 		defer func() {
 			if err != nil {
 				if rollbackErr := trx.Rollback(ctx); rollbackErr != nil {
-					err = rollbackErr
-
-					return
+					err = fmt.Errorf("query failed: %w, rollback failed: %w", err, rollbackErr)
 				}
 			}
 		}()
 
-		if fnErr := queryfn(queries.WithTx(trx)); fnErr != nil {
-			return fnErr
+		if err = queryfn(queries.WithTx(trx)); err != nil {
+			return err
 		}
 
-		err = trx.Commit(ctx)
+		if commitErr := trx.Commit(ctx); commitErr != nil {
+			return fmt.Errorf("commit failed: %w", commitErr)
+		}
 
-		return
+		return nil
 	}
 }

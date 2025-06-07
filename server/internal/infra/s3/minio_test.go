@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewMinioClient_Invalid(t *testing.T) {
+func TestNewMinioClientInvalid(t *testing.T) {
 	t.Parallel()
 
 	transport := &http.Transport{}

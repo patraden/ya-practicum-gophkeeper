@@ -1,3 +1,4 @@
+//nolint:funlen // reason: long test functions are acceptable
 package pg_test
 
 import (
@@ -10,89 +11,90 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDBInitAndPingSuccess(t *testing.T) {
+func TestDB(t *testing.T) {
 	t.Parallel()
 
-	dsn := "postgres://postgres:postgres@localhost:5432/praktikum?sslmode=disable"
-	ctx := context.Background()
-	mockPool, err := pgxmock.NewPool()
-	require.NoError(t, err)
+	t.Run("Init and Ping Success", func(t *testing.T) {
+		t.Parallel()
 
-	mockPool.ExpectPing()
+		ctx := context.Background()
+		mockPool, err := pgxmock.NewPool()
+		require.NoError(t, err)
 
-	db := pg.NewDB(dsn)
-	defer db.Close()
+		mockPool.ExpectPing()
 
-	err = db.Init(ctx)
-	require.NoError(t, err)
+		// Test config parsing (won't use pool from NewDB)
+		db, err := pg.NewDB(ctx, "postgres://postgres:postgres@localhost:5432/praktikum?sslmode=disable")
+		require.NoError(t, err)
+		defer db.Close()
 
-	db = db.WithPool(mockPool)
-	err = db.Ping(ctx)
-	require.NoError(t, err)
-}
+		// Override with mock for Ping
+		db, err = pg.DBWithPool(mockPool)
+		require.NoError(t, err)
 
-func TestDBInitFailureBadDSN(t *testing.T) {
-	t.Parallel()
+		err = db.Ping(ctx)
+		require.NoError(t, err)
+	})
 
-	dsn := "bad_dsn"
-	ctx := context.Background()
+	t.Run("Init Failure with Bad DSN", func(t *testing.T) {
+		t.Parallel()
 
-	db := pg.NewDB(dsn)
-	defer db.Close()
+		ctx := context.Background()
+		db, err := pg.NewDB(ctx, "bad_dsn")
+		require.ErrorIs(t, err, e.ErrParse)
+		require.Nil(t, db)
+	})
 
-	err := db.Init(ctx)
-	require.ErrorIs(t, err, e.ErrParse)
+	t.Run("Ping Failure with Unreachable DB", func(t *testing.T) {
+		t.Parallel()
 
-	err = db.Ping(ctx)
-	require.ErrorIs(t, err, e.ErrNotReady)
-}
+		ctx := context.Background()
+		mockPool, err := pgxmock.NewPool()
+		require.NoError(t, err)
 
-func TestDBPingFailure(t *testing.T) {
-	t.Parallel()
+		mockPool.ExpectPing().WillReturnError(e.ErrInternal)
 
-	mockPool, err := pgxmock.NewPool()
-	dsn := "postgres://postgres:postgres@localhost:5432/praktikum?sslmode=disable"
-	ctx := context.Background()
+		db, err := pg.DBWithPool(mockPool)
+		require.NoError(t, err)
+		defer db.Close()
 
-	require.NoError(t, err)
+		err = db.Ping(ctx)
+		require.ErrorIs(t, err, e.ErrUnavailable)
+	})
 
-	mockPool.ExpectPing().WillReturnError(e.ErrInternal)
+	t.Run("WithPool replaces connection pool and Close clears it", func(t *testing.T) {
+		t.Parallel()
 
-	db := pg.NewDB(dsn)
-	defer db.Close()
+		mockPool, err := pgxmock.NewPool()
+		require.NoError(t, err)
 
-	err = db.Init(ctx)
-	require.NoError(t, err)
+		db, err := pg.DBWithPool(mockPool)
+		require.NoError(t, err)
+		require.Equal(t, mockPool, db.ConnPool)
 
-	db = db.WithPool(mockPool)
-	err = db.Ping(ctx)
-	require.ErrorIs(t, err, e.ErrUnavailable)
-}
-
-// Test replacing the connection pool using WithPool.
-func TestDBWithPool(t *testing.T) {
-	t.Parallel()
-
-	mockPool, err := pgxmock.NewPool()
-	dsn := "postgres://fake-dsn"
-
-	require.NoError(t, err)
-
-	db := pg.NewDB(dsn)
-	db = db.WithPool(mockPool)
-
-	require.Equal(t, mockPool, db.ConnPool, "connection pool should be set correctly")
-	db.Close()
-	require.Nil(t, db.ConnPool, "connection pool should be nil after closing")
-}
-
-func TestDBCloseWithoutInit(t *testing.T) {
-	t.Parallel()
-
-	dsn := "postgres://fake-dsn"
-	db := pg.NewDB(dsn)
-
-	require.NotPanics(t, func() {
 		db.Close()
-	}, "calling Close on an uninitialized database should not panic")
+		require.Nil(t, db.ConnPool)
+	})
+
+	t.Run("WithPool with nil pool returns error", func(t *testing.T) {
+		t.Parallel()
+
+		db, err := pg.DBWithPool(nil)
+		require.ErrorIs(t, err, e.ErrInvalidInput)
+		require.Nil(t, db)
+	})
+
+	t.Run("Ping after db close returns error", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := context.Background()
+		db, err := pg.NewDB(ctx, "postgres://postgres:postgres@localhost:5432/praktikum?sslmode=disable")
+		require.NoError(t, err)
+
+		defer db.Close()
+
+		db.Close()
+		err = db.Ping(ctx)
+		require.ErrorIs(t, err, e.ErrNotReady)
+	})
 }

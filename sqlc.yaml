@@ -45,6 +45,10 @@ sql:
             go_type:
               import: "github.com/patraden/ya-practicum-gophkeeper/pkg/domain/user"
               type: "ID"
+          - column: "rek.created_at"
+            go_type:
+              import: "time"
+              type: "Time"
 
   - engine: "sqlite"
     schema: 

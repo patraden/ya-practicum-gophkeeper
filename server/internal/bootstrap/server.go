@@ -5,55 +5,13 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
-	"github.com/patraden/ya-practicum-gophkeeper/pkg/logger"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/config"
-	"github.com/patraden/ya-practicum-gophkeeper/server/internal/grpchandler"
-	"github.com/patraden/ya-practicum-gophkeeper/server/internal/infra/pg"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/server"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/version"
 	"github.com/rs/zerolog"
 	"go.uber.org/fx"
-	"go.uber.org/fx/fxevent"
 )
-
-// Server returns server appl function as fx.App.
-func Server(config *config.Config) *fx.App {
-	logLevel := zerolog.ErrorLevel
-	if config.DebugMode {
-		logLevel = zerolog.DebugLevel
-	}
-
-	appLogger := logger.Stdout(logLevel)
-
-	if config.InstallMode {
-		return fx.New(
-			fx.StartTimeout(time.Minute),
-			fx.StopTimeout(time.Minute),
-			fx.Supply(appLogger),
-			fx.Provide(func(l *logger.Logger) *zerolog.Logger { return l.GetZeroLog() }),
-			fx.Provide(version.New),
-			fx.Supply(config),
-			fx.WithLogger(func() fxevent.Logger { return fxevent.NopLogger }),
-			fx.Invoke(fxServerInstallInvoke),
-		)
-	}
-
-	return fx.New(
-		fx.StartTimeout(time.Minute),
-		fx.StopTimeout(time.Minute),
-		fx.Supply(appLogger),
-		fx.Provide(func(l *logger.Logger) *zerolog.Logger { return l.GetZeroLog() }),
-		fx.Supply(config),
-		fx.Provide(fx.Annotate(grpchandler.NewAdminServer, fx.As(new(grpchandler.AdminServiceServer)))),
-		fx.Provide(fx.Annotate(grpchandler.NewUserServer, fx.As(new(grpchandler.UserServiceServer)))),
-		fx.Provide(version.New),
-		fx.Provide(server.New),
-		fx.WithLogger(appLogger.GetFxLogger()),
-		fx.Invoke(fxServerInvoke),
-	)
-}
 
 func fxServerInvoke(
 	lc fx.Lifecycle,
@@ -138,38 +96,4 @@ func logStop(log *zerolog.Logger, config *config.Config) {
 		Str("S3_ACCESS_KEY", config.S3AccessKey).
 		Str("SERVER_ADDRESS", config.ServerAddr).
 		Msg("App stopped")
-}
-
-func fxServerInstallInvoke(
-	lc fx.Lifecycle,
-	log *zerolog.Logger,
-	mlog *logger.Logger,
-	cfg *config.Config,
-	version *version.Version,
-	shutdowner fx.Shutdowner,
-) {
-	lc.Append(fx.Hook{
-		OnStart: func(_ context.Context) error {
-			log.Info().Msg("Starting installation up")
-
-			version.Log()
-
-			if err := pg.RunServerMigrations(cfg, mlog); err != nil {
-				return err
-			}
-
-			err := shutdowner.Shutdown()
-			if err != nil {
-				log.Error().Err(err).
-					Msg("Failed to shutdown the App")
-			}
-
-			return nil
-		},
-		OnStop: func(_ context.Context) error {
-			log.Info().Msg("Wrapping installation down")
-
-			return nil
-		},
-	})
 }

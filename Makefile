@@ -95,5 +95,6 @@ proto:
 
 .PHONY: mocks
 mocks:
-	@mockgen -source=server/internal/handler/grpc/adpaters.go -destination=server/internal/mock/grpc.go -package=mock UserServiceServer
-	@mockgen -source=server/internal/handler/grpc/adpaters.go -destination=server/internal/mock/grpc.go -package=mock AdminServiceServer
+	@mockgen -source=server/internal/grpchandler/adapters.go -destination=server/internal/mock/grpc.go -package=mock UserServiceServer
+	@mockgen -source=server/internal/grpchandler/adapters.go -destination=server/internal/mock/grpc.go -package=mock AdminServiceServer
+	@mockgen -source=server/internal/infra/s3/client.go -destination=server/internal/mock/s3.go -package=mock Client

@@ -1,3 +1,4 @@
+//nolint:err113 // reason: nested dynamic errors allowed in definitions.
 package errors
 
 import "errors"
@@ -35,13 +36,12 @@ var (
 	ErrNotReady = errors.New("not ready")
 
 	// Runtime / System.
-	ErrInternal       = errors.New("internal error")
 	ErrUnavailable    = errors.New("service unavailable")
 	ErrNotImplemented = errors.New("not implemented")
-	ErrRuntime        = errors.New("runtime error")
 	ErrTimeout        = errors.New("timeout")
 	ErrCanceled       = errors.New("operation canceled")
 	ErrUnsupported    = errors.New("unsupported operation")
+	ErrInternal       = InternalErr(errors.New("internal error"))
 
 	// Access / Auth.
 	ErrUnauthorized     = errors.New("unauthorized")
@@ -49,3 +49,28 @@ var (
 	ErrPermissionDenied = errors.New("permission denied")
 	ErrForbidden        = errors.New("forbidden")
 )
+
+type InternalError struct {
+	Err error
+}
+
+func InternalErr(err error) error {
+	return &InternalError{Err: err}
+}
+
+func (e *InternalError) Error() string {
+	if e.Err == nil {
+		return "internal error"
+	}
+
+	return "internal error: " + e.Err.Error()
+}
+
+func (e *InternalError) Unwrap() error {
+	return e.Err
+}
+
+func (e *InternalError) Is(target error) bool {
+	_, ok := target.(*InternalError)
+	return ok
+}

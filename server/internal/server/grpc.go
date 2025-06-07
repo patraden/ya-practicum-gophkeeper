@@ -85,7 +85,7 @@ func (s *GRPCServer) Run() error {
 			Str("server_address", s.config.ServerAddr).
 			Msg("failed to serve gRPC server")
 
-		return e.ErrInternal
+		return e.InternalErr(err)
 	}
 
 	return nil

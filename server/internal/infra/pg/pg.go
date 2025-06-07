@@ -2,65 +2,67 @@ package pg
 
 import (
 	"context"
+	"errors"
 
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
+	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
 )
 
+// QueryFunc defines a function that accepts a pg-generated Queries instance
+// and performs a set of SQL operations.
 type QueryFunc = func(*Queries) error
 
+// DB wraps a PostgreSQL connection pool and provides methods for common
+// database lifecycle operations.
 type DB struct {
-	connString string
-	ConnPool   ConnenctionPool
+	ConnPool ConnenctionPool
 }
 
-func NewDB(connString string) *DB {
-	return &DB{
-		connString: connString,
-		ConnPool:   nil,
-	}
-}
-
-func (db *DB) WithPool(pool ConnenctionPool) *DB {
-	db.ConnPool = pool
-
-	return db
-}
-
-func (db *DB) Init(ctx context.Context) error {
-	if db.ConnPool != nil {
-		return nil
+// DBWithPool returns a DB instance using the provided connection pool.
+// Useful for testing or injecting a mock pool.
+func DBWithPool(pool ConnenctionPool) (*DB, error) {
+	if pool == nil {
+		return nil, e.ErrInvalidInput
 	}
 
-	config, err := pgxpool.ParseConfig(db.connString)
+	return &DB{ConnPool: pool}, nil
+}
+
+// NewDB creates and initializes a new DB instance using the provided connection string.
+// Returns a configured *DB or an error if the connection config is invalid or the pool fails to initialize.
+func NewDB(ctx context.Context, connString string) (*DB, error) {
+	config, err := pgxpool.ParseConfig(connString)
 	if err != nil {
-		return errors.ErrParse
+		return nil, e.ErrParse
 	}
 
 	config.MaxConns = 30
 
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
-		return errors.ErrInvalidInput
+		return nil, e.ErrInvalidInput
 	}
 
-	db.ConnPool = pool
-
-	return nil
+	return &DB{ConnPool: pool}, nil
 }
 
+// Ping checks whether the database connection pool is alive and ready to use.
+// Returns ErrNotReady if the pool is nil, or ErrUnavailable if the ping fails.
 func (db *DB) Ping(ctx context.Context) error {
 	if db.ConnPool == nil {
-		return errors.ErrNotReady
+		return e.ErrNotReady
 	}
 
 	if err := db.ConnPool.Ping(ctx); err != nil {
-		return errors.ErrUnavailable
+		return e.ErrUnavailable
 	}
 
 	return nil
 }
 
+// Close shuts down the underlying database connection pool if it exists.
 func (db *DB) Close() {
 	if db.ConnPool == nil {
 		return
@@ -68,4 +70,9 @@ func (db *DB) Close() {
 
 	db.ConnPool.Close()
 	db.ConnPool = nil
+}
+
+func IsUniqueViolation(err error) bool {
+	var pgErr *pgconn.PgError
+	return errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation
 }

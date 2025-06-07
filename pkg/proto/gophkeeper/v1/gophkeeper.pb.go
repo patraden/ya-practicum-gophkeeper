@@ -444,110 +444,6 @@ func (x *RegisterResponse) GetMessage() string {
 	return ""
 }
 
-type RegisterAdminRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
-	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RegisterAdminRequest) Reset() {
-	*x = RegisterAdminRequest{}
-	mi := &file_gophkeeper_v1_gophkeeper_proto_msgTypes[6]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RegisterAdminRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RegisterAdminRequest) ProtoMessage() {}
-
-func (x *RegisterAdminRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_gophkeeper_v1_gophkeeper_proto_msgTypes[6]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RegisterAdminRequest.ProtoReflect.Descriptor instead.
-func (*RegisterAdminRequest) Descriptor() ([]byte, []int) {
-	return file_gophkeeper_v1_gophkeeper_proto_rawDescGZIP(), []int{6}
-}
-
-func (x *RegisterAdminRequest) GetUsername() string {
-	if x != nil {
-		return x.Username
-	}
-	return ""
-}
-
-func (x *RegisterAdminRequest) GetPassword() string {
-	if x != nil {
-		return x.Password
-	}
-	return ""
-}
-
-type RegisterAdminResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *RegisterAdminResponse) Reset() {
-	*x = RegisterAdminResponse{}
-	mi := &file_gophkeeper_v1_gophkeeper_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *RegisterAdminResponse) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*RegisterAdminResponse) ProtoMessage() {}
-
-func (x *RegisterAdminResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_gophkeeper_v1_gophkeeper_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use RegisterAdminResponse.ProtoReflect.Descriptor instead.
-func (*RegisterAdminResponse) Descriptor() ([]byte, []int) {
-	return file_gophkeeper_v1_gophkeeper_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *RegisterAdminResponse) GetUserId() string {
-	if x != nil {
-		return x.UserId
-	}
-	return ""
-}
-
-func (x *RegisterAdminResponse) GetMessage() string {
-	if x != nil {
-		return x.Message
-	}
-	return ""
-}
-
 var File_gophkeeper_v1_gophkeeper_proto protoreflect.FileDescriptor
 
 const file_gophkeeper_v1_gophkeeper_proto_rawDesc = "" +
@@ -571,12 +467,6 @@ const file_gophkeeper_v1_gophkeeper_proto_rawDesc = "" +
 	"\bpassword\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\bR\bpassword\"E\n" +
 	"\x10RegisterResponse\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage\"`\n" +
-	"\x14RegisterAdminRequest\x12#\n" +
-	"\busername\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x03R\busername\x12#\n" +
-	"\bpassword\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\bR\bpassword\"J\n" +
-	"\x15RegisterAdminResponse\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage*N\n" +
 	"\bUserRole\x12\x19\n" +
 	"\x15USER_ROLE_UNSPECIFIED\x10\x00\x12\x12\n" +
@@ -587,10 +477,9 @@ const file_gophkeeper_v1_gophkeeper_proto_rawDesc = "" +
 	"\x17SEAL_STATUS_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12SEAL_STATUS_SEALED\x10\x01\x12 \n" +
 	"\x1cSEAL_STATUS_PARTIALLY_SEALED\x10\x02\x12\x18\n" +
-	"\x14SEAL_STATUS_UNSEALED\x10\x032\xb1\x01\n" +
+	"\x14SEAL_STATUS_UNSEALED\x10\x032U\n" +
 	"\fAdminService\x12E\n" +
-	"\x06Unseal\x12\x1c.gophkeeper.v1.UnsealRequest\x1a\x1d.gophkeeper.v1.UnsealResponse\x12Z\n" +
-	"\rRegisterAdmin\x12#.gophkeeper.v1.RegisterAdminRequest\x1a$.gophkeeper.v1.RegisterAdminResponse2\x9e\x01\n" +
+	"\x06Unseal\x12\x1c.gophkeeper.v1.UnsealRequest\x1a\x1d.gophkeeper.v1.UnsealResponse2\x9e\x01\n" +
 	"\vUserService\x12B\n" +
 	"\x05Login\x12\x1b.gophkeeper.v1.LoginRequest\x1a\x1c.gophkeeper.v1.LoginResponse\x12K\n" +
 	"\bRegister\x12\x1e.gophkeeper.v1.RegisterRequest\x1a\x1f.gophkeeper.v1.RegisterResponseB\xbe\x01\n" +
@@ -609,32 +498,28 @@ func file_gophkeeper_v1_gophkeeper_proto_rawDescGZIP() []byte {
 }
 
 var file_gophkeeper_v1_gophkeeper_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_gophkeeper_v1_gophkeeper_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_gophkeeper_v1_gophkeeper_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_gophkeeper_v1_gophkeeper_proto_goTypes = []any{
-	(UserRole)(0),                 // 0: gophkeeper.v1.UserRole
-	(SealStatus)(0),               // 1: gophkeeper.v1.SealStatus
-	(*UnsealRequest)(nil),         // 2: gophkeeper.v1.UnsealRequest
-	(*UnsealResponse)(nil),        // 3: gophkeeper.v1.UnsealResponse
-	(*LoginRequest)(nil),          // 4: gophkeeper.v1.LoginRequest
-	(*LoginResponse)(nil),         // 5: gophkeeper.v1.LoginResponse
-	(*RegisterRequest)(nil),       // 6: gophkeeper.v1.RegisterRequest
-	(*RegisterResponse)(nil),      // 7: gophkeeper.v1.RegisterResponse
-	(*RegisterAdminRequest)(nil),  // 8: gophkeeper.v1.RegisterAdminRequest
-	(*RegisterAdminResponse)(nil), // 9: gophkeeper.v1.RegisterAdminResponse
+	(UserRole)(0),            // 0: gophkeeper.v1.UserRole
+	(SealStatus)(0),          // 1: gophkeeper.v1.SealStatus
+	(*UnsealRequest)(nil),    // 2: gophkeeper.v1.UnsealRequest
+	(*UnsealResponse)(nil),   // 3: gophkeeper.v1.UnsealResponse
+	(*LoginRequest)(nil),     // 4: gophkeeper.v1.LoginRequest
+	(*LoginResponse)(nil),    // 5: gophkeeper.v1.LoginResponse
+	(*RegisterRequest)(nil),  // 6: gophkeeper.v1.RegisterRequest
+	(*RegisterResponse)(nil), // 7: gophkeeper.v1.RegisterResponse
 }
 var file_gophkeeper_v1_gophkeeper_proto_depIdxs = []int32{
 	1, // 0: gophkeeper.v1.UnsealResponse.status:type_name -> gophkeeper.v1.SealStatus
 	0, // 1: gophkeeper.v1.LoginResponse.role:type_name -> gophkeeper.v1.UserRole
 	2, // 2: gophkeeper.v1.AdminService.Unseal:input_type -> gophkeeper.v1.UnsealRequest
-	8, // 3: gophkeeper.v1.AdminService.RegisterAdmin:input_type -> gophkeeper.v1.RegisterAdminRequest
-	4, // 4: gophkeeper.v1.UserService.Login:input_type -> gophkeeper.v1.LoginRequest
-	6, // 5: gophkeeper.v1.UserService.Register:input_type -> gophkeeper.v1.RegisterRequest
-	3, // 6: gophkeeper.v1.AdminService.Unseal:output_type -> gophkeeper.v1.UnsealResponse
-	9, // 7: gophkeeper.v1.AdminService.RegisterAdmin:output_type -> gophkeeper.v1.RegisterAdminResponse
-	5, // 8: gophkeeper.v1.UserService.Login:output_type -> gophkeeper.v1.LoginResponse
-	7, // 9: gophkeeper.v1.UserService.Register:output_type -> gophkeeper.v1.RegisterResponse
-	6, // [6:10] is the sub-list for method output_type
-	2, // [2:6] is the sub-list for method input_type
+	4, // 3: gophkeeper.v1.UserService.Login:input_type -> gophkeeper.v1.LoginRequest
+	6, // 4: gophkeeper.v1.UserService.Register:input_type -> gophkeeper.v1.RegisterRequest
+	3, // 5: gophkeeper.v1.AdminService.Unseal:output_type -> gophkeeper.v1.UnsealResponse
+	5, // 6: gophkeeper.v1.UserService.Login:output_type -> gophkeeper.v1.LoginResponse
+	7, // 7: gophkeeper.v1.UserService.Register:output_type -> gophkeeper.v1.RegisterResponse
+	5, // [5:8] is the sub-list for method output_type
+	2, // [2:5] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
 	2, // [2:2] is the sub-list for extension extendee
 	0, // [0:2] is the sub-list for field type_name
@@ -651,7 +536,7 @@ func file_gophkeeper_v1_gophkeeper_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_gophkeeper_v1_gophkeeper_proto_rawDesc), len(file_gophkeeper_v1_gophkeeper_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   8,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

@@ -6,38 +6,32 @@ import (
 	"github.com/rs/zerolog"
 )
 
-type Splitter interface {
-	SplitAndDistribute(secret []byte, total, threshold int) ([][]byte, error)
-}
-
-type StdoutSplitter struct {
+// Splitter splitts secrets into shares according to Shamir's Secret Sharing.
+type Splitter struct {
 	log *zerolog.Logger
 }
 
-func NewStdoutSplitter(log *zerolog.Logger) *StdoutSplitter {
-	return &StdoutSplitter{log: log}
+// NewSplitter creates a new Splitter using the provided logger.
+func NewSplitter(log *zerolog.Logger) *Splitter {
+	return &Splitter{log: log}
 }
 
-// SplitAndDistribute splits the secret and logs the shares.
-// Returns shares for testing or further processing.
-func (s *StdoutSplitter) SplitAndDistribute(secret []byte, total, threshold int) ([][]byte, error) {
+// Split splits the secret into shares.
+func (s *Splitter) Split(secret []byte, total, threshold int) ([][]byte, error) {
 	shares, err := shamir.Split(secret, total, threshold)
 	if err != nil {
 		s.log.Error().Err(err).
+			Int("total", total).
+			Int("threshold", threshold).
 			Msg("shamir's secret split")
 
-		return nil, e.ErrInternal
-	}
-
-	for i, share := range shares {
-		s.log.Info().
-			Msgf("Share %d: %x", i+1, share)
+		return nil, e.ErrInvalidInput
 	}
 
 	return shares, nil
 }
 
-// Combine reconstructs the secret from a set of shares.
+// Combine reconstructs the original secret from a slice of shares.
 func Combine(shares [][]byte) ([]byte, error) {
 	secret, err := shamir.Combine(shares)
 	if err != nil {

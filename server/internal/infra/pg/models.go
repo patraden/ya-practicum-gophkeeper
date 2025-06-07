@@ -18,6 +18,12 @@ type Key struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
+type Rek struct {
+	ID        bool      `db:"id"`
+	RekHash   []byte    `db:"rek_hash"`
+	CreatedAt time.Time `db:"created_at"`
+}
+
 type User struct {
 	ID        user.ID   `db:"id"`
 	Username  string    `db:"username"`

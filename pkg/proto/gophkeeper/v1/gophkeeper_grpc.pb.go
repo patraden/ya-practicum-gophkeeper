@@ -20,8 +20,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AdminService_Unseal_FullMethodName        = "/gophkeeper.v1.AdminService/Unseal"
-	AdminService_RegisterAdmin_FullMethodName = "/gophkeeper.v1.AdminService/RegisterAdmin"
+	AdminService_Unseal_FullMethodName = "/gophkeeper.v1.AdminService/Unseal"
 )
 
 // AdminServiceClient is the client API for AdminService service.
@@ -29,7 +28,6 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AdminServiceClient interface {
 	Unseal(ctx context.Context, in *UnsealRequest, opts ...grpc.CallOption) (*UnsealResponse, error)
-	RegisterAdmin(ctx context.Context, in *RegisterAdminRequest, opts ...grpc.CallOption) (*RegisterAdminResponse, error)
 }
 
 type adminServiceClient struct {
@@ -50,22 +48,11 @@ func (c *adminServiceClient) Unseal(ctx context.Context, in *UnsealRequest, opts
 	return out, nil
 }
 
-func (c *adminServiceClient) RegisterAdmin(ctx context.Context, in *RegisterAdminRequest, opts ...grpc.CallOption) (*RegisterAdminResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(RegisterAdminResponse)
-	err := c.cc.Invoke(ctx, AdminService_RegisterAdmin_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // AdminServiceServer is the server API for AdminService service.
 // All implementations must embed UnimplementedAdminServiceServer
 // for forward compatibility.
 type AdminServiceServer interface {
 	Unseal(context.Context, *UnsealRequest) (*UnsealResponse, error)
-	RegisterAdmin(context.Context, *RegisterAdminRequest) (*RegisterAdminResponse, error)
 	mustEmbedUnimplementedAdminServiceServer()
 }
 
@@ -78,9 +65,6 @@ type UnimplementedAdminServiceServer struct{}
 
 func (UnimplementedAdminServiceServer) Unseal(context.Context, *UnsealRequest) (*UnsealResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Unseal not implemented")
-}
-func (UnimplementedAdminServiceServer) RegisterAdmin(context.Context, *RegisterAdminRequest) (*RegisterAdminResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RegisterAdmin not implemented")
 }
 func (UnimplementedAdminServiceServer) mustEmbedUnimplementedAdminServiceServer() {}
 func (UnimplementedAdminServiceServer) testEmbeddedByValue()                      {}
@@ -121,24 +105,6 @@ func _AdminService_Unseal_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
-func _AdminService_RegisterAdmin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RegisterAdminRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AdminServiceServer).RegisterAdmin(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: AdminService_RegisterAdmin_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AdminServiceServer).RegisterAdmin(ctx, req.(*RegisterAdminRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // AdminService_ServiceDesc is the grpc.ServiceDesc for AdminService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -149,10 +115,6 @@ var AdminService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Unseal",
 			Handler:    _AdminService_Unseal_Handler,
-		},
-		{
-			MethodName: "RegisterAdmin",
-			Handler:    _AdminService_RegisterAdmin_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

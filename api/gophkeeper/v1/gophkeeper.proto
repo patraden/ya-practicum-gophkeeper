@@ -8,7 +8,6 @@ option go_package = "github.com/patraden/ya-practicum-gophkeeper/api/gophkeeper/
 
 service AdminService {
   rpc Unseal(UnsealRequest) returns (UnsealResponse);
-  rpc RegisterAdmin(RegisterAdminRequest) returns (RegisterAdminResponse); 
 }
 
 service UserService {
@@ -60,12 +59,3 @@ message RegisterResponse {
   string message = 2;
 }
 
-message RegisterAdminRequest {
-  string username = 1 [(buf.validate.field).string.min_len = 3];
-  string password = 2 [(buf.validate.field).string.min_len = 8];
-}
-
-message RegisterAdminResponse {
-  string user_id = 1;
-  string message = 2;
-}

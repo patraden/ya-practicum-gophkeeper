@@ -15,11 +15,12 @@ import (
 
 // Length constants for all key types in bytes.
 const (
-	REKLength = 32 // Root Encryption Key (256-bit)
-	KEKLength = 32 // Key Encryption Key (256-bit)
-	DEKLength = 32 // Data Encryption Key (256-bit)
-	kekIter   = 100_000
-	nonceSize = 12 // Recommended nonce size for AES-GCM
+	REKLength      = 32 // Root Encryption Key (256-bit)
+	KEKLength      = 32 // Key Encryption Key (256-bit)
+	DEKLength      = 32 // Data Encryption Key (256-bit)
+	kekIter        = 100_000
+	nonceSize      = 12 // Recommended nonce size for AES-GCM
+	EncryptionAlgo = "AES-GCM"
 )
 
 // REK generates a secure random Root Encryption Key (REK).
@@ -31,7 +32,7 @@ const (
 func REK() ([]byte, error) {
 	rek := make([]byte, REKLength)
 	if _, err := rand.Read(rek); err != nil {
-		return nil, fmt.Errorf("generate rek: %w", e.ErrInternal)
+		return nil, e.InternalErr(err)
 	}
 
 	return rek, nil

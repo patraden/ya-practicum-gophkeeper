@@ -12,6 +12,16 @@ import (
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/domain/user"
 )
 
+const CreateREKHash = `-- name: CreateREKHash :exec
+INSERT INTO rek (rek_hash)
+VALUES ($1)
+`
+
+func (q *Queries) CreateREKHash(ctx context.Context, rekHash []byte) error {
+	_, err := q.db.Exec(ctx, CreateREKHash, rekHash)
+	return err
+}
+
 const CreateUser = `-- name: CreateUser :one
 INSERT INTO users (id, username, role, created_at, updated_at, password, salt, verifier)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -59,10 +69,9 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
-const CreateUserKey = `-- name: CreateUserKey :one
+const CreateUserKey = `-- name: CreateUserKey :exec
 INSERT INTO keys (user_id, kek, algorithm, created_at, updated_at)
 VALUES ($1, $2, $3, $4, $5)
-RETURNING user_id, kek, algorithm, created_at, updated_at
 `
 
 type CreateUserKeyParams struct {
@@ -73,22 +82,32 @@ type CreateUserKeyParams struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
-func (q *Queries) CreateUserKey(ctx context.Context, arg CreateUserKeyParams) (Key, error) {
-	row := q.db.QueryRow(ctx, CreateUserKey,
+func (q *Queries) CreateUserKey(ctx context.Context, arg CreateUserKeyParams) error {
+	_, err := q.db.Exec(ctx, CreateUserKey,
 		arg.UserID,
 		arg.Kek,
 		arg.Algorithm,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 	)
-	var i Key
-	err := row.Scan(
-		&i.UserID,
-		&i.Kek,
-		&i.Algorithm,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
+	return err
+}
+
+const GetREKHash = `-- name: GetREKHash :one
+SELECT rek_hash, created_at
+FROM rek
+LIMIT 1
+`
+
+type GetREKHashRow struct {
+	RekHash   []byte    `db:"rek_hash"`
+	CreatedAt time.Time `db:"created_at"`
+}
+
+func (q *Queries) GetREKHash(ctx context.Context) (GetREKHashRow, error) {
+	row := q.db.QueryRow(ctx, GetREKHash)
+	var i GetREKHashRow
+	err := row.Scan(&i.RekHash, &i.CreatedAt)
 	return i, err
 }
 

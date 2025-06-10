@@ -31,6 +31,7 @@ linters-settings:
       - github.com/patraden/ya-practicum-gophkeeper/pkg/**
       - github.com/patraden/ya-practicum-gophkeeper/server/internal/**
       - github.com/patraden/ya-practicum-gophkeeper/client/internal/**
+      - google.golang.org/grpc/status
 
   varnamelen:
     ignore-names:

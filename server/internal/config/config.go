@@ -10,6 +10,7 @@ type Config struct {
 	S3AccessKey       string `env:"S3_ACCESS_KEY"`
 	S3SecretKey       string `env:"S3_SECRET_KEY"`
 	S3Token           string `env:"S3_TOKEN"`
+	JWTSecret         string `env:"JWT_SECRET"`
 	InstallMode       bool
 	DebugMode         bool
 }
@@ -25,6 +26,7 @@ func DefaultConfig() *Config {
 		S3AccessKey:       `minioadmin`,
 		S3SecretKey:       `minioadmin`,
 		S3Token:           ``,
+		JWTSecret:         `d1a58c288a0226998149277b14993f6c73cf44ff9df3de548df4df25a13b251a`,
 		InstallMode:       false,
 		DebugMode:         false,
 	}

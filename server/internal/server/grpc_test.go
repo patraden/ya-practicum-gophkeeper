@@ -1,3 +1,4 @@
+//nolint:funlen // reason: testing internal logic and long test functions are acceptable
 package server_test
 
 import (
@@ -8,9 +9,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/certgen"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/logger"
 	pb "github.com/patraden/ya-practicum-gophkeeper/pkg/proto/gophkeeper/v1"
+	"github.com/patraden/ya-practicum-gophkeeper/server/internal/auth"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/config"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/mock"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/server"
@@ -77,7 +80,12 @@ func TestGRPCServerWithTLS(t *testing.T) {
 		ServerAddr:        "127.0.0.1:50055",
 		ServerTLSCertPath: serverCertPath,
 		ServerTLSKeyPath:  serverKeyPath,
+		JWTSecret:         "secret",
 	}
+
+	jwtKeyFunc := func(*jwt.Token) (any, error) { return []byte(cfg.JWTSecret), nil }
+	authenticator := auth.New(jwtKeyFunc, log)
+	isPublicMethod := func(method string) bool { return method == pb.AdminService_Unseal_FullMethodName }
 
 	ctrl := gomock.NewController(t)
 	adminSrv := mock.NewMockAdminServiceServer(ctrl)
@@ -86,12 +94,11 @@ func TestGRPCServerWithTLS(t *testing.T) {
 	adminSrv.EXPECT().
 		Unseal(gomock.Any(), gomock.Any()).
 		Return(&pb.UnsealResponse{
-			Message:  "success",
-			Unsealed: true,
-			Status:   pb.SealStatus_SEAL_STATUS_UNSEALED,
+			Message: "success",
+			Status:  pb.SealStatus_SEAL_STATUS_UNSEALED,
 		}, nil)
 
-	server, err := server.New(cfg, adminSrv, userSrv, log)
+	server, err := server.New(cfg, adminSrv, userSrv, authenticator, isPublicMethod, log)
 	require.NoError(t, err)
 
 	runErrCh := make(chan error, 1)
@@ -120,7 +127,6 @@ func TestGRPCServerWithTLS(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Equal(t, "success", resp.GetMessage())
-	require.True(t, resp.GetUnsealed())
 	require.Equal(t, pb.SealStatus_SEAL_STATUS_UNSEALED, resp.GetStatus())
 
 	err = server.Shutdown(ctx)

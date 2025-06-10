@@ -23,6 +23,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// UserRole defines the access level of a user in the system.
 type UserRole int32
 
 const (
@@ -75,10 +76,9 @@ func (UserRole) EnumDescriptor() ([]byte, []int) {
 type SealStatus int32
 
 const (
-	SealStatus_SEAL_STATUS_UNSPECIFIED      SealStatus = 0
-	SealStatus_SEAL_STATUS_SEALED           SealStatus = 1
-	SealStatus_SEAL_STATUS_PARTIALLY_SEALED SealStatus = 2
-	SealStatus_SEAL_STATUS_UNSEALED         SealStatus = 3
+	SealStatus_SEAL_STATUS_UNSPECIFIED SealStatus = 0
+	SealStatus_SEAL_STATUS_SEALED      SealStatus = 1
+	SealStatus_SEAL_STATUS_UNSEALED    SealStatus = 2
 )
 
 // Enum value maps for SealStatus.
@@ -86,14 +86,12 @@ var (
 	SealStatus_name = map[int32]string{
 		0: "SEAL_STATUS_UNSPECIFIED",
 		1: "SEAL_STATUS_SEALED",
-		2: "SEAL_STATUS_PARTIALLY_SEALED",
-		3: "SEAL_STATUS_UNSEALED",
+		2: "SEAL_STATUS_UNSEALED",
 	}
 	SealStatus_value = map[string]int32{
-		"SEAL_STATUS_UNSPECIFIED":      0,
-		"SEAL_STATUS_SEALED":           1,
-		"SEAL_STATUS_PARTIALLY_SEALED": 2,
-		"SEAL_STATUS_UNSEALED":         3,
+		"SEAL_STATUS_UNSPECIFIED": 0,
+		"SEAL_STATUS_SEALED":      1,
+		"SEAL_STATUS_UNSEALED":    2,
 	}
 )
 
@@ -170,9 +168,8 @@ func (x *UnsealRequest) GetKeyPiece() string {
 
 type UnsealResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Unsealed      bool                   `protobuf:"varint,1,opt,name=unsealed,proto3" json:"unsealed,omitempty"`
-	Status        SealStatus             `protobuf:"varint,2,opt,name=status,proto3,enum=gophkeeper.v1.SealStatus" json:"status,omitempty"`
-	Message       string                 `protobuf:"bytes,3,opt,name=message,proto3" json:"message,omitempty"`
+	Status        SealStatus             `protobuf:"varint,1,opt,name=status,proto3,enum=gophkeeper.v1.SealStatus" json:"status,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -205,13 +202,6 @@ func (x *UnsealResponse) ProtoReflect() protoreflect.Message {
 // Deprecated: Use UnsealResponse.ProtoReflect.Descriptor instead.
 func (*UnsealResponse) Descriptor() ([]byte, []int) {
 	return file_gophkeeper_v1_gophkeeper_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *UnsealResponse) GetUnsealed() bool {
-	if x != nil {
-		return x.Unsealed
-	}
-	return false
 }
 
 func (x *UnsealResponse) GetStatus() SealStatus {
@@ -344,6 +334,7 @@ type RegisterRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Username      string                 `protobuf:"bytes,1,opt,name=username,proto3" json:"username,omitempty"`
 	Password      string                 `protobuf:"bytes,2,opt,name=password,proto3" json:"password,omitempty"`
+	Role          UserRole               `protobuf:"varint,3,opt,name=role,proto3,enum=gophkeeper.v1.UserRole" json:"role,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -392,10 +383,18 @@ func (x *RegisterRequest) GetPassword() string {
 	return ""
 }
 
+func (x *RegisterRequest) GetRole() UserRole {
+	if x != nil {
+		return x.Role
+	}
+	return UserRole_USER_ROLE_UNSPECIFIED
+}
+
 type RegisterResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Role          UserRole               `protobuf:"varint,3,opt,name=role,proto3,enum=gophkeeper.v1.UserRole" json:"role,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -430,6 +429,13 @@ func (*RegisterResponse) Descriptor() ([]byte, []int) {
 	return file_gophkeeper_v1_gophkeeper_proto_rawDescGZIP(), []int{5}
 }
 
+func (x *RegisterResponse) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
 func (x *RegisterResponse) GetUserId() string {
 	if x != nil {
 		return x.UserId
@@ -437,11 +443,11 @@ func (x *RegisterResponse) GetUserId() string {
 	return ""
 }
 
-func (x *RegisterResponse) GetMessage() string {
+func (x *RegisterResponse) GetRole() UserRole {
 	if x != nil {
-		return x.Message
+		return x.Role
 	}
-	return ""
+	return UserRole_USER_ROLE_UNSPECIFIED
 }
 
 var File_gophkeeper_v1_gophkeeper_proto protoreflect.FileDescriptor
@@ -450,34 +456,35 @@ const file_gophkeeper_v1_gophkeeper_proto_rawDesc = "" +
 	"\n" +
 	"\x1egophkeeper/v1/gophkeeper.proto\x12\rgophkeeper.v1\x1a\x1bbuf/validate/validate.proto\"5\n" +
 	"\rUnsealRequest\x12$\n" +
-	"\tkey_piece\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bkeyPiece\"y\n" +
-	"\x0eUnsealResponse\x12\x1a\n" +
-	"\bunsealed\x18\x01 \x01(\bR\bunsealed\x121\n" +
-	"\x06status\x18\x02 \x01(\x0e2\x19.gophkeeper.v1.SealStatusR\x06status\x12\x18\n" +
-	"\amessage\x18\x03 \x01(\tR\amessage\"X\n" +
-	"\fLoginRequest\x12#\n" +
-	"\busername\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x03R\busername\x12#\n" +
-	"\bpassword\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\bR\bpassword\"k\n" +
+	"\tkey_piece\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bkeyPiece\"]\n" +
+	"\x0eUnsealResponse\x121\n" +
+	"\x06status\x18\x01 \x01(\x0e2\x19.gophkeeper.v1.SealStatusR\x06status\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"]\n" +
+	"\fLoginRequest\x12%\n" +
+	"\busername\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x03\x18@R\busername\x12&\n" +
+	"\bpassword\x18\x02 \x01(\tB\n" +
+	"\xbaH\ar\x05\x10\b\x18\x80\x01R\bpassword\"k\n" +
 	"\rLoginResponse\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12+\n" +
-	"\x04role\x18\x03 \x01(\x0e2\x17.gophkeeper.v1.UserRoleR\x04role\"[\n" +
+	"\x04role\x18\x03 \x01(\x0e2\x17.gophkeeper.v1.UserRoleR\x04role\"\x92\x01\n" +
 	"\x0fRegisterRequest\x12#\n" +
 	"\busername\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x03R\busername\x12#\n" +
-	"\bpassword\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\bR\bpassword\"E\n" +
-	"\x10RegisterResponse\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x18\n" +
-	"\amessage\x18\x02 \x01(\tR\amessage*N\n" +
+	"\bpassword\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\bR\bpassword\x125\n" +
+	"\x04role\x18\x03 \x01(\x0e2\x17.gophkeeper.v1.UserRoleB\b\xbaH\x05\x82\x01\x02\x10\x01R\x04role\"n\n" +
+	"\x10RegisterResponse\x12\x14\n" +
+	"\x05token\x18\x01 \x01(\tR\x05token\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\x12+\n" +
+	"\x04role\x18\x03 \x01(\x0e2\x17.gophkeeper.v1.UserRoleR\x04role*N\n" +
 	"\bUserRole\x12\x19\n" +
 	"\x15USER_ROLE_UNSPECIFIED\x10\x00\x12\x12\n" +
 	"\x0eUSER_ROLE_USER\x10\x01\x12\x13\n" +
-	"\x0fUSER_ROLE_ADMIN\x10\x02*}\n" +
+	"\x0fUSER_ROLE_ADMIN\x10\x02*[\n" +
 	"\n" +
 	"SealStatus\x12\x1b\n" +
 	"\x17SEAL_STATUS_UNSPECIFIED\x10\x00\x12\x16\n" +
-	"\x12SEAL_STATUS_SEALED\x10\x01\x12 \n" +
-	"\x1cSEAL_STATUS_PARTIALLY_SEALED\x10\x02\x12\x18\n" +
-	"\x14SEAL_STATUS_UNSEALED\x10\x032U\n" +
+	"\x12SEAL_STATUS_SEALED\x10\x01\x12\x18\n" +
+	"\x14SEAL_STATUS_UNSEALED\x10\x022U\n" +
 	"\fAdminService\x12E\n" +
 	"\x06Unseal\x12\x1c.gophkeeper.v1.UnsealRequest\x1a\x1d.gophkeeper.v1.UnsealResponse2\x9e\x01\n" +
 	"\vUserService\x12B\n" +
@@ -512,17 +519,19 @@ var file_gophkeeper_v1_gophkeeper_proto_goTypes = []any{
 var file_gophkeeper_v1_gophkeeper_proto_depIdxs = []int32{
 	1, // 0: gophkeeper.v1.UnsealResponse.status:type_name -> gophkeeper.v1.SealStatus
 	0, // 1: gophkeeper.v1.LoginResponse.role:type_name -> gophkeeper.v1.UserRole
-	2, // 2: gophkeeper.v1.AdminService.Unseal:input_type -> gophkeeper.v1.UnsealRequest
-	4, // 3: gophkeeper.v1.UserService.Login:input_type -> gophkeeper.v1.LoginRequest
-	6, // 4: gophkeeper.v1.UserService.Register:input_type -> gophkeeper.v1.RegisterRequest
-	3, // 5: gophkeeper.v1.AdminService.Unseal:output_type -> gophkeeper.v1.UnsealResponse
-	5, // 6: gophkeeper.v1.UserService.Login:output_type -> gophkeeper.v1.LoginResponse
-	7, // 7: gophkeeper.v1.UserService.Register:output_type -> gophkeeper.v1.RegisterResponse
-	5, // [5:8] is the sub-list for method output_type
-	2, // [2:5] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	0, // 2: gophkeeper.v1.RegisterRequest.role:type_name -> gophkeeper.v1.UserRole
+	0, // 3: gophkeeper.v1.RegisterResponse.role:type_name -> gophkeeper.v1.UserRole
+	2, // 4: gophkeeper.v1.AdminService.Unseal:input_type -> gophkeeper.v1.UnsealRequest
+	4, // 5: gophkeeper.v1.UserService.Login:input_type -> gophkeeper.v1.LoginRequest
+	6, // 6: gophkeeper.v1.UserService.Register:input_type -> gophkeeper.v1.RegisterRequest
+	3, // 7: gophkeeper.v1.AdminService.Unseal:output_type -> gophkeeper.v1.UnsealResponse
+	5, // 8: gophkeeper.v1.UserService.Login:output_type -> gophkeeper.v1.LoginResponse
+	7, // 9: gophkeeper.v1.UserService.Register:output_type -> gophkeeper.v1.RegisterResponse
+	7, // [7:10] is the sub-list for method output_type
+	4, // [4:7] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_gophkeeper_v1_gophkeeper_proto_init() }

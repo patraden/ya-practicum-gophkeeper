@@ -1,16 +1,11 @@
 package user
 
+import pb "github.com/patraden/ya-practicum-gophkeeper/pkg/proto/gophkeeper/v1"
+
 const (
-	RoleAdmin Role = "admin"
-	RoleUser  Role = "user"
+	RoleUser        = pb.UserRole_USER_ROLE_USER
+	RoleAdmin       = pb.UserRole_USER_ROLE_ADMIN
+	RoleUnspecified = pb.UserRole_USER_ROLE_UNSPECIFIED
 )
 
-type Role string
-
-func (r Role) String() string {
-	return string(r)
-}
-
-func (r Role) IsAdmin() bool {
-	return r == RoleAdmin
-}
+type Role = pb.UserRole

@@ -14,6 +14,7 @@ require (
 	github.com/ipfans/fxlogger v0.2.0
 	github.com/jackc/pgerrcode v0.0.0-20240316143900-6e2875d9b438
 	github.com/jackc/pgx/v5 v5.7.5
+	github.com/mailru/easyjson v0.9.0
 	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/minio/minio-go/v7 v7.0.90
 	github.com/pashagolub/pgxmock/v4 v4.7.0
@@ -36,6 +37,7 @@ require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
+	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.10 // indirect

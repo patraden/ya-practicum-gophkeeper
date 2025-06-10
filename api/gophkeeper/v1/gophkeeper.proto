@@ -15,6 +15,7 @@ service UserService {
   rpc Register(RegisterRequest) returns (RegisterResponse);
 }
 
+// UserRole defines the access level of a user in the system.
 enum UserRole {
   USER_ROLE_UNSPECIFIED = 0;
   USER_ROLE_USER = 1;
@@ -24,8 +25,7 @@ enum UserRole {
 enum SealStatus {
   SEAL_STATUS_UNSPECIFIED = 0;
   SEAL_STATUS_SEALED = 1;
-  SEAL_STATUS_PARTIALLY_SEALED = 2;
-  SEAL_STATUS_UNSEALED = 3;
+  SEAL_STATUS_UNSEALED = 2;
 }
 
 message UnsealRequest {
@@ -33,14 +33,13 @@ message UnsealRequest {
 }
 
 message UnsealResponse {
-  bool unsealed = 1;
-  SealStatus status = 2;
-  string message = 3;
+  SealStatus status = 1;
+  string message = 2;
 }
 
 message LoginRequest {
-  string username = 1 [(buf.validate.field).string.min_len = 3];
-  string password = 2 [(buf.validate.field).string.min_len = 8];
+  string username = 1 [(buf.validate.field).string = {min_len: 3, max_len: 64}];
+  string password = 2 [(buf.validate.field).string = {min_len: 8, max_len: 128}];
 }
 
 message LoginResponse {
@@ -52,10 +51,12 @@ message LoginResponse {
 message RegisterRequest {
   string username = 1 [(buf.validate.field).string.min_len = 3];
   string password = 2 [(buf.validate.field).string.min_len = 8];
+  UserRole role = 3 [(buf.validate.field).enum.defined_only = true];
 }
 
 message RegisterResponse {
-  string user_id = 1;
-  string message = 2;
+  string token = 1;
+  string user_id = 2;
+  UserRole role = 3;
 }
 

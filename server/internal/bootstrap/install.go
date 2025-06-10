@@ -9,7 +9,7 @@ import (
 	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/logger"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/config"
-	"github.com/patraden/ya-practicum-gophkeeper/server/internal/crypto"
+	"github.com/patraden/ya-practicum-gophkeeper/server/internal/crypto/shamir"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/infra/pg"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/repository"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/version"
@@ -20,8 +20,6 @@ import (
 const (
 	defaultAdmin    = "Admin"
 	defaultPassword = "Admin"
-	sharesTotal     = 10
-	sharesTreshhold = 5
 )
 
 // fxServerInstallInvoke performs idempotent one-time installation steps:
@@ -37,7 +35,7 @@ func fxServerInstallInvoke(
 	version *version.Version,
 	userRepo repository.UserRepository,
 	rekRepo repository.REKRepository,
-	splitter *crypto.Splitter,
+	splitter *shamir.Splitter,
 	shutdowner fx.Shutdowner,
 ) {
 	installLog := log.With().
@@ -93,7 +91,7 @@ func fxServerInstallInvoke(
 func generateREKShares(
 	ctx context.Context,
 	rekRepo repository.REKRepository,
-	splitter *crypto.Splitter,
+	splitter *shamir.Splitter,
 	log *zerolog.Logger,
 ) error {
 	opLog := log.With().
@@ -108,7 +106,7 @@ func generateREKShares(
 		return err
 	}
 
-	shares, err := splitter.Split(rek, sharesTotal, sharesTreshhold)
+	shares, err := splitter.Split(rek)
 	if err != nil {
 		opLog.Error().Err(err).
 			Msg("failed to split REK into shares")
@@ -137,11 +135,12 @@ func generateREKShares(
 		opLog.Debug().
 			Msg("skipping REK share output due to existing REK")
 	} else {
-		for i, share := range shares {
-			opLog.Debug().
-				Int("share_index", i+1).
-				Hex("share", share).
-				Msg("REK share generated")
+		if err := WriteSharesFile(shares, "./shares.json", log); err != nil {
+			opLog.Error().Err(err).
+				Str("file", "./shares.json").
+				Msg("failed to preserve shares to file")
+
+			return err
 		}
 	}
 

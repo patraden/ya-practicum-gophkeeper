@@ -82,6 +82,7 @@ services:
       - gophkeeper
     volumes:
       - gophkeeper_certs:/etc/ssl/certs
+      - rek_shares:/app
 
 
 volumes:
@@ -91,6 +92,8 @@ volumes:
     name: gophkeeper_minio_data
   gophkeeper_certs:
     name: gophkeeper_app_certs
+  rek_shares:
+    name: gophkeeper_rek_shares
 
 networks:
     gophkeeper:

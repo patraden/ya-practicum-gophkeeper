@@ -27,7 +27,7 @@ func FromPGUser(u pg.User) *user.User {
 		ID:        u.ID,
 		Username:  u.Username,
 		Role:      u.Role,
-		Password:  []byte{},
+		Password:  u.Password,
 		CreatedAt: u.CreatedAt,
 		UpdatedAt: u.UpdatedAt,
 		Salt:      u.Salt,

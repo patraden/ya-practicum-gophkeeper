@@ -3,7 +3,7 @@
 CREATE TABLE users (
   id UUID PRIMARY KEY,
   username VARCHAR(255) UNIQUE NOT NULL,
-  role VARCHAR(5) NOT NULL,
+  role integer NOT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP,
   password BYTEA NOT NULL,

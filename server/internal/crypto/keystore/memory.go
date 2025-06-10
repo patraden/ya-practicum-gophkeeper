@@ -11,8 +11,8 @@ import (
 type Keystore interface {
 	Load(secret []byte) error
 	Get() ([]byte, error)
-	IsLoaded() bool
 	Wipe()
+	IsLoaded() bool
 }
 
 // InMemoryKeystore is a secure in-memory REK store.
@@ -36,7 +36,7 @@ func (ks *InMemoryKeystore) Load(secret []byte) error {
 	ks.mu.Lock()
 	defer ks.mu.Unlock()
 
-	if ks.loaded {
+	if ks.loaded && ks.rek != nil {
 		return e.ErrConflict
 	}
 
@@ -65,6 +65,12 @@ func (ks *InMemoryKeystore) Get() ([]byte, error) {
 }
 
 // IsLoaded returns true if a REK is loaded.
+// KeyStore usage should guarantee that loaded key is valid.
+// For example, during unsealing process prior to storing the key
+// it will be validate against expected key hash in pg.
+//
+// Method should be simple and performant as it will be heavily used
+// by gRPC interceptor on every request to the server.
 func (ks *InMemoryKeystore) IsLoaded() bool {
 	ks.mu.RLock()
 	defer ks.mu.RUnlock()

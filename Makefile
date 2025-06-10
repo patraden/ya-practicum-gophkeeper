@@ -31,18 +31,22 @@ clean:
 	@rm -f $(TEST_COVERAGE_REPORT)
 	@rm -f *.key
 	@rm -f *.crt
+	@go mod tidy
 
 .PHONY: docker-pg
 docker-pg:
-	@docker-compose -f $(DOCKER_COMPOSE_PATH) up -d postgres
+	@echo "Starting PostgreSQL container..."
+	docker-compose -f $(DOCKER_COMPOSE_PATH) up -d postgres
 
 .PHONY: docker-certgen
 docker-certgen:
-	@docker-compose -f $(DOCKER_COMPOSE_PATH) run --rm certgen
+	@echo "Running certificate generator container..."
+	docker-compose -f $(DOCKER_COMPOSE_PATH) run --rm certgen
 
 .PHONY: docker-build
-docker-build: docker-down
-	@BUILD_DATE=$(BUILD_DATE) \
+docker-build: docker-down docker-clean-volumes
+	@echo "Building Docker containers..."
+	BUILD_DATE=$(BUILD_DATE) \
 	BUILD_COMMIT=$(BUILD_COMMIT) \
 	BUILD_VERSION=$(BUILD_VERSION) \
 	VERSION_PACKAGE=$(VERSION_PACKAGE) \
@@ -54,21 +58,32 @@ docker-build: docker-down
 		--no-cache
 	$(MAKE) docker-up
 
-.PHONY: docker-up 
+.PHONY: docker-up
 docker-up:
-	@docker-compose -f $(DOCKER_COMPOSE_PATH) up -d
+	@echo "Starting all containers..."
+	docker-compose -f $(DOCKER_COMPOSE_PATH) up -d
 
 .PHONY: docker-stop
 docker-stop:
-	@docker-compose -f $(DOCKER_COMPOSE_PATH) stop
+	@echo "Stopping all containers..."
+	docker-compose -f $(DOCKER_COMPOSE_PATH) stop
 
 .PHONY: docker-down
 docker-down:
-	@docker-compose -f $(DOCKER_COMPOSE_PATH) down
+	@echo "Bringing down all containers..."
+	docker-compose -f $(DOCKER_COMPOSE_PATH) down
 
 .PHONY: docker-down-all
 docker-down-all:
-	@docker-compose -f $(DOCKER_COMPOSE_PATH) down --volumes --remove-orphans --rmi all
+	@echo "Bringing down all containers and cleaning all volumes/images..."
+	docker-compose -f $(DOCKER_COMPOSE_PATH) down --volumes --remove-orphans --rmi all
+
+.PHONY: docker-clean-volumes
+docker-clean-volumes:
+	@echo "Removing all Docker volumes except 'gophkeeper_app_certs'..."
+	@docker volume ls -q \
+		| grep -v gophkeeper_app_certs \
+		| xargs -r docker volume rm
 
 .PHONY: avro
 avro:
@@ -98,3 +113,8 @@ mocks:
 	@mockgen -source=server/internal/grpchandler/adapters.go -destination=server/internal/mock/grpc.go -package=mock UserServiceServer
 	@mockgen -source=server/internal/grpchandler/adapters.go -destination=server/internal/mock/grpc.go -package=mock AdminServiceServer
 	@mockgen -source=server/internal/infra/s3/client.go -destination=server/internal/mock/s3.go -package=mock Client
+
+.PHONY: json
+json:
+	@easyjson -all pkg/dto/shares.go
+	@easyjson -all pkg/dto/credentials.go

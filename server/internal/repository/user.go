@@ -2,11 +2,13 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/jackc/pgx/v5"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/domain/user"
+	"github.com/patraden/ya-practicum-gophkeeper/pkg/dto"
 	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/retry"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/infra/pg"
@@ -20,8 +22,8 @@ type UserRepository interface {
 	CreateUser(ctx context.Context, usr *user.User, kek *user.Key) (*user.User, error)
 	// CreateAdmin inserts an admin user without S3/KEK provisioning.
 	CreateAdmin(ctx context.Context, usr *user.User) (*user.User, error)
-	// Future: Validate credentials.
-	// ValidateUser(ctx context.Context, username, password string) (*user.User, error)
+	// ValidateUser Validates user credentials on Login.
+	ValidateUser(ctx context.Context, creds *dto.UserCredentials) (*user.User, error)
 }
 
 // UserRepo implements UserRepository using PostgreSQL and S3.
@@ -64,9 +66,18 @@ func (repo *UserRepo) logWithUserContext(u *user.User) zerolog.Logger {
 // This method does not create an S3 bucket or KEK entry.
 // Returns ErrExists if the user or username already exists.
 func (repo *UserRepo) CreateAdmin(ctx context.Context, usr *user.User) (*user.User, error) {
+	logCtx := repo.logWithUserContext(usr)
+
+	if usr.Role != user.RoleAdmin {
+		logCtx.Error().
+			Str("operation", "CreateAdmin").
+			Msg("expected user with admin role")
+
+		return nil, e.ErrInvalidInput
+	}
+
 	var dbUsr *user.User
 
-	logCtx := repo.logWithUserContext(usr)
 	queryFn := func(queries *pg.Queries) error {
 		pgUser, err := queries.CreateUser(ctx, ToCreateUserParams(usr))
 
@@ -119,6 +130,14 @@ func (repo *UserRepo) CreateAdmin(ctx context.Context, usr *user.User) (*user.Us
 // This method retries transient database failures using an exponential backoff strategy.
 func (repo *UserRepo) CreateUser(ctx context.Context, usr *user.User, key *user.Key) (*user.User, error) {
 	logCtx := repo.logWithUserContext(usr)
+
+	if usr.Role != user.RoleUser {
+		logCtx.Error().
+			Str("operation", "CreateUser").
+			Msg("expected user with user role")
+
+		return nil, e.ErrInvalidInput
+	}
 
 	// Trying to create user bucket first.
 	// It will be compensated later if DB operation fails.
@@ -175,6 +194,72 @@ func (repo *UserRepo) CreateUser(ctx context.Context, usr *user.User, key *user.
 	return dbUsr, nil
 }
 
+// GetUser retrieves a user by username from the database.
+//
+// It returns ErrNotFound if the user does not exist.
+// For all other errors, it returns ErrInternal.
+// The password is removed before returning.
+func (repo *UserRepo) GetUser(ctx context.Context, username string) (*user.User, error) {
+	logCtx := repo.log.With().Str("username", username).Logger()
+
+	var dbUsr *user.User
+
+	queryFn := func(queries *pg.Queries) error {
+		pgUser, err := queries.GetUser(ctx, username)
+
+		if errors.Is(err, sql.ErrNoRows) {
+			return e.ErrNotFound
+		}
+
+		if err != nil {
+			return err
+		}
+
+		// password will be removed here.
+		dbUsr = FromPGUser(pgUser)
+
+		return nil
+	}
+
+	dbErr := repo.withDBRetry(ctx, func() error { return queryFn(repo.queries) })
+	if dbErr != nil {
+		if errors.Is(dbErr, e.ErrNotFound) {
+			return nil, dbErr
+		}
+
+		logCtx.Error().Err(dbErr).
+			Str("operation", "GetUser").
+			Msg("Repo: failed to get user")
+
+		return nil, e.InternalErr(dbErr)
+	}
+
+	return dbUsr, nil
+}
+
+// ValidateUser authenticates a user based on provided credentials.
+//
+// It first fetches the user record by username and then verifies the password.
+// Returns ErrValidation if the password is incorrect and ErrNotFound if the user does not exist.
+// For all other errors, it returns ErrInternal.
+func (repo *UserRepo) ValidateUser(ctx context.Context, creds *dto.UserCredentials) (*user.User, error) {
+	user, err := repo.GetUser(ctx, creds.Username)
+	if err != nil {
+		return nil, err
+	}
+
+	if !user.CheckPassword(creds.Password) {
+		repo.log.Info().
+			Str("username", creds.Username).
+			Msg("invalid password attempt")
+
+		return nil, e.ErrValidation
+	}
+
+	return user, nil
+}
+
+// createBucket attempts to create a dedicated S3 bucket for a new user.
 func (repo *UserRepo) createBucket(ctx context.Context, usr *user.User, logCtx *zerolog.Logger) error {
 	bucketName := usr.ID.String()
 
@@ -190,6 +275,8 @@ func (repo *UserRepo) createBucket(ctx context.Context, usr *user.User, logCtx *
 	return nil
 }
 
+// compensateBucket deletes the previously created S3 bucket in case of a failed user creation.
+// This is a best-effort operation for ensuring consistency between the database and object store.
 func (repo *UserRepo) compensateBucket(ctx context.Context, usr *user.User, reason string, logCtx *zerolog.Logger) {
 	bucketName := usr.ID.String()
 	if err := repo.s3client.RemoveBucket(ctx, bucketName); err != nil {

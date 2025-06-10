@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
-	"github.com/patraden/ya-practicum-gophkeeper/server/internal/infra/keystore"
+	"github.com/patraden/ya-practicum-gophkeeper/server/internal/crypto/keystore"
 	"github.com/stretchr/testify/require"
 )
 
@@ -30,10 +30,10 @@ func TestKeyStore(t *testing.T) {
 
 		err := kstore.Load(key)
 		require.NoError(t, err)
-		require.True(t, kstore.IsLoaded())
 
 		out, err := kstore.Get()
 		require.NoError(t, err)
+		require.True(t, kstore.IsLoaded())
 		require.Equal(t, original, out)
 	})
 
@@ -53,6 +53,7 @@ func TestKeyStore(t *testing.T) {
 
 		out, err := kstore.Get()
 		require.NoError(t, err)
+		require.True(t, kstore.IsLoaded())
 		require.Equal(t, key1Copy, out)
 	})
 

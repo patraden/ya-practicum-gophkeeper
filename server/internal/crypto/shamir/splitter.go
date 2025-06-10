@@ -1,4 +1,4 @@
-package crypto
+package shamir
 
 import (
 	"github.com/hashicorp/vault/shamir"
@@ -17,26 +17,16 @@ func NewSplitter(log *zerolog.Logger) *Splitter {
 }
 
 // Split splits the secret into shares.
-func (s *Splitter) Split(secret []byte, total, threshold int) ([][]byte, error) {
-	shares, err := shamir.Split(secret, total, threshold)
+func (s *Splitter) Split(secret []byte) ([][]byte, error) {
+	shares, err := shamir.Split(secret, TotalShares, ThresholdShares)
 	if err != nil {
 		s.log.Error().Err(err).
-			Int("total", total).
-			Int("threshold", threshold).
+			Int("total", TotalShares).
+			Int("threshold", ThresholdShares).
 			Msg("shamir's secret split")
 
 		return nil, e.ErrInvalidInput
 	}
 
 	return shares, nil
-}
-
-// Combine reconstructs the original secret from a slice of shares.
-func Combine(shares [][]byte) ([]byte, error) {
-	secret, err := shamir.Combine(shares)
-	if err != nil {
-		return nil, e.ErrInvalidInput
-	}
-
-	return secret, nil
 }

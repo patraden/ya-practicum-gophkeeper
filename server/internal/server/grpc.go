@@ -7,6 +7,7 @@ import (
 
 	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
 	pb "github.com/patraden/ya-practicum-gophkeeper/pkg/proto/gophkeeper/v1"
+	"github.com/patraden/ya-practicum-gophkeeper/server/internal/auth"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/config"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/grpchandler"
 	"github.com/rs/zerolog"
@@ -28,6 +29,8 @@ func New(
 	config *config.Config,
 	adminSrv grpchandler.AdminServiceServer,
 	userSrv grpchandler.UserServiceServer,
+	authenticator *auth.Auth,
+	isPublicMethod func(method string) bool,
 	log *zerolog.Logger,
 ) (*GRPCServer, error) {
 	cert, err := tls.LoadX509KeyPair(config.ServerTLSCertPath, config.ServerTLSKeyPath)
@@ -51,7 +54,15 @@ func New(
 	}
 
 	creds := credentials.NewTLS(tlsCfg)
-	grpcSrv := grpc.NewServer(grpc.Creds(creds))
+	interceptors := grpc.ChainUnaryInterceptor(
+		auth.GRPCServerVerifier(authenticator),
+		auth.GRPCServerAuthenticator(isPublicMethod),
+	)
+
+	grpcSrv := grpc.NewServer(
+		grpc.Creds(creds),
+		interceptors,
+	)
 
 	return &GRPCServer{
 		grpcSrv:  grpcSrv,

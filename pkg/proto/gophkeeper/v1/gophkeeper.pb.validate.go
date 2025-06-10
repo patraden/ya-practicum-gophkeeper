@@ -159,8 +159,6 @@ func (m *UnsealResponse) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Unsealed
-
 	// no validation rules for Status
 
 	// no validation rules for Message
@@ -478,6 +476,8 @@ func (m *RegisterRequest) validate(all bool) error {
 
 	// no validation rules for Password
 
+	// no validation rules for Role
+
 	if len(errors) > 0 {
 		return RegisterRequestMultiError(errors)
 	}
@@ -578,9 +578,11 @@ func (m *RegisterResponse) validate(all bool) error {
 
 	var errors []error
 
+	// no validation rules for Token
+
 	// no validation rules for UserId
 
-	// no validation rules for Message
+	// no validation rules for Role
 
 	if len(errors) > 0 {
 		return RegisterResponseMultiError(errors)

@@ -1,4 +1,4 @@
-package s3
+package transport
 
 import (
 	"crypto/tls"
@@ -10,17 +10,17 @@ import (
 	"github.com/rs/zerolog"
 )
 
-// HTTPTransportBuilder is responsible for building a custom HTTP transport
+// TLSHTTPTransportBuilder is responsible for building a custom HTTP transport
 // with TLS configuration using provided certificate bytes or file path.
-type HTTPTransportBuilder struct {
+type TLSHTTPTransportBuilder struct {
 	CertBytes []byte
 	CertPath  string
 	log       *zerolog.Logger
 }
 
 // NewHTTPTransportBuilder creates a builder for HTTP transport with optional certificate input.
-func NewHTTPTransportBuilder(certPath string, certBytes []byte, log *zerolog.Logger) *HTTPTransportBuilder {
-	return &HTTPTransportBuilder{
+func NewHTTPTransportBuilder(certPath string, certBytes []byte, log *zerolog.Logger) *TLSHTTPTransportBuilder {
+	return &TLSHTTPTransportBuilder{
 		CertBytes: certBytes,
 		CertPath:  certPath,
 		log:       log,
@@ -30,7 +30,7 @@ func NewHTTPTransportBuilder(certPath string, certBytes []byte, log *zerolog.Log
 // Build constructs a new *http.Transport with TLS configuration using the
 // provided certificate. It reads the certificate from CertPath if CertBytes
 // is not set. Returns an error if certificate loading or TLS config fails.
-func (b *HTTPTransportBuilder) Build() (*http.Transport, error) {
+func (b *TLSHTTPTransportBuilder) Build() (*http.Transport, error) {
 	if len(b.CertBytes) == 0 {
 		if b.CertPath == "" {
 			b.log.Error().

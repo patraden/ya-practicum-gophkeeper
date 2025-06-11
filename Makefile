@@ -38,6 +38,12 @@ docker-pg:
 	@echo "Starting PostgreSQL container..."
 	docker-compose -f $(DOCKER_COMPOSE_PATH) up -d postgres
 
+.PHONY: docker-minio
+docker-minio:
+	@echo "Starting Minio container..."
+	docker-compose -f $(DOCKER_COMPOSE_PATH) up -d redis
+	docker-compose -f $(DOCKER_COMPOSE_PATH) up -d minio
+
 .PHONY: docker-certgen
 docker-certgen:
 	@echo "Running certificate generator container..."
@@ -69,9 +75,10 @@ docker-stop:
 	docker-compose -f $(DOCKER_COMPOSE_PATH) stop
 
 .PHONY: docker-down
-docker-down:
+docker-down: 
 	@echo "Bringing down all containers..."
 	docker-compose -f $(DOCKER_COMPOSE_PATH) down
+	$(MAKE) docker-clean-volumes
 
 .PHONY: docker-down-all
 docker-down-all:

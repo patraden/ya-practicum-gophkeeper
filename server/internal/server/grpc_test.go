@@ -5,18 +5,17 @@ import (
 	"context"
 	"crypto/x509"
 	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/patraden/ya-practicum-gophkeeper/pkg/certgen"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/logger"
 	pb "github.com/patraden/ya-practicum-gophkeeper/pkg/proto/gophkeeper/v1"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/auth"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/config"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/mock"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/server"
+	"github.com/patraden/ya-practicum-gophkeeper/server/internal/testutil/certtest"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -24,57 +23,13 @@ import (
 	"google.golang.org/grpc/credentials"
 )
 
-func generateTestCertificates(
-	t *testing.T,
-	dir string,
-	log *zerolog.Logger,
-) (string, string, string, string) {
-	t.Helper()
-
-	caCertPath := filepath.Join(dir, "ca-public.crt")
-	caKeyPath := filepath.Join(dir, "ca-private.key")
-	serverCertPath := filepath.Join(dir, "server.crt")
-	serverKeyPath := filepath.Join(dir, "server.key")
-
-	// Generate CA cert
-	require.NoError(t, certgen.GenerateCertificate(certgen.Config{
-		OrgName:    "TestCA",
-		CommonName: "TestCA",
-		IsCA:       true,
-		ECDSACurve: "P256",
-		ValidFrom:  time.Now(),
-		ValidFor:   365 * 24 * time.Hour,
-		Host:       "localhost",
-	}, log))
-
-	require.NoError(t, os.Rename("ca-public.crt", caCertPath))
-	require.NoError(t, os.Rename("ca-private.key", caKeyPath))
-
-	// Generate server cert signed by CA
-	require.NoError(t, certgen.GenerateCertificate(certgen.Config{
-		OrgName:    "TestServer",
-		CommonName: "localhost",
-		ECDSACurve: "P256",
-		CACertPath: caCertPath,
-		CAKeyPath:  caKeyPath,
-		Host:       "localhost,127.0.0.1",
-		ValidFrom:  time.Now(),
-		ValidFor:   365 * 24 * time.Hour,
-	}, log))
-
-	require.NoError(t, os.Rename("public.crt", serverCertPath))
-	require.NoError(t, os.Rename("private.key", serverKeyPath))
-
-	return caCertPath, caKeyPath, serverCertPath, serverKeyPath
-}
-
 func TestGRPCServerWithTLS(t *testing.T) {
 	t.Parallel()
 
 	log := logger.Stdout(zerolog.DebugLevel).GetZeroLog()
 	tmpDir := t.TempDir()
 
-	caCertPath, _, serverCertPath, serverKeyPath := generateTestCertificates(t, tmpDir, log)
+	caCertPath, serverCertPath, serverKeyPath := certtest.GenerateTestCertificates(t, tmpDir, log)
 
 	cfg := &config.Config{
 		ServerAddr:        "127.0.0.1:50055",

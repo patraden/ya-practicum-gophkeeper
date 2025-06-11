@@ -1,4 +1,4 @@
-package s3_test
+package transport_test
 
 import (
 	"os"
@@ -6,23 +6,20 @@ import (
 	"testing"
 
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
-	"github.com/patraden/ya-practicum-gophkeeper/server/internal/infra/s3"
+	"github.com/patraden/ya-practicum-gophkeeper/pkg/net/transport"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 )
 
 const ValidCert = `-----BEGIN CERTIFICATE-----
-MIIB5jCCAYygAwIBAgIRAPIBNlr5AgVg7LmwwHZ5AZowCgYIKoZIzj0EAwIwOjEc
-MBoGA1UEChMTQ2VydGdlbiBEZXZlbG9wbWVudDEaMBgGA1UECwwRcm9vdEAxNjVl
-OGYxOTM5OGEwHhcNMjUwNDEzMjAwMjExWhcNMjYwNDEzMjAwMjExWjA6MRwwGgYD
-VQQKExNDZXJ0Z2VuIERldmVsb3BtZW50MRowGAYDVQQLDBFyb290QDE2NWU4ZjE5
-Mzk4YTBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABCLCGjyg3/DUExQ7byXOdF1W
-vPyjzXlfAV5OwEJdbv8MZTtTz4rsJEZeUU/HSV2OpLYfs/R8j6pKYD3zcp5djiWj
-czBxMA4GA1UdDwEB/wQEAwICpDATBgNVHSUEDDAKBggrBgEFBQcDATAPBgNVHRMB
-Af8EBTADAQH/MB0GA1UdDgQWBBSIRoY2U0W5CZQxMWBnYYk32+rGYzAaBgNVHREE
-EzARgglsb2NhbGhvc3SHBH8AAAEwCgYIKoZIzj0EAwIDSAAwRQIgdMipjU+5qR2i
-EmgAFSzd0YmFKzIA3VvMKcsLWTPmQ3sCIQCieiGaNkihZq9PFotCp6lVCC+F/Dfs
-0bVOhAWuQTRKog==
+MIIBaTCCARCgAwIBAgIQeqzCsR4c4UHsmG3Z2i88ijAKBggqhkjOPQQDAjAVMRMw
+EQYDVQQKEwpHb3BoS2VlcGVyMB4XDTI1MDYwNzIwMzc0M1oXDTI2MDYwNzIwMzc0
+M1owFTETMBEGA1UEChMKR29waEtlZXBlcjBZMBMGByqGSM49AgEGCCqGSM49AwEH
+A0IABFSc129n05cdh9Rg7OUZd78I6qhuSKFxox0eJer/svRHZD5tK0fZ/Bu5bag+
+8cf0Q2dzzDASBMvMirXS5Xj41jujQjBAMA4GA1UdDwEB/wQEAwICpDAPBgNVHRMB
+Af8EBTADAQH/MB0GA1UdDgQWBBSHXnSKZ2lONP+CdJfHwrcH7Qw3PzAKBggqhkjO
+PQQDAgNHADBEAiAva0+si2q9Zt4enx7Nwvsxt4UGnjnjWgKV2js4g6RtuQIgYf1t
+yq7w5y8cgRgkww2wWIPufY/M7mBXWpsu1nUh0UM=
 -----END CERTIFICATE-----`
 
 func TestHTTPTransportBuilder_FromBytes(t *testing.T) {
@@ -55,7 +52,7 @@ func TestHTTPTransportBuilder_FromBytes(t *testing.T) {
 			t.Parallel()
 
 			log := zerolog.Nop()
-			builder := s3.NewHTTPTransportBuilder("", tt.certBytes, &log)
+			builder := transport.NewHTTPTransportBuilder("", tt.certBytes, &log)
 			transport, err := builder.Build()
 
 			if tt.wantErr != nil {
@@ -104,7 +101,7 @@ func TestHTTPTransportBuilder_FromFile(t *testing.T) {
 			t.Parallel()
 
 			log := zerolog.Nop()
-			builder := s3.NewHTTPTransportBuilder(tt.certPath, nil, &log)
+			builder := transport.NewHTTPTransportBuilder(tt.certPath, nil, &log)
 			transport, err := builder.Build()
 
 			if tt.wantErr != nil {

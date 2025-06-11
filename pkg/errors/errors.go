@@ -34,6 +34,7 @@ var (
 	ErrConflict = errors.New("conflict")
 	ErrCorrupt  = errors.New("corrupted data")
 	ErrNotReady = errors.New("not ready")
+	ErrInit     = errors.New("initialization error")
 
 	// Runtime / System.
 	ErrUnavailable    = errors.New("service unavailable")

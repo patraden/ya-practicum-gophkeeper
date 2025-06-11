@@ -33,6 +33,22 @@ services:
     networks:
       - gophkeeper
     restart: "no"
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - gophkeeper
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
  
   postgres:
     container_name: postgres
@@ -57,13 +73,16 @@ services:
     ports:
       - "9000:9000"
       - "9001:9001"
-    command: server /data --console-address ":9001" --certs-dir="/etc/ssl/certs/minio/"
+    command: server /data --console-address ":9001" --certs-dir="/etc/ssl/certs/gophkeeper/minio/"
     restart: unless-stopped
     volumes:
       - minio_data:/data
       - gophkeeper_certs:/etc/ssl/certs
     networks:
       - gophkeeper
+    depends_on:
+      redis:
+        condition: service_healthy
   gophkeeper-server:
     container_name: gophkeeper-server
     build:
@@ -76,6 +95,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     ports:
       - "3200:3200"
     networks:
@@ -83,8 +104,6 @@ services:
     volumes:
       - gophkeeper_certs:/etc/ssl/certs
       - rek_shares:/app
-
-
 volumes:
   postgres_data:
     name: gophkeeper_postgres_data
@@ -94,6 +113,8 @@ volumes:
     name: gophkeeper_app_certs
   rek_shares:
     name: gophkeeper_rek_shares
+  redis_data:
+    name: gophkeeper_redis_data
 
 networks:
     gophkeeper:

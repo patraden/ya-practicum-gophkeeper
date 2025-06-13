@@ -49,7 +49,7 @@ func Server(cfg *config.Config) *fx.App {
 			fx.Provide(func(l *logger.Logger) *zerolog.Logger { return l.GetZeroLog() }),
 			fx.Provide(pgDBFunc),
 			fx.Provide(shamir.NewSplitter),
-			fx.Provide(fx.Annotate(s3.NewDummyS3, fx.As(new(s3.Client)))),
+			fx.Provide(fx.Annotate(s3.NewMinIOClient, fx.As(new(s3.Client)))),
 			fx.Provide(fx.Annotate(repository.NewUserRepo, fx.As(new(repository.UserRepository)))),
 			fx.Provide(fx.Annotate(repository.NewREKRepo, fx.As(new(repository.REKRepository)))),
 			fx.WithLogger(func() fxevent.Logger { return fxevent.NopLogger }),
@@ -68,7 +68,7 @@ func Server(cfg *config.Config) *fx.App {
 		fx.Provide(func(l *logger.Logger) *auth.Auth { return auth.New(jwtKeyFunc, l.GetZeroLog()) }),
 		fx.Provide(pgDBFunc),
 		fx.Provide(shamir.NewCollector),
-		fx.Provide(fx.Annotate(s3.NewDummyS3, fx.As(new(s3.Client)))),
+		fx.Provide(fx.Annotate(s3.NewMinIOClient, fx.As(new(s3.Client)))),
 		fx.Provide(fx.Annotate(keystore.NewInMemoryKeystore, fx.As(new(keystore.Keystore)))),
 		fx.Provide(fx.Annotate(repository.NewREKRepo, fx.As(new(repository.REKRepository)))),
 		fx.Provide(fx.Annotate(repository.NewUserRepo, fx.As(new(repository.UserRepository)))),
@@ -77,7 +77,9 @@ func Server(cfg *config.Config) *fx.App {
 		fx.Provide(fx.Annotate(grpchandler.NewAdminServer, fx.As(new(grpchandler.AdminServiceServer)))),
 		fx.Provide(fx.Annotate(grpchandler.NewUserServer, fx.As(new(grpchandler.UserServiceServer)))),
 		fx.Provide(server.New),
-		fx.WithLogger(appLogger.GetFxLogger()),
+		fx.WithLogger(fxevent.NopLogger),
+		fx.WithLogger(func() fxevent.Logger { return fxevent.NopLogger }),
+		// fx.WithLogger(appLogger.GetFxLogger()),
 		fx.Invoke(fxServerInvoke),
 	)
 }

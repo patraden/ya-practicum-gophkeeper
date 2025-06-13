@@ -5,6 +5,8 @@
 mc alias set local https://localhost:9000 gophkeeper gophkeeper --insecure
 # check alias created:
 mc alias list
+# list buckets
+mc ls local --insecure
 # get redis notify config:
 mc admin config get local notify_redis
 # apply config:

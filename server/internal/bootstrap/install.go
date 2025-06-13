@@ -60,7 +60,7 @@ func fxServerInstallInvoke(
 
 			installLog.Info().
 				Msg("generating and storing REK")
-			if err := generateREKShares(ctx, rekRepo, splitter, &installLog); err != nil {
+			if err := generateREKShares(ctx, rekRepo, splitter, cfg.REKSharesPath, &installLog); err != nil {
 				return err
 			}
 
@@ -92,6 +92,7 @@ func generateREKShares(
 	ctx context.Context,
 	rekRepo repository.REKRepository,
 	splitter *shamir.Splitter,
+	sharePath string,
 	log *zerolog.Logger,
 ) error {
 	opLog := log.With().
@@ -135,9 +136,9 @@ func generateREKShares(
 		opLog.Debug().
 			Msg("skipping REK share output due to existing REK")
 	} else {
-		if err := WriteSharesFile(shares, "./shares.json", log); err != nil {
+		if err := WriteSharesFile(shares, sharePath, log); err != nil {
 			opLog.Error().Err(err).
-				Str("file", "./shares.json").
+				Str("file", sharePath).
 				Msg("failed to preserve shares to file")
 
 			return err

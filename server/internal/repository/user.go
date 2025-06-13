@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strings"
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/jackc/pgx/v5"
@@ -261,7 +262,7 @@ func (repo *UserRepo) ValidateUser(ctx context.Context, creds *dto.UserCredentia
 
 // createBucket attempts to create a dedicated S3 bucket for a new user.
 func (repo *UserRepo) createBucket(ctx context.Context, usr *user.User, logCtx *zerolog.Logger) error {
-	bucketName := usr.ID.String()
+	bucketName := strings.ReplaceAll(usr.ID.String(), "-", "")
 
 	err := repo.s3client.MakeBucket(ctx, bucketName, map[string]string{
 		"user_id":   usr.ID.String(),
@@ -278,7 +279,7 @@ func (repo *UserRepo) createBucket(ctx context.Context, usr *user.User, logCtx *
 // compensateBucket deletes the previously created S3 bucket in case of a failed user creation.
 // This is a best-effort operation for ensuring consistency between the database and object store.
 func (repo *UserRepo) compensateBucket(ctx context.Context, usr *user.User, reason string, logCtx *zerolog.Logger) {
-	bucketName := usr.ID.String()
+	bucketName := strings.ReplaceAll(usr.ID.String(), "-", "")
 	if err := repo.s3client.RemoveBucket(ctx, bucketName); err != nil {
 		logCtx.Error().Err(err).
 			Str("reason", reason).

@@ -33,3 +33,6 @@ go.work.sum
 
 # testing tokens
 *.token
+
+# encryption
+.crypto

@@ -14,6 +14,7 @@ type Config struct {
 	S3RedisRegion     string `env:"S3_REDIS_REGION"`
 	S3Token           string `env:"S3_TOKEN"`
 	JWTSecret         string `env:"JWT_SECRET"`
+	REKSharesPath     string `env:"REK_SHARES_PATH"`
 	InstallMode       bool
 	DebugMode         bool
 }
@@ -33,6 +34,7 @@ func DefaultConfig() *Config {
 		S3Region:          `eu-central-1`,
 		S3RedisRegion:     `eu-central-1`,
 		JWTSecret:         `d1a58c288a0226998149277b14993f6c73cf44ff9df3de548df4df25a13b251a`,
+		REKSharesPath:     `shares.json`,
 		InstallMode:       false,
 		DebugMode:         false,
 	}

@@ -18,12 +18,12 @@ services:
         mv ca-private.key /certs/gophkeeper/ca/ &&
 
         echo 'Generating GophKeeper certificate signed by CA...' &&
-        /usr/local/bin/certgen -host 127.0.0.1,localhost -org-name GophKeeper -ca-cert /certs/gophkeeper/ca/ca-public.crt -ca-key /certs/gophkeeper/ca/ca-private.key &&
+        /usr/local/bin/certgen -host 127.0.0.1,localhost,gophkeeper-server -org-name GophKeeper -ca-cert /certs/gophkeeper/ca/ca-public.crt -ca-key /certs/gophkeeper/ca/ca-private.key &&
         mv public.crt /certs/gophkeeper/backend/ &&
         mv private.key /certs/gophkeeper/backend/ &&
         
         echo 'Generating GophKeeper Minio certificate signed by CA...' &&
-        /usr/local/bin/certgen -host 127.0.0.1,localhost -org-name GophKeeper -ca-cert /certs/gophkeeper/ca/ca-public.crt -ca-key /certs/gophkeeper/ca/ca-private.key &&
+        /usr/local/bin/certgen -host 127.0.0.1,localhost,minio -org-name GophKeeper -ca-cert /certs/gophkeeper/ca/ca-public.crt -ca-key /certs/gophkeeper/ca/ca-private.key &&
         mv public.crt /certs/gophkeeper/minio/ &&
         mv private.key /certs/gophkeeper/minio/ &&
         echo 'CA certificate:' && cat /certs/gophkeeper/ca/ca-public.crt
@@ -91,6 +91,7 @@ services:
     restart: always
     environment:
       - SERVER_ADDRESS=${SERVER_ADDRESS}
+      - S3_ENDPOINT=${S3_ENDPOINT}
       - DATABASE_DSN=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
     depends_on:
       postgres:

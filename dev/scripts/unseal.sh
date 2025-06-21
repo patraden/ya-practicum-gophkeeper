@@ -3,7 +3,7 @@
 set -euo pipefail
 
 SERVER_HOST="localhost"
-SERVER_PORT="3200"
+SERVER_PORT="3300"
 CA_CERT="./deployments/.certs/ca.cert"
 SHARES_PATH="./deployments/.crypto/shares.json"
 API_PATH="./api"

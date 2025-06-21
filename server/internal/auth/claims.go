@@ -2,7 +2,7 @@ package auth
 
 import (
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/patraden/ya-practicum-gophkeeper/pkg/domain/user"
+	"github.com/google/uuid"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
 )
 
@@ -17,7 +17,7 @@ type Claims struct {
 
 // Validate implements additional validations for claims.
 func (c Claims) Validate() error {
-	if userID, err := user.ParseID(c.UserID); err != nil || userID.IsNil() {
+	if userID, err := uuid.Parse(c.UserID); err != nil || userID == uuid.Nil {
 		return errors.ErrInvalidInput
 	}
 

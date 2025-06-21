@@ -6,14 +6,17 @@ import (
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/logger"
+	"github.com/patraden/ya-practicum-gophkeeper/pkg/s3"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/app"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/auth"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/config"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/crypto/keystore"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/crypto/shamir"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/grpchandler"
+	"github.com/patraden/ya-practicum-gophkeeper/server/internal/identity"
+	"github.com/patraden/ya-practicum-gophkeeper/server/internal/infra/keycloak"
+	"github.com/patraden/ya-practicum-gophkeeper/server/internal/infra/minio"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/infra/pg"
-	"github.com/patraden/ya-practicum-gophkeeper/server/internal/infra/s3"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/repository"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/server"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/version"
@@ -49,10 +52,13 @@ func Server(cfg *config.Config) *fx.App {
 			fx.Provide(func(l *logger.Logger) *zerolog.Logger { return l.GetZeroLog() }),
 			fx.Provide(pgDBFunc),
 			fx.Provide(shamir.NewSplitter),
-			fx.Provide(fx.Annotate(s3.NewMinIOClient, fx.As(new(s3.Client)))),
+			fx.Provide(fx.Annotate(keycloak.NewClient, fx.As(new(identity.Client)))),
+			fx.Provide(fx.Annotate(identity.NewKeycloakManager, fx.As(new(identity.Manager)))),
+			fx.Provide(fx.Annotate(minio.NewClient, fx.As(new(s3.ServerOperator)))),
 			fx.Provide(fx.Annotate(repository.NewUserRepo, fx.As(new(repository.UserRepository)))),
 			fx.Provide(fx.Annotate(repository.NewREKRepo, fx.As(new(repository.REKRepository)))),
-			fx.WithLogger(func() fxevent.Logger { return fxevent.NopLogger }),
+			fx.WithLogger(appLogger.GetFxLogger()),
+			// fx.WithLogger(func() fxevent.Logger { return fxevent.NopLogger }),
 			fx.Invoke(fxServerInstallInvoke),
 		)
 	}
@@ -68,7 +74,9 @@ func Server(cfg *config.Config) *fx.App {
 		fx.Provide(func(l *logger.Logger) *auth.Auth { return auth.New(jwtKeyFunc, l.GetZeroLog()) }),
 		fx.Provide(pgDBFunc),
 		fx.Provide(shamir.NewCollector),
-		fx.Provide(fx.Annotate(s3.NewMinIOClient, fx.As(new(s3.Client)))),
+		fx.Provide(fx.Annotate(keycloak.NewClient, fx.As(new(identity.Client)))),
+		fx.Provide(fx.Annotate(identity.NewKeycloakManager, fx.As(new(identity.Manager)))),
+		fx.Provide(fx.Annotate(minio.NewClient, fx.As(new(s3.ServerOperator)))),
 		fx.Provide(fx.Annotate(keystore.NewInMemoryKeystore, fx.As(new(keystore.Keystore)))),
 		fx.Provide(fx.Annotate(repository.NewREKRepo, fx.As(new(repository.REKRepository)))),
 		fx.Provide(fx.Annotate(repository.NewUserRepo, fx.As(new(repository.UserRepository)))),
@@ -78,8 +86,8 @@ func Server(cfg *config.Config) *fx.App {
 		fx.Provide(fx.Annotate(grpchandler.NewUserServer, fx.As(new(grpchandler.UserServiceServer)))),
 		fx.Provide(server.New),
 		fx.WithLogger(fxevent.NopLogger),
-		fx.WithLogger(func() fxevent.Logger { return fxevent.NopLogger }),
-		// fx.WithLogger(appLogger.GetFxLogger()),
+		// fx.WithLogger(func() fxevent.Logger { return fxevent.NopLogger }),
+		fx.WithLogger(appLogger.GetFxLogger()),
 		fx.Invoke(fxServerInvoke),
 	)
 }

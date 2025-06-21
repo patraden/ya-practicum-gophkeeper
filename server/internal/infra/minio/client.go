@@ -1,4 +1,4 @@
-package s3
+package minio
 
 import (
 	"context"
@@ -12,21 +12,33 @@ import (
 	"github.com/minio/minio-go/v7/pkg/tags"
 	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/net/transport"
+	"github.com/patraden/ya-practicum-gophkeeper/pkg/s3"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/config"
 	"github.com/rs/zerolog"
 )
 
 // MinIOClient wraps the minio.Client and provides additional configuration
 // and logging capabilities for interacting with an S3-compatible MinIO backend.
-type MinIOClient struct {
-	Client
-	minio *minio.Client
-	cfg   *config.Config
-	log   *zerolog.Logger
+type Client struct {
+	s3.ServerOperator
+	minio    *minio.Client
+	identity *WebIdentityClient
+	cfg      *s3.ClientConfig
+	log      *zerolog.Logger
 }
 
 // NewMinIOClient initializes a new MinIO S3 client using the provided configuration.
-func NewMinIOClient(cfg *config.Config, log *zerolog.Logger) (*MinIOClient, error) {
+func NewClient(config *config.Config, log *zerolog.Logger) (*Client, error) {
+	cfg := &s3.ClientConfig{
+		S3Endpoint:    config.S3Endpoint,
+		S3TLSCertPath: config.S3TLSCertPath,
+		S3AccessKey:   config.S3AccessKey,
+		S3SecretKey:   config.S3SecretKey,
+		S3AccountID:   config.S3AccountID,
+		S3Region:      config.S3Region,
+		S3Token:       config.S3Token,
+	}
+
 	builder := transport.NewHTTPTransportBuilder(cfg.S3TLSCertPath, nil, log)
 
 	httptrprt, err := builder.Build()
@@ -51,27 +63,42 @@ func NewMinIOClient(cfg *config.Config, log *zerolog.Logger) (*MinIOClient, erro
 		return nil, fmt.Errorf("%w: MinIO client: %v", e.ErrInit, err.Error())
 	}
 
-	return &MinIOClient{
-		minio: client,
-		cfg:   cfg,
-		log:   log,
+	secure := cfg.S3TLSCertPath != ""
+	webURL := getWebURL(cfg.S3Endpoint, secure)
+	identity := NewMinioWebIdentityClient(webURL, nil, httptrprt, log)
+
+	return &Client{
+		minio:    client,
+		identity: identity,
+		cfg:      cfg,
+		log:      log,
 	}, nil
 }
 
-func (c *MinIOClient) IsOnline() bool {
+func (c *Client) IsOnline() bool {
 	return c.minio.IsOnline()
 }
 
+// getWebURL constructs the full MinIO web URL from endpoint and TLS setting.
+func getWebURL(endpoint string, secure bool) string {
+	scheme := "http"
+	if secure {
+		scheme = "https"
+	}
+
+	return fmt.Sprintf("%s://%s", scheme, endpoint)
+}
+
 // logCtx constructs a structured logger pre-filled with bucket context.
-func (c *MinIOClient) logCtx(bucketName string) zerolog.Logger {
+func (c *Client) logCtx(bucketName string) zerolog.Logger {
 	return c.log.With().
 		Str("bucket_name", bucketName).
 		Str("account_id", c.cfg.S3AccountID).
-		Str("region", c.cfg.S3RedisRegion).Logger()
+		Str("region", c.cfg.S3Region).Logger()
 }
 
 // BucketExists checks whether a bucket with the given name exists.
-func (c *MinIOClient) BucketExists(ctx context.Context, bucketName string) (bool, error) {
+func (c *Client) BucketExists(ctx context.Context, bucketName string) (bool, error) {
 	logCtx := c.logCtx(bucketName)
 
 	exists, err := c.minio.BucketExists(ctx, bucketName)
@@ -88,7 +115,7 @@ func (c *MinIOClient) BucketExists(ctx context.Context, bucketName string) (bool
 }
 
 // MakeBucket creates a new bucket with the given name, tags, and sets up Redis notification events.
-func (c *MinIOClient) MakeBucket(
+func (c *Client) MakeBucket(
 	ctx context.Context,
 	bucketName string,
 	bucketTags map[string]string,
@@ -116,7 +143,13 @@ func (c *MinIOClient) MakeBucket(
 		}
 	}
 
-	redisARN := notification.NewArn("minio", "sqs", c.cfg.S3RedisRegion, c.cfg.S3AccountID, "redis")
+	return nil
+}
+
+func (c *Client) SetBucketNotification(ctx context.Context, bucketName string) error {
+	logCtx := c.logCtx(bucketName)
+
+	redisARN := notification.NewArn("minio", "sqs", c.cfg.S3Region, c.cfg.S3AccountID, "redis")
 	queueConfig := notification.NewConfig(redisARN)
 
 	queueConfig.AddEvents(
@@ -129,7 +162,7 @@ func (c *MinIOClient) MakeBucket(
 	notifyCfg := notification.Configuration{}
 	notifyCfg.AddQueue(queueConfig)
 
-	err = c.minio.SetBucketNotification(ctx, bucketName, notifyCfg)
+	err := c.minio.SetBucketNotification(ctx, bucketName, notifyCfg)
 	if err != nil {
 		logCtx.Error().Err(err).Msg("failed to set bucket notifications")
 		return e.InternalErr(err)
@@ -139,7 +172,7 @@ func (c *MinIOClient) MakeBucket(
 }
 
 // setBucketTags applies the provided tags to the specified bucket.
-func (c *MinIOClient) setBucketTags(
+func (c *Client) setBucketTags(
 	ctx context.Context,
 	bucketName string,
 	bucketTags map[string]string,
@@ -162,7 +195,7 @@ func (c *MinIOClient) setBucketTags(
 }
 
 // GeneratePresignedPutURL generates a presigned PUT URL for uploading an object to a bucket.
-func (c *MinIOClient) GeneratePresignedPutURL(
+func (c *Client) GeneratePresignedPutURL(
 	ctx context.Context,
 	bucketName, objectKey string,
 	expiry time.Duration,
@@ -185,7 +218,7 @@ func (c *MinIOClient) GeneratePresignedPutURL(
 }
 
 // RemoveBucket deletes the specified bucket if it exists and is empty.
-func (c *MinIOClient) RemoveBucket(ctx context.Context, bucketName string) error {
+func (c *Client) RemoveBucket(ctx context.Context, bucketName string) error {
 	logCtx := c.logCtx(bucketName)
 
 	exists, err := c.BucketExists(ctx, bucketName)
@@ -206,4 +239,20 @@ func (c *MinIOClient) RemoveBucket(ctx context.Context, bucketName string) error
 	logCtx.Info().Msg("bucket removed successfully")
 
 	return nil
+}
+
+func (c *Client) AssumeRole(
+	ctx context.Context,
+	identityToken string,
+	durationSeconds int,
+) (*s3.TemporaryCredentials, error) {
+	return c.identity.AssumeRole(ctx, identityToken, durationSeconds)
+}
+
+func (c *Client) AddCannedPolicy(_ context.Context, _ string, _ []byte) error {
+	// In a future iteration, implement support for a custom MinIO policy that restricts
+	// access to objects based on the user_id extracted from the identity JWT token.
+	// This policy should be created during server installation (via the `-install` flag)
+	// and replace the current value of the user's "policy" attribute in the identity provider.
+	return e.ErrNotImplemented
 }

@@ -27,7 +27,7 @@ func (l *Logger) Printf(format string, v ...any) {
 	l.log.Info().Msgf(format, v...)
 }
 
-// Stdout initializes and returns a new Logger.
+// Stdout initializes a new Logger with JSON output (suitable for servers).
 func Stdout(level zerolog.Level) *Logger {
 	zerolog.CallerMarshalFunc = shortCallerMarshalFunc
 	zerolog.CallerSkipFrameCount = 2
@@ -37,6 +37,26 @@ func Stdout(level zerolog.Level) *Logger {
 			With().
 			Timestamp().
 			Caller().
+			Logger().
+			Level(level),
+	}
+}
+
+// StdoutConsole initializes a new Logger with human-readable console output (suitable for CLI clients).
+func StdoutConsole(level zerolog.Level) *Logger {
+	zerolog.CallerMarshalFunc = shortCallerMarshalFunc
+	zerolog.CallerSkipFrameCount = 2
+
+	output := zerolog.ConsoleWriter{
+		Out:        os.Stdout,
+		TimeFormat: "15:04:05",
+		NoColor:    false,
+	}
+
+	return &Logger{
+		log: zerolog.New(output).
+			With().
+			Timestamp().
 			Logger().
 			Level(level),
 	}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"strings"
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/jackc/pgx/v5"
@@ -12,8 +11,9 @@ import (
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/dto"
 	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/retry"
+	"github.com/patraden/ya-practicum-gophkeeper/pkg/s3"
+	"github.com/patraden/ya-practicum-gophkeeper/server/internal/identity"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/infra/pg"
-	"github.com/patraden/ya-practicum-gophkeeper/server/internal/infra/s3"
 	"github.com/rs/zerolog"
 )
 
@@ -29,18 +29,20 @@ type UserRepository interface {
 
 // UserRepo implements UserRepository using PostgreSQL and S3.
 type UserRepo struct {
-	s3client s3.Client
+	s3client s3.ServerOperator
+	idClient identity.Manager
 	connPool pg.ConnenctionPool
 	queries  *pg.Queries
 	log      *zerolog.Logger
 }
 
 // NewUserRepo creates a new instance of UserRepo with the provided database, S3 client, and logger.
-func NewUserRepo(db *pg.DB, s3client s3.Client, log *zerolog.Logger) *UserRepo {
+func NewUserRepo(db *pg.DB, s3client s3.ServerOperator, idClient identity.Manager, log *zerolog.Logger) *UserRepo {
 	return &UserRepo{
 		connPool: db.ConnPool,
 		queries:  pg.New(db.ConnPool),
 		s3client: s3client,
+		idClient: idClient,
 		log:      log,
 	}
 }
@@ -129,6 +131,8 @@ func (repo *UserRepo) CreateAdmin(ctx context.Context, usr *user.User) (*user.Us
 // it returns ErrServerInternal.
 //
 // This method retries transient database failures using an exponential backoff strategy.
+//
+//nolint:funlen,cyclop // reason: method is lengthy, but has simple logic
 func (repo *UserRepo) CreateUser(ctx context.Context, usr *user.User, key *user.Key) (*user.User, error) {
 	logCtx := repo.logWithUserContext(usr)
 
@@ -140,9 +144,15 @@ func (repo *UserRepo) CreateUser(ctx context.Context, usr *user.User, key *user.
 		return nil, e.ErrInvalidInput
 	}
 
+	// Trying to create user in identity first.
+	token, err := repo.createIdentityUser(ctx, usr)
+	if err != nil {
+		return nil, e.InternalErr(err)
+	}
+
 	// Trying to create user bucket first.
-	// It will be compensated later if DB operation fails.
-	if err := repo.createBucket(ctx, usr, &logCtx); err != nil {
+	if err := repo.createBucket(ctx, usr, logCtx); err != nil {
+		repo.compensateIdentityUser(ctx, usr, "bucket_creation_failed", logCtx)
 		return nil, e.InternalErr(err)
 	}
 
@@ -160,6 +170,10 @@ func (repo *UserRepo) CreateUser(ctx context.Context, usr *user.User, key *user.
 		}
 
 		if err = queries.CreateUserKey(ctx, ToCreateUserKeyParams(key)); err != nil {
+			return err
+		}
+
+		if err = queries.CreateIdentityToken(ctx, ToCreateIdentityTokenParams(token)); err != nil {
 			return err
 		}
 
@@ -184,10 +198,11 @@ func (repo *UserRepo) CreateUser(ctx context.Context, usr *user.User, key *user.
 			Str("operation", "CreateUser").
 			Msg("Repo: failed to create user")
 
-		// Compensate and remove created bucket.
-		// Considering bucket removal compensation as "best-effort" operation.
+		// Compensate and remove created bucket and identity user.
+		// Considering bucket and identity user removal compensation as "best-effort" operation.
 		// It is non-critical and can be later compensated by background reconciliation.
-		repo.compensateBucket(ctx, usr, "user_creation_failed", &logCtx)
+		repo.compensateBucket(ctx, usr, "user_creation_failed", logCtx)
+		repo.compensateIdentityUser(ctx, usr, "user_creation_failed", logCtx)
 
 		return nil, e.InternalErr(dbErr)
 	}
@@ -261,25 +276,71 @@ func (repo *UserRepo) ValidateUser(ctx context.Context, creds *dto.UserCredentia
 }
 
 // createBucket attempts to create a dedicated S3 bucket for a new user.
-func (repo *UserRepo) createBucket(ctx context.Context, usr *user.User, logCtx *zerolog.Logger) error {
-	bucketName := strings.ReplaceAll(usr.ID.String(), "-", "")
-
-	err := repo.s3client.MakeBucket(ctx, bucketName, map[string]string{
+func (repo *UserRepo) createBucket(
+	ctx context.Context,
+	usr *user.User,
+	logCtx zerolog.Logger,
+) error {
+	bucketName := usr.IDNoDash()
+	attrs := map[string]string{
 		"user_id":   usr.ID.String(),
 		"user_role": usr.Role.String(),
-	})
-	if err != nil {
+	}
+
+	if err := repo.s3client.MakeBucket(ctx, bucketName, attrs); err != nil {
 		logCtx.Error().Err(err).Msg("failed to create user bucket")
 		return err
 	}
 
+	usr.SetBucketName(bucketName)
+
 	return nil
+}
+
+// createIdentityUser attempts to create identity user.
+func (repo *UserRepo) createIdentityUser(ctx context.Context, usr *user.User) (*user.IdentityToken, error) {
+	iuid, err := repo.idClient.CreateUser(ctx, usr)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := repo.idClient.GetToken(ctx, usr)
+	if err != nil {
+		return nil, err
+	}
+
+	usr.SetIdentityID(iuid)
+
+	return token, nil
+}
+
+// compensateIdentityUser deletes the previously created identity user.
+// This is a best-effort operation for ensuring consistency between the database and object store.
+func (repo *UserRepo) compensateIdentityUser(
+	ctx context.Context,
+	usr *user.User,
+	reason string,
+	logCtx zerolog.Logger,
+) {
+	if err := repo.idClient.DeleteUser(ctx, usr); err != nil {
+		logCtx.Error().Err(err).
+			Str("reason", reason).
+			Bool("compensation", true).
+			Str("identity_user", usr.IdentityID).
+			Msg("failed to remove identity user during compensation")
+	} else {
+		logCtx.Info().
+			Str("reason", reason).
+			Bool("compensation", true).
+			Str("identity_user", usr.IdentityID).
+			Msg("successfully removed identity user as compensation")
+	}
 }
 
 // compensateBucket deletes the previously created S3 bucket in case of a failed user creation.
 // This is a best-effort operation for ensuring consistency between the database and object store.
-func (repo *UserRepo) compensateBucket(ctx context.Context, usr *user.User, reason string, logCtx *zerolog.Logger) {
-	bucketName := strings.ReplaceAll(usr.ID.String(), "-", "")
+func (repo *UserRepo) compensateBucket(ctx context.Context, usr *user.User, reason string, logCtx zerolog.Logger) {
+	bucketName := usr.BucketName
 	if err := repo.s3client.RemoveBucket(ctx, bucketName); err != nil {
 		logCtx.Error().Err(err).
 			Str("reason", reason).

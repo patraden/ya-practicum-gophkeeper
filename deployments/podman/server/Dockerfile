@@ -31,5 +31,5 @@ RUN apt-get update && \
 
 COPY --from=builder /app/gophkeeper /usr/local/bin/gophkeeper
 
-COPY deployments/server/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY deployments/podman/server/entrypoint.sh /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

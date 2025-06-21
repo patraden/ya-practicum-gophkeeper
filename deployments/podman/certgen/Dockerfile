@@ -2,7 +2,7 @@ FROM golang:1.24.3 AS builder
 
 WORKDIR /certgen
 
-COPY go.mod go.sum ./
+COPY ../go.mod ../go.sum ./
 RUN go mod download
 
 COPY . .
@@ -19,5 +19,3 @@ RUN apt-get update && \
 COPY --from=builder /out/certgen /usr/local/bin/certgen
 
 WORKDIR /certs
-
-ENTRYPOINT ["/usr/local/bin/certgen"]

@@ -3,6 +3,7 @@ package user_test
 import (
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/domain/user"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -41,7 +42,7 @@ func TestUser(t *testing.T) {
 	t.Run("NewWithID valid and invalid UUIDs", func(t *testing.T) {
 		t.Parallel()
 
-		validID := user.NewUserID().String()
+		validID := uuid.New().String()
 		usr, err := user.NewWithID(validID, "denis", user.RoleUser)
 
 		require.NoError(t, err)

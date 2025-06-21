@@ -9,8 +9,44 @@ import (
 	"context"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/domain/user"
 )
+
+const CreateIdentityToken = `-- name: CreateIdentityToken :exec
+INSERT INTO user_identity_tokens (
+    user_id,
+    access_token,
+    refresh_token,
+    expires_at,
+    refresh_expires_at,
+    created_at,
+    updated_at
+) VALUES ($1, $2, $3, $4, $5, $6, $7)
+`
+
+type CreateIdentityTokenParams struct {
+	UserID           uuid.UUID `db:"user_id"`
+	AccessToken      string    `db:"access_token"`
+	RefreshToken     string    `db:"refresh_token"`
+	ExpiresAt        time.Time `db:"expires_at"`
+	RefreshExpiresAt time.Time `db:"refresh_expires_at"`
+	CreatedAt        time.Time `db:"created_at"`
+	UpdatedAt        time.Time `db:"updated_at"`
+}
+
+func (q *Queries) CreateIdentityToken(ctx context.Context, arg CreateIdentityTokenParams) error {
+	_, err := q.db.Exec(ctx, CreateIdentityToken,
+		arg.UserID,
+		arg.AccessToken,
+		arg.RefreshToken,
+		arg.ExpiresAt,
+		arg.RefreshExpiresAt,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+	)
+	return err
+}
 
 const CreateREKHash = `-- name: CreateREKHash :exec
 INSERT INTO rek (rek_hash)
@@ -22,26 +58,54 @@ func (q *Queries) CreateREKHash(ctx context.Context, rekHash []byte) error {
 	return err
 }
 
+const CreateSecret = `-- name: CreateSecret :exec
+INSERT INTO secrets (user_id, secret_id, secret_name, current_version, created_at, updated_at)
+VALUES ($1, $2, $3, $4, $5, $6)
+`
+
+type CreateSecretParams struct {
+	UserID         uuid.UUID `db:"user_id"`
+	SecretID       uuid.UUID `db:"secret_id"`
+	SecretName     string    `db:"secret_name"`
+	CurrentVersion uuid.UUID `db:"current_version"`
+	CreatedAt      time.Time `db:"created_at"`
+	UpdatedAt      time.Time `db:"updated_at"`
+}
+
+func (q *Queries) CreateSecret(ctx context.Context, arg CreateSecretParams) error {
+	_, err := q.db.Exec(ctx, CreateSecret,
+		arg.UserID,
+		arg.SecretID,
+		arg.SecretName,
+		arg.CurrentVersion,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+	)
+	return err
+}
+
 const CreateUser = `-- name: CreateUser :one
-INSERT INTO users (id, username, role, created_at, updated_at, password, salt, verifier)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+INSERT INTO users (id, username, role, created_at, updated_at, password, salt, verifier, bucket_name, identity_id)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 ON CONFLICT (username) DO UPDATE
 SET id = users.id,
     role = users.role,
     created_at = users.created_at,
     updated_at = users.updated_at
-RETURNING id, username, role, created_at, updated_at, password, salt, verifier
+RETURNING id, username, role, created_at, updated_at, password, salt, verifier, bucket_name, identity_id
 `
 
 type CreateUserParams struct {
-	ID        user.ID   `db:"id"`
-	Username  string    `db:"username"`
-	Role      user.Role `db:"role"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
-	Password  []byte    `db:"password"`
-	Salt      []byte    `db:"salt"`
-	Verifier  []byte    `db:"verifier"`
+	ID         uuid.UUID `db:"id"`
+	Username   string    `db:"username"`
+	Role       user.Role `db:"role"`
+	CreatedAt  time.Time `db:"created_at"`
+	UpdatedAt  time.Time `db:"updated_at"`
+	Password   []byte    `db:"password"`
+	Salt       []byte    `db:"salt"`
+	Verifier   []byte    `db:"verifier"`
+	BucketName string    `db:"bucket_name"`
+	IdentityID string    `db:"identity_id"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
@@ -54,6 +118,8 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		arg.Password,
 		arg.Salt,
 		arg.Verifier,
+		arg.BucketName,
+		arg.IdentityID,
 	)
 	var i User
 	err := row.Scan(
@@ -65,17 +131,19 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Password,
 		&i.Salt,
 		&i.Verifier,
+		&i.BucketName,
+		&i.IdentityID,
 	)
 	return i, err
 }
 
 const CreateUserKey = `-- name: CreateUserKey :exec
-INSERT INTO keys (user_id, kek, algorithm, created_at, updated_at)
+INSERT INTO user_crypto_keys (user_id, kek, algorithm, created_at, updated_at)
 VALUES ($1, $2, $3, $4, $5)
 `
 
 type CreateUserKeyParams struct {
-	UserID    user.ID   `db:"user_id"`
+	UserID    uuid.UUID `db:"user_id"`
 	Kek       []byte    `db:"kek"`
 	Algorithm string    `db:"algorithm"`
 	CreatedAt time.Time `db:"created_at"`
@@ -90,6 +158,21 @@ func (q *Queries) CreateUserKey(ctx context.Context, arg CreateUserKeyParams) er
 		arg.CreatedAt,
 		arg.UpdatedAt,
 	)
+	return err
+}
+
+const DeleteSecretRequestIssued = `-- name: DeleteSecretRequestIssued :exec
+DELETE FROM secret_requests_issued
+WHERE user_id = $1 AND secret_id = $2
+`
+
+type DeleteSecretRequestIssuedParams struct {
+	UserID   uuid.UUID `db:"user_id"`
+	SecretID uuid.UUID `db:"secret_id"`
+}
+
+func (q *Queries) DeleteSecretRequestIssued(ctx context.Context, arg DeleteSecretRequestIssuedParams) error {
+	_, err := q.db.Exec(ctx, DeleteSecretRequestIssued, arg.UserID, arg.SecretID)
 	return err
 }
 
@@ -112,7 +195,7 @@ func (q *Queries) GetREKHash(ctx context.Context) (GetREKHashRow, error) {
 }
 
 const GetUser = `-- name: GetUser :one
-SELECT id, username, role, created_at, updated_at, password, salt, verifier
+SELECT id, username, role, created_at, updated_at, password, salt, verifier, bucket_name, identity_id
 FROM users
 WHERE username = $1
 `
@@ -129,6 +212,158 @@ func (q *Queries) GetUser(ctx context.Context, username string) (User, error) {
 		&i.Password,
 		&i.Salt,
 		&i.Verifier,
+		&i.BucketName,
+		&i.IdentityID,
 	)
 	return i, err
+}
+
+const InsertSecretRequestCompleted = `-- name: InsertSecretRequestCompleted :exec
+INSERT INTO secret_requests_completed (
+    user_id,
+    secret_id,
+    version,
+    parent_version,
+    request_type,
+    token,
+    client_info,
+    secret_size,
+    secret_hash,
+    secret_dek,
+    created_at,
+    expires_at,
+    finished_at,
+    status,
+    commited_by
+) VALUES (
+    $1, $2, $3, $4, $5, $6, $7, $8,
+    $9, $10, $11, $12, $13, $14, $15
+)
+`
+
+type InsertSecretRequestCompletedParams struct {
+	UserID        uuid.UUID       `db:"user_id"`
+	SecretID      uuid.UUID       `db:"secret_id"`
+	Version       uuid.UUID       `db:"version"`
+	ParentVersion uuid.UUID       `db:"parent_version"`
+	RequestType   RequestType     `db:"request_type"`
+	Token         int64           `db:"token"`
+	ClientInfo    string          `db:"client_info"`
+	SecretSize    int64           `db:"secret_size"`
+	SecretHash    []byte          `db:"secret_hash"`
+	SecretDek     []byte          `db:"secret_dek"`
+	CreatedAt     time.Time       `db:"created_at"`
+	ExpiresAt     time.Time       `db:"expires_at"`
+	FinishedAt    time.Time       `db:"finished_at"`
+	Status        RequestStatus   `db:"status"`
+	CommitedBy    RequestCommiter `db:"commited_by"`
+}
+
+func (q *Queries) InsertSecretRequestCompleted(ctx context.Context, arg InsertSecretRequestCompletedParams) error {
+	_, err := q.db.Exec(ctx, InsertSecretRequestCompleted,
+		arg.UserID,
+		arg.SecretID,
+		arg.Version,
+		arg.ParentVersion,
+		arg.RequestType,
+		arg.Token,
+		arg.ClientInfo,
+		arg.SecretSize,
+		arg.SecretHash,
+		arg.SecretDek,
+		arg.CreatedAt,
+		arg.ExpiresAt,
+		arg.FinishedAt,
+		arg.Status,
+		arg.CommitedBy,
+	)
+	return err
+}
+
+const InsertSecretRequestIssued = `-- name: InsertSecretRequestIssued :one
+INSERT INTO secret_requests_issued (
+    user_id,
+    secret_id,
+    version,
+    parent_version,
+    request_type,
+    token,
+    client_info,
+    secret_size,
+    secret_hash,
+    secret_dek,
+    expires_at
+)
+VALUES (
+    $1, $2, $3, $4, $5,
+    $6, $7, $8, $9, $10,
+    $11
+)
+ON CONFLICT (user_id, secret_id) DO NOTHING
+RETURNING id, user_id, secret_id, version, parent_version, request_type, token, client_info, secret_size, secret_hash, secret_dek, created_at, expires_at
+`
+
+type InsertSecretRequestIssuedParams struct {
+	UserID        uuid.UUID   `db:"user_id"`
+	SecretID      uuid.UUID   `db:"secret_id"`
+	Version       uuid.UUID   `db:"version"`
+	ParentVersion uuid.UUID   `db:"parent_version"`
+	RequestType   RequestType `db:"request_type"`
+	Token         int64       `db:"token"`
+	ClientInfo    string      `db:"client_info"`
+	SecretSize    int64       `db:"secret_size"`
+	SecretHash    []byte      `db:"secret_hash"`
+	SecretDek     []byte      `db:"secret_dek"`
+	ExpiresAt     time.Time   `db:"expires_at"`
+}
+
+func (q *Queries) InsertSecretRequestIssued(ctx context.Context, arg InsertSecretRequestIssuedParams) (SecretRequestsIssued, error) {
+	row := q.db.QueryRow(ctx, InsertSecretRequestIssued,
+		arg.UserID,
+		arg.SecretID,
+		arg.Version,
+		arg.ParentVersion,
+		arg.RequestType,
+		arg.Token,
+		arg.ClientInfo,
+		arg.SecretSize,
+		arg.SecretHash,
+		arg.SecretDek,
+		arg.ExpiresAt,
+	)
+	var i SecretRequestsIssued
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.SecretID,
+		&i.Version,
+		&i.ParentVersion,
+		&i.RequestType,
+		&i.Token,
+		&i.ClientInfo,
+		&i.SecretSize,
+		&i.SecretHash,
+		&i.SecretDek,
+		&i.CreatedAt,
+		&i.ExpiresAt,
+	)
+	return i, err
+}
+
+const UpdateSecret = `-- name: UpdateSecret :exec
+UPDATE secrets
+SET current_version = $3,
+    updated_at = NOW()
+WHERE user_id = $1 AND secret_id = $2
+`
+
+type UpdateSecretParams struct {
+	UserID         uuid.UUID `db:"user_id"`
+	SecretID       uuid.UUID `db:"secret_id"`
+	CurrentVersion uuid.UUID `db:"current_version"`
+}
+
+func (q *Queries) UpdateSecret(ctx context.Context, arg UpdateSecretParams) error {
+	_, err := q.db.Exec(ctx, UpdateSecret, arg.UserID, arg.SecretID, arg.CurrentVersion)
+	return err
 }

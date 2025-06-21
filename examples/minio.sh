@@ -26,3 +26,18 @@ mc event list local/mysecondbucket arn:minio:sqs:eu-central-1:gophkeeper:redis -
 # put object on presigned url
 curl --cacert ./deployments/.certs/ca.cert -X PUT --upload-file testfile.txt \
   "https://localhost:9000/myfirstdbucket/testfile.txt?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=gophkeeper%2F20250611%2Feu-central-1%2Fs3%2Faws4_request&X-Amz-Date=20250611T200037Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=b1533bc629171471e229ad8e2f5059322c6d2bc9017f58df7da7a90839d5a391"
+
+
+mc idp openid add local identity_openid vendor="keycloak" keycloak_realm="master" scopes="openid,email,preferred_username" client_id="minio" client_secret="u79g3gjmfg0IjrGPLFggbT9muRDdyp8S" config_url="http://localhost:8080/realms/master/.well-known/openid-configuration" redirect_uri_dynamic="on" display_name="SSO_IDENTIFIER" --insecure
+
+mc idp openid add local identity_openid \                                                                                                          
+vendor="keycloak" \ OpenID IDP server configuration                                                                                                         
+keycloak_realm="master" \nID IDP server configuration                                                                                                        
+scopes="minio-authorization" \                                                                                                                                
+client_id="minio" \                                                                                                                                           
+client_secret="u79g3gjmfg0IjrGPLFggbT9muRDdyp8S" \tion folder (default: "/root/.mc") [$MC_CONFIG_DIR]                                                         
+config_url="http://keycloak:8080/realms/master/.well-known/openid-configuration" \                                                                            
+redirect_uri_dynamic="on"
+
+
+mc idp openid info local PRIMARY --insecure

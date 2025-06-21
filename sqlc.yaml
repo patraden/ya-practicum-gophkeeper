@@ -17,39 +17,26 @@ sql:
             go_type:
               import: "github.com/google/uuid"
               type: "UUID"
-          - column: "users.updated_at"
+            nullable: true
+          - db_type: "uuid"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
+            nullable: false
+          - db_type: "pg_catalog.timestamp"
             go_type:
               import: "time"
               type: "Time"
-          - column: "users.created_at"
+            nullable: true
+          - db_type: "pg_catalog.timestamp"
             go_type:
               import: "time"
               type: "Time"
-          - column: "users.id"
-            go_type:
-              import: "github.com/patraden/ya-practicum-gophkeeper/pkg/domain/user"
-              type: "ID"
+            nullable: false
           - column: "users.role"
             go_type:
               import: "github.com/patraden/ya-practicum-gophkeeper/pkg/domain/user"
               type: "Role"
-          - column: "keys.updated_at"
-            go_type:
-              import: "time"
-              type: "Time"
-          - column: "keys.created_at"
-            go_type:
-              import: "time"
-              type: "Time"
-          - column: "keys.user_id"
-            go_type:
-              import: "github.com/patraden/ya-practicum-gophkeeper/pkg/domain/user"
-              type: "ID"
-          - column: "rek.created_at"
-            go_type:
-              import: "time"
-              type: "Time"
-
   - engine: "sqlite"
     schema: 
       - "client/internal/infra/sqlite/migrations"

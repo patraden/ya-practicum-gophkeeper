@@ -1,4 +1,4 @@
-package s3_test
+package minio_test
 
 import (
 	"context"
@@ -9,9 +9,9 @@ import (
 
 	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/logger"
+	"github.com/patraden/ya-practicum-gophkeeper/pkg/testutil/certtest"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/config"
-	"github.com/patraden/ya-practicum-gophkeeper/server/internal/infra/s3"
-	"github.com/patraden/ya-practicum-gophkeeper/server/internal/testutil/certtest"
+	"github.com/patraden/ya-practicum-gophkeeper/server/internal/infra/minio"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/require"
 )
@@ -47,7 +47,7 @@ func TestNewMinIOClientSuccess(t *testing.T) {
 		S3SecretKey:   "test-secret",
 	}
 
-	client, err := s3.NewMinIOClient(cfg, log)
+	client, err := minio.NewClient(cfg, log)
 	require.NoError(t, err)
 	require.NotNil(t, client)
 }
@@ -64,7 +64,7 @@ func TestNewMinIOClientTransportError(t *testing.T) {
 		S3SecretKey:   "secret",
 	}
 
-	client, err := s3.NewMinIOClient(cfg, log)
+	client, err := minio.NewClient(cfg, log)
 	require.ErrorIs(t, err, e.ErrInvalidInput)
 	require.Nil(t, client)
 	require.Contains(t, err.Error(), "MinIO http transport")
@@ -85,7 +85,7 @@ func TestNewMinIOClientInitError(t *testing.T) {
 		S3SecretKey:   "secret",
 	}
 
-	client, err := s3.NewMinIOClient(cfg, log)
+	client, err := minio.NewClient(cfg, log)
 	require.ErrorIs(t, err, e.ErrInit)
 	require.Nil(t, client)
 	require.Contains(t, err.Error(), "MinIO client")
@@ -103,10 +103,9 @@ func TestNewMinIOClientWithDocker(t *testing.T) {
 		S3AccountID:   "gophkeeper",
 		S3TLSCertPath: "../../../../deployments/.certs/ca.cert",
 		S3Region:      "eu-central-1",
-		S3RedisRegion: "eu-central-1",
 	}
 
-	client, err := s3.NewMinIOClient(cfg, log)
+	client, err := minio.NewClient(cfg, log)
 	require.NoError(t, err)
 
 	require.True(t, client.IsOnline())

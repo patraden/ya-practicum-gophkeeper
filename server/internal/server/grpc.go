@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"net"
 
 	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
@@ -21,7 +22,7 @@ type GRPCServer struct {
 	config   *config.Config
 	adminSrv grpchandler.AdminServiceServer
 	userSrv  grpchandler.UserServiceServer
-	log      *zerolog.Logger
+	log      zerolog.Logger
 }
 
 // New creates instance of the application gRPC server.
@@ -31,14 +32,14 @@ func New(
 	userSrv grpchandler.UserServiceServer,
 	authenticator *auth.Auth,
 	isPublicMethod func(method string) bool,
-	log *zerolog.Logger,
+	log zerolog.Logger,
 ) (*GRPCServer, error) {
 	cert, err := tls.LoadX509KeyPair(config.ServerTLSCertPath, config.ServerTLSKeyPath)
 	if err != nil {
 		log.Error().Err(err).
 			Msg("gRPC failed to load tls keypair")
 
-		return nil, e.ErrRead
+		return nil, fmt.Errorf("[%w] gRPC tls keypair", e.ErrRead)
 	}
 
 	tlsCfg := &tls.Config{
@@ -85,7 +86,7 @@ func (s *GRPCServer) Run() error {
 			Str("server_address", s.config.ServerAddr).
 			Msg("failed to listen tcp address")
 
-		return e.ErrUnavailable
+		return fmt.Errorf("[%w] gRPC tcp address", e.ErrUnavailable)
 	}
 
 	pb.RegisterUserServiceServer(s.grpcSrv, grpchandler.NewUserServiceAdapter(s.userSrv))

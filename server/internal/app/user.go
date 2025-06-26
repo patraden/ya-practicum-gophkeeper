@@ -24,13 +24,14 @@ type UserUseCase interface {
 
 // UserUC implements the UserUseCase interface and coordinates user auth logic.
 type UserUC struct {
+	UserUseCase
 	repo     repository.UserRepository
 	keyStore keystore.Keystore
-	log      *zerolog.Logger
+	log      zerolog.Logger
 }
 
 // NewUserUC returns a new instance of UserUC with dependencies injected.
-func NewUserUC(repo repository.UserRepository, keyStore keystore.Keystore, log *zerolog.Logger) *UserUC {
+func NewUserUC(repo repository.UserRepository, keyStore keystore.Keystore, log zerolog.Logger) *UserUC {
 	return &UserUC{
 		repo:     repo,
 		keyStore: keyStore,
@@ -46,7 +47,8 @@ func (u *UserUC) ValidateUser(ctx context.Context, creds *dto.UserCredentials) (
 // RegisterUser registers a new user with the given credentials, wrapping their KEK with REK.
 // Only admins can register admin users.
 func (u *UserUC) RegisterUser(ctx context.Context, creds *dto.RegisterUserCredentials) (*user.User, error) {
-	logCtx := u.log.With().Str("username", creds.Username).Logger()
+	logCtx := u.log.With().
+		Str("username", creds.Username).Logger()
 
 	switch creds.Role {
 	case user.RoleAdmin:
@@ -75,18 +77,24 @@ func (u *UserUC) registerAdmin(
 
 	_, claims, err := auth.FromContext(ctx)
 	if err != nil {
-		logCtx.Error().Err(err).Msg("failed to get auth user info")
+		logCtx.Error().Err(err).
+			Msg("failed to get auth user info")
+
 		return nil, e.ErrUnauthorized
 	}
 
 	if claims.Role != string(user.RoleAdmin) {
-		logCtx.Error().Msg("user is not authorised to register admin user")
+		logCtx.Error().
+			Msg("user is not authorised to register admin user")
+
 		return nil, e.ErrUnauthorized
 	}
 
 	usr := user.New(creds.Username, creds.Role)
 	if err := usr.SetPassword(creds.Password); err != nil {
-		logCtx.Error().Err(err).Msg("user password generation error")
+		logCtx.Error().Err(err).
+			Msg("user password generation error")
+
 		return nil, e.InternalErr(err)
 	}
 
@@ -114,25 +122,33 @@ func (u *UserUC) registerUser(
 
 	usr := user.New(creds.Username, creds.Role)
 	if err := usr.SetPassword(creds.Password); err != nil {
-		logCtx.Error().Err(err).Msg("user password generation error")
+		logCtx.Error().Err(err).
+			Msg("user password generation error")
+
 		return nil, e.InternalErr(err)
 	}
 
 	kek, err := keys.KEK(usr, creds.Password)
 	if err != nil {
-		logCtx.Error().Err(err).Msg("failed to generate kek for user")
+		logCtx.Error().Err(err).
+			Msg("failed to generate kek for user")
+
 		return nil, e.InternalErr(err)
 	}
 
 	rek, err := u.keyStore.Get()
 	if err != nil {
-		logCtx.Error().Err(err).Msg("failed to get rek from keystore")
+		logCtx.Error().Err(err).
+			Msg("failed to get rek from keystore")
+
 		return nil, e.InternalErr(err)
 	}
 
 	eKek, err := keys.WrapKEK(rek, kek)
 	if err != nil {
-		logCtx.Error().Err(err).Msg("failed to encrypt kek with rek")
+		logCtx.Error().Err(err).
+			Msg("failed to encrypt kek with rek")
+
 		return nil, e.InternalErr(err)
 	}
 

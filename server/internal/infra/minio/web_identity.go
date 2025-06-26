@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/xml"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -39,7 +40,7 @@ const (
 type WebIdentityClient struct {
 	webURL string
 	client *http.Client
-	log    *zerolog.Logger
+	log    zerolog.Logger
 }
 
 // NewMinioWebIdentityClient constructs a new client.
@@ -47,7 +48,7 @@ func NewMinioWebIdentityClient(
 	webURL string,
 	httpClient *http.Client,
 	httpTransport *http.Transport,
-	log *zerolog.Logger,
+	log zerolog.Logger,
 ) *WebIdentityClient {
 	if httpClient != nil {
 		return &WebIdentityClient{
@@ -86,7 +87,7 @@ func (c *WebIdentityClient) AssumeRole(
 			Str("webURL", c.webURL).
 			Msg("failed to create request")
 
-		return nil, e.ErrGenerate
+		return nil, fmt.Errorf("[%w] http request", e.ErrGenerate)
 	}
 
 	req.Header.Set("Content-Type", contentTypeURLEncoded)
@@ -98,7 +99,7 @@ func (c *WebIdentityClient) AssumeRole(
 			Str("webURL", c.webURL).
 			Msg("failed to send request")
 
-		return nil, e.ErrInternal
+		return nil, e.InternalErr(err)
 	}
 	defer resp.Body.Close()
 
@@ -107,7 +108,7 @@ func (c *WebIdentityClient) AssumeRole(
 		log.Error().Err(err).
 			Msg("failed to read response body")
 
-		return nil, e.ErrRead
+		return nil, fmt.Errorf("[%w] http response body", e.ErrRead)
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -116,7 +117,7 @@ func (c *WebIdentityClient) AssumeRole(
 			Str("body", string(body)).
 			Msg("unexpected HTTP status")
 
-		return nil, e.ErrValidation
+		return nil, fmt.Errorf("[%w] http status: %d", e.ErrValidation, resp.StatusCode)
 	}
 
 	var result AssumeRoleWithWebIdentityResponse
@@ -125,7 +126,7 @@ func (c *WebIdentityClient) AssumeRole(
 			Str("body", string(body)).
 			Msg("failed to unmarshal response")
 
-		return nil, e.ErrUnmarshal
+		return nil, fmt.Errorf("[%w] http response body", e.ErrUnmarshal)
 	}
 
 	creds := result.Result.Credentials
@@ -136,7 +137,7 @@ func (c *WebIdentityClient) AssumeRole(
 			Str("SessionToken", creds.SessionToken).
 			Msg("empty creds response")
 
-		return nil, e.ErrValidation
+		return nil, fmt.Errorf("[%w] empty s3 creds", e.ErrValidation)
 	}
 
 	return &creds, nil

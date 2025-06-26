@@ -12,7 +12,7 @@ type Retryable func(err error) bool
 func WithRetry(
 	ctx context.Context,
 	boff backoff.BackOff,
-	log *zerolog.Logger,
+	log zerolog.Logger,
 	retriable Retryable,
 	op func() error,
 ) error {

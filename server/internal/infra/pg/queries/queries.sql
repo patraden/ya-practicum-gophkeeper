@@ -17,6 +17,11 @@ SELECT id, username, role, created_at, updated_at, password, salt, verifier, buc
 FROM users
 WHERE username = $1;
 
+-- name: GetUserByID :one
+SELECT id, username, role, created_at, updated_at, password, salt, verifier, bucket_name, identity_id
+FROM users
+WHERE id = $1;
+
 -- name: CreateIdentityToken :exec
 INSERT INTO user_identity_tokens (
     user_id,
@@ -26,7 +31,31 @@ INSERT INTO user_identity_tokens (
     refresh_expires_at,
     created_at,
     updated_at
-) VALUES ($1, $2, $3, $4, $5, $6, $7);
+) VALUES ($1, $2, $3, $4, $5, $6, $7)
+ON CONFLICT (user_id) DO UPDATE
+SET 
+  access_token = $2,
+  refresh_token = $3,
+  expires_at = $4,
+  refresh_expires_at = $5,
+  created_at = $6,
+  updated_at = $7;
+
+-- name: GetIdentityToken :one
+SELECT 
+    user_id,
+    access_token,
+    refresh_token,
+    expires_at,
+    refresh_expires_at,
+    created_at,
+    updated_at
+FROM user_identity_tokens
+WHERE user_id = $1;
+
+-- name: DeleteIdentityToken :exec
+DELETE FROM user_identity_tokens
+WHERE user_id = $1;
 
 -- name: CreateREKHash :exec
 INSERT INTO rek (rek_hash)
@@ -47,36 +76,68 @@ SET current_version = $3,
     updated_at = NOW()
 WHERE user_id = $1 AND secret_id = $2;
 
--- name: InsertSecretRequestIssued :one
-INSERT INTO secret_requests_issued (
-    user_id,
-    secret_id,
-    version,
-    parent_version,
-    request_type,
-    token,
-    client_info,
-    secret_size,
-    secret_hash,
-    secret_dek,
-    expires_at
+-- name: CreateSecretInitRequest :one
+WITH candidate(parent_version) AS (
+  -- Case: existing secret with matching parent
+  SELECT current_version AS parent_version
+  FROM secrets
+  WHERE user_id = $1 AND secret_id = $2 AND COALESCE(secrets.current_version, $6) = $6
+  UNION ALL
+  -- Case: new secret
+  SELECT NULL::UUID AS parent_version
+  WHERE NOT EXISTS (
+    SELECT 1 FROM secrets WHERE user_id = $1 AND secret_id = $2
+  )
 )
-VALUES (
-    $1, $2, $3, $4, $5,
-    $6, $7, $8, $9, $10,
-    $11
+INSERT INTO secret_requests_in_progress (
+  user_id,
+  secret_id,
+  secret_name,
+  s3_url,
+  version,
+  parent_version,
+  request_type,
+  token,
+  client_info,
+  secret_size,
+  secret_hash,
+  secret_dek,
+  meta,
+  created_at,
+  expires_at
 )
-ON CONFLICT (user_id, secret_id) DO NOTHING
-RETURNING *;
+SELECT
+  $1, $2, $3, $4, $5, candidate.parent_version, $7, $8,
+  $9, $10, $11, $12, $13, $14, $15
+FROM candidate
+ON CONFLICT (user_id, secret_id) DO UPDATE
+  SET user_id = EXCLUDED.user_id
+RETURNING 
+  user_id,
+  secret_id,
+  secret_name,
+  s3_url,
+  version,
+  parent_version,
+  request_type,
+  token,
+  client_info,
+  secret_size,
+  secret_hash,
+  secret_dek,
+  meta,
+  created_at,
+  expires_at;
 
--- name: DeleteSecretRequestIssued :exec
-DELETE FROM secret_requests_issued
+-- name: DeleteSecretInitRequest :exec
+DELETE FROM secret_requests_in_progress
 WHERE user_id = $1 AND secret_id = $2;
 
--- name: InsertSecretRequestCompleted :exec
+-- name: CreateSecretCommitRequest :exec
 INSERT INTO secret_requests_completed (
     user_id,
     secret_id,
+    s3_url,
     version,
     parent_version,
     request_type,
@@ -92,5 +153,5 @@ INSERT INTO secret_requests_completed (
     commited_by
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8,
-    $9, $10, $11, $12, $13, $14, $15
+    $9, $10, $11, $12, $13, $14, $15, $16
 );

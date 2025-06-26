@@ -13,7 +13,7 @@ import (
 // The original error is preserved even if rollback also fails.
 func WithinTrx(
 	ctx context.Context,
-	connPool ConnenctionPool,
+	connPool ConnectionPool,
 	trxOptions pgx.TxOptions,
 	queryfn QueryFunc,
 ) QueryFunc {

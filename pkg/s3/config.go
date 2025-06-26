@@ -9,15 +9,3 @@ type ClientConfig struct {
 	S3Region      string `env:"S3_REGION"`
 	S3Token       string `env:"S3_TOKEN"`
 }
-
-func DefaultClientConfig() *ClientConfig {
-	return &ClientConfig{
-		S3Endpoint:    `localhost:9000`,
-		S3TLSCertPath: `/etc/ssl/certs/gophkeeper/minio/public.crt`,
-		S3AccessKey:   `gophkeeper`,
-		S3SecretKey:   `gophkeeper`,
-		S3Token:       ``,
-		S3AccountID:   `gophkeeper`,
-		S3Region:      `eu-central-1`,
-	}
-}

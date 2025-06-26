@@ -65,9 +65,9 @@ func TestNewMinIOClientTransportError(t *testing.T) {
 	}
 
 	client, err := minio.NewClient(cfg, log)
-	require.ErrorIs(t, err, e.ErrInvalidInput)
+	require.ErrorIs(t, err, e.ErrRead)
 	require.Nil(t, client)
-	require.Contains(t, err.Error(), "MinIO http transport")
+	require.Contains(t, err.Error(), "tls certificate")
 }
 
 func TestNewMinIOClientInitError(t *testing.T) {

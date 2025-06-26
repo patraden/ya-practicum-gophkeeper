@@ -22,7 +22,7 @@ PQQDAgNHADBEAiAva0+si2q9Zt4enx7Nwvsxt4UGnjnjWgKV2js4g6RtuQIgYf1t
 yq7w5y8cgRgkww2wWIPufY/M7mBXWpsu1nUh0UM=
 -----END CERTIFICATE-----`
 
-func TestHTTPTransportBuilder_FromBytes(t *testing.T) {
+func TestHTTPTransportBuilderFromBytes(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -52,7 +52,7 @@ func TestHTTPTransportBuilder_FromBytes(t *testing.T) {
 			t.Parallel()
 
 			log := zerolog.Nop()
-			builder := transport.NewHTTPTransportBuilder("", tt.certBytes, &log)
+			builder := transport.NewHTTPTransportBuilder("", tt.certBytes, log)
 			transport, err := builder.Build()
 
 			if tt.wantErr != nil {
@@ -68,7 +68,7 @@ func TestHTTPTransportBuilder_FromBytes(t *testing.T) {
 	}
 }
 
-func TestHTTPTransportBuilder_FromFile(t *testing.T) {
+func TestHTTPTransportBuilderFromFile(t *testing.T) {
 	t.Parallel()
 
 	tempValidFile := filepath.Join(t.TempDir(), "valid-cert.pem")
@@ -101,7 +101,7 @@ func TestHTTPTransportBuilder_FromFile(t *testing.T) {
 			t.Parallel()
 
 			log := zerolog.Nop()
-			builder := transport.NewHTTPTransportBuilder(tt.certPath, nil, &log)
+			builder := transport.NewHTTPTransportBuilder(tt.certPath, nil, log)
 			transport, err := builder.Build()
 
 			if tt.wantErr != nil {

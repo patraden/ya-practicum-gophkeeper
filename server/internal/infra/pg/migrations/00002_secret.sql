@@ -43,18 +43,21 @@ CREATE TABLE secret_meta (
 
 CREATE UNIQUE INDEX uniq_secrets_meta ON secret_meta(user_id, secret_id);
 
-CREATE TABLE secret_requests_issued (
+CREATE TABLE secret_requests_in_progress (
     id                BIGSERIAL PRIMARY KEY,
     user_id           UUID NOT NULL,
     secret_id         UUID NOT NULL,
+    secret_name       VARCHAR(64) NOT NULL,
+    s3_url            TEXT NOT NULL,
     version           UUID NOT NULL,
-    parent_version    UUID,
+    parent_version    UUID NULL,
     request_type      request_type NOT NULL,
     token             BIGINT NOT NULL,
     client_info       VARCHAR(128) NOT NULL,
     secret_size       BIGINT NOT NULL,
     secret_hash       BYTEA,
     secret_dek        BYTEA,
+    meta              JSONB NOT NULL DEFAULT '{}',
     created_at        TIMESTAMP NOT NULL DEFAULT NOW(),
     expires_at        TIMESTAMP NOT NULL,
     UNIQUE (user_id, secret_id)
@@ -64,8 +67,9 @@ CREATE TABLE secret_requests_completed (
     id                BIGSERIAL PRIMARY KEY,
     user_id           UUID NOT NULL,
     secret_id         UUID NOT NULL,
+    s3_url            TEXT NOT NULL,
     version           UUID NOT NULL,
-    parent_version    UUID,
+    parent_version    UUID NULL,
     request_type      request_type NOT NULL,
     token             BIGINT NOT NULL,
     client_info       VARCHAR(128) NOT NULL,

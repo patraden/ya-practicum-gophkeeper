@@ -19,20 +19,20 @@ type Logger struct {
 	log zerolog.Logger
 }
 
-func (l *Logger) Fatalf(format string, v ...any) {
+func (l Logger) Fatalf(format string, v ...any) {
 	l.log.Fatal().Msgf(format, v...)
 }
 
-func (l *Logger) Printf(format string, v ...any) {
+func (l Logger) Printf(format string, v ...any) {
 	l.log.Info().Msgf(format, v...)
 }
 
 // Stdout initializes a new Logger with JSON output (suitable for servers).
-func Stdout(level zerolog.Level) *Logger {
+func Stdout(level zerolog.Level) Logger {
 	zerolog.CallerMarshalFunc = shortCallerMarshalFunc
 	zerolog.CallerSkipFrameCount = 2
 
-	return &Logger{
+	return Logger{
 		log: zerolog.New(os.Stdout).
 			With().
 			Timestamp().
@@ -43,7 +43,7 @@ func Stdout(level zerolog.Level) *Logger {
 }
 
 // StdoutConsole initializes a new Logger with human-readable console output (suitable for CLI clients).
-func StdoutConsole(level zerolog.Level) *Logger {
+func StdoutConsole(level zerolog.Level) Logger {
 	zerolog.CallerMarshalFunc = shortCallerMarshalFunc
 	zerolog.CallerSkipFrameCount = 2
 
@@ -53,7 +53,7 @@ func StdoutConsole(level zerolog.Level) *Logger {
 		NoColor:    false,
 	}
 
-	return &Logger{
+	return Logger{
 		log: zerolog.New(output).
 			With().
 			Timestamp().
@@ -63,11 +63,11 @@ func StdoutConsole(level zerolog.Level) *Logger {
 }
 
 // GetLogger returns the zerolog.Logger instance for custom log messages.
-func (l *Logger) GetZeroLog() *zerolog.Logger {
-	return &l.log
+func (l Logger) GetZeroLog() zerolog.Logger {
+	return l.log
 }
 
 // GetFxLogger returns uber fx compatible zerolog.
-func (l *Logger) GetFxLogger() func() fxevent.Logger {
+func (l Logger) GetFxLogger() func() fxevent.Logger {
 	return fxlogger.WithZerolog(l.log)
 }

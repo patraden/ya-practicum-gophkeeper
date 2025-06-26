@@ -64,7 +64,7 @@ func (e *InternalError) Error() string {
 		return "internal error"
 	}
 
-	return "internal error: " + e.Err.Error()
+	return "[internal error] " + e.Err.Error()
 }
 
 func (e *InternalError) Unwrap() error {

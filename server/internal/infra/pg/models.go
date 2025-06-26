@@ -170,6 +170,7 @@ type SecretRequestsCompleted struct {
 	ID            int64           `db:"id"`
 	UserID        uuid.UUID       `db:"user_id"`
 	SecretID      uuid.UUID       `db:"secret_id"`
+	S3Url         string          `db:"s3_url"`
 	Version       uuid.UUID       `db:"version"`
 	ParentVersion uuid.UUID       `db:"parent_version"`
 	RequestType   RequestType     `db:"request_type"`
@@ -185,10 +186,12 @@ type SecretRequestsCompleted struct {
 	CommitedBy    RequestCommiter `db:"commited_by"`
 }
 
-type SecretRequestsIssued struct {
+type SecretRequestsInProgress struct {
 	ID            int64       `db:"id"`
 	UserID        uuid.UUID   `db:"user_id"`
 	SecretID      uuid.UUID   `db:"secret_id"`
+	SecretName    string      `db:"secret_name"`
+	S3Url         string      `db:"s3_url"`
 	Version       uuid.UUID   `db:"version"`
 	ParentVersion uuid.UUID   `db:"parent_version"`
 	RequestType   RequestType `db:"request_type"`
@@ -197,6 +200,7 @@ type SecretRequestsIssued struct {
 	SecretSize    int64       `db:"secret_size"`
 	SecretHash    []byte      `db:"secret_hash"`
 	SecretDek     []byte      `db:"secret_dek"`
+	Meta          []byte      `db:"meta"`
 	CreatedAt     time.Time   `db:"created_at"`
 	ExpiresAt     time.Time   `db:"expires_at"`
 }

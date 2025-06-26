@@ -14,6 +14,6 @@ const migrationsDir = "migrations"
 var embedMigrations embed.FS
 
 // RunClientMigrations applies all SQLite migrations embedded in the binary.
-func RunClientMigrations(config *config.Config, logger *logger.Logger) error {
+func RunClientMigrations(config *config.Config, logger logger.Logger) error {
 	return migrations.RunSQLite(config.DatabaseDSN, embedMigrations, migrationsDir, logger)
 }

@@ -20,11 +20,11 @@ type Version struct {
 	BuildVersion string
 	BuildDate    string
 	BuildCommit  string
-	log          *zerolog.Logger
+	log          zerolog.Logger
 }
 
 // NewVersion creates a new version instance.
-func New(log *zerolog.Logger) *Version {
+func New(log zerolog.Logger) *Version {
 	return &Version{
 		BuildVersion: buildVersion,
 		BuildDate:    buildDate,

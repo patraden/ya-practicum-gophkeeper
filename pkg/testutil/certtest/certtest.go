@@ -18,7 +18,7 @@ var certGenMu sync.Mutex
 func GenerateTestCertificates(
 	t *testing.T,
 	dir string,
-	log *zerolog.Logger,
+	log zerolog.Logger,
 ) (string, string, string) {
 	t.Helper()
 

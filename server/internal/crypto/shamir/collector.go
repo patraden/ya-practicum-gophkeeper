@@ -16,12 +16,12 @@ type Collector struct {
 	mu        sync.Mutex
 	shares    []*memguard.LockedBuffer
 	threshold int
-	log       *zerolog.Logger
+	log       zerolog.Logger
 }
 
 // NewCollector creates a new Collector with the specified threshold.
 // The collector will attempt reconstruction only after collecting `threshold` shares.
-func NewCollector(log *zerolog.Logger) *Collector {
+func NewCollector(log zerolog.Logger) *Collector {
 	return &Collector{
 		mu:        sync.Mutex{},
 		shares:    make([]*memguard.LockedBuffer, 0, ThresholdShares),
@@ -38,7 +38,7 @@ func (c *Collector) Collect(share []byte) error {
 	defer c.mu.Unlock()
 
 	if len(c.shares) >= c.threshold {
-		return e.ErrConflict
+		return fmt.Errorf("[%w] enough pieces already", e.ErrConflict)
 	}
 
 	// Deduplicate by content
@@ -85,7 +85,7 @@ func (c *Collector) Reconstruct() ([]byte, error) {
 	defer c.mu.Unlock()
 
 	if len(c.shares) < c.threshold {
-		return nil, e.ErrNotReady
+		return nil, fmt.Errorf("[%w] not enough pieces", e.ErrNotReady)
 	}
 
 	rawShares := make([][]byte, len(c.shares))

@@ -29,8 +29,8 @@ const (
 // - Gracefully shuts down the app after setup.
 func fxServerInstallInvoke(
 	lc fx.Lifecycle,
-	log *zerolog.Logger,
-	mlog *logger.Logger,
+	log zerolog.Logger,
+	mlog logger.Logger,
 	cfg *config.Config,
 	version *version.Version,
 	userRepo repository.UserRepository,
@@ -60,12 +60,12 @@ func fxServerInstallInvoke(
 
 			installLog.Info().
 				Msg("generating and storing REK")
-			if err := generateREKShares(ctx, rekRepo, splitter, cfg.REKSharesPath, &installLog); err != nil {
+			if err := generateREKShares(ctx, rekRepo, splitter, cfg.REKSharesPath, installLog); err != nil {
 				return err
 			}
 
 			installLog.Info().Msg("creating default admin user")
-			if err := createAdmin(ctx, userRepo, &installLog); err != nil {
+			if err := createAdmin(ctx, userRepo, installLog); err != nil {
 				return err
 			}
 
@@ -93,7 +93,7 @@ func generateREKShares(
 	rekRepo repository.REKRepository,
 	splitter *shamir.Splitter,
 	sharePath string,
-	log *zerolog.Logger,
+	log zerolog.Logger,
 ) error {
 	opLog := log.With().
 		Str("operation", "generateREKShares").
@@ -148,7 +148,7 @@ func generateREKShares(
 	return nil
 }
 
-func createAdmin(ctx context.Context, userRepo repository.UserRepository, log *zerolog.Logger) error {
+func createAdmin(ctx context.Context, userRepo repository.UserRepository, log zerolog.Logger) error {
 	opLog := log.With().
 		Str("operation", "createAdmin").
 		Logger()

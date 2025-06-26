@@ -46,7 +46,7 @@ var (
 //   - If Ed25519 is true, uses Ed25519 keys; otherwise uses ECDSA (with specified curve).
 //
 // Logging details are written using the provided zerolog.Logger.
-func GenerateCertificate(cfg Config, log *zerolog.Logger) error {
+func GenerateCertificate(cfg Config, log zerolog.Logger) error {
 	priv, pkey, err := createKeyPair(cfg)
 	if err != nil {
 		return err
@@ -302,7 +302,7 @@ func saveCertificate(certFile string, derBytes []byte) error {
 	return nil
 }
 
-func logTemplateInfo(log *zerolog.Logger, template *x509.Certificate) {
+func logTemplateInfo(log zerolog.Logger, template *x509.Certificate) {
 	log.Info().
 		Str("NotBefore", template.NotBefore.Format(time.RFC3339)).
 		Str("NotAfter", template.NotAfter.Format(time.RFC3339)).
@@ -317,7 +317,7 @@ func logTemplateInfo(log *zerolog.Logger, template *x509.Certificate) {
 		Msg("Generated certificate template")
 }
 
-func warnSecondLevelWildcards(cfg Config, log *zerolog.Logger) {
+func warnSecondLevelWildcards(cfg Config, log zerolog.Logger) {
 	secondLvlWildcardRegexp := regexp.MustCompile(`(?i)^\*\.[0-9a-z_-]+$`)
 
 	for host := range strings.SplitSeq(cfg.Host, ",") {

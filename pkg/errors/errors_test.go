@@ -17,7 +17,7 @@ func TestErrInternal(t *testing.T) {
 	internalErr := &e.InternalError{Err: originalErr}
 
 	gotMsg := internalErr.Error()
-	wantMsg := "internal error: database failure"
+	wantMsg := "[internal error] database failure"
 
 	require.Equal(t, wantMsg, gotMsg)
 

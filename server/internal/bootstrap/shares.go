@@ -8,7 +8,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-func WriteSharesFile(shares [][]byte, path string, log *zerolog.Logger) error {
+func WriteSharesFile(shares [][]byte, path string, log zerolog.Logger) error {
 	out := dto.ShamirShares{Shares: shares}
 
 	file, err := os.Create(path)

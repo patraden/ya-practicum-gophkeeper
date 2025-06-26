@@ -2,6 +2,7 @@
 package repository
 
 import (
+	"github.com/patraden/ya-practicum-gophkeeper/pkg/domain/secret"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/domain/user"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/infra/pg"
 )
@@ -69,6 +70,69 @@ func ToCreateIdentityTokenParams(t *user.IdentityToken) pg.CreateIdentityTokenPa
 		RefreshToken:     t.RefreshToken,
 		ExpiresAt:        t.ExpiresAt,
 		RefreshExpiresAt: t.RefreshExpiresAt,
+		CreatedAt:        t.CreatedAt,
+		UpdatedAt:        t.UpdatedAt,
+	}
+}
+
+func ToCreateSecretInitRequestParams(req *secret.InitRequest) pg.CreateSecretInitRequestParams {
+	metaData, err := req.MetaData.MarshalJSON()
+	if err != nil {
+		metaData = []byte{}
+	}
+
+	return pg.CreateSecretInitRequestParams{
+		UserID:         req.UserID,
+		SecretID:       req.SecretID,
+		SecretName:     req.SecretName,
+		S3Url:          req.S3URL,
+		Version:        req.Version,
+		CurrentVersion: req.ParentVersion,
+		RequestType:    pg.RequestType(req.RequestType),
+		Token:          req.Token,
+		ClientInfo:     req.ClientInfo,
+		SecretSize:     req.SecretSize,
+		SecretHash:     req.SecretHash,
+		SecretDek:      req.SecretDEK,
+		Meta:           metaData,
+		CreatedAt:      req.CreatedAt,
+		ExpiresAt:      req.ExpiresAt,
+	}
+}
+
+func FromCreateSecretInitRequestParams(row pg.CreateSecretInitRequestRow) *secret.InitRequest {
+	var metaData secret.MetaData
+	if err := metaData.UnmarshalJSON(row.Meta); err != nil {
+		metaData = secret.MetaData{}
+	}
+
+	return &secret.InitRequest{
+		UserID:        row.UserID,
+		SecretID:      row.SecretID,
+		SecretName:    row.SecretName,
+		S3URL:         row.S3Url,
+		Version:       row.Version,
+		ParentVersion: row.ParentVersion,
+		RequestType:   secret.RequestType(row.RequestType),
+		Token:         row.Token,
+		ClientInfo:    row.ClientInfo,
+		SecretSize:    row.SecretSize,
+		SecretHash:    row.SecretHash,
+		SecretDEK:     row.SecretDek,
+		MetaData:      metaData,
+		CreatedAt:     row.CreatedAt,
+		ExpiresAt:     row.ExpiresAt,
+	}
+}
+
+func FromPGIdentityToken(t pg.UserIdentityToken) *user.IdentityToken {
+	return &user.IdentityToken{
+		UserID:           t.UserID,
+		AccessToken:      t.AccessToken,
+		ExpiresAt:        t.ExpiresAt,
+		RefreshExpiresAt: t.RefreshExpiresAt,
+		RefreshToken:     t.RefreshToken,
+		Scope:            "",
 		CreatedAt:        t.CreatedAt,
 		UpdatedAt:        t.UpdatedAt,
 	}

@@ -3,11 +3,20 @@ package pg
 import (
 	"context"
 	"errors"
+	"fmt"
+	"time"
 
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
+)
+
+const (
+	pgPoolMaxSize     = 30
+	pgPoolMinSize     = 3
+	pgMaxConnIdleTime = 30 * time.Second
+	pgMaxConnLifeTime = 5 * time.Second
 )
 
 // QueryFunc defines a function that accepts a pg-generated Queries instance
@@ -17,12 +26,12 @@ type QueryFunc = func(*Queries) error
 // DB wraps a PostgreSQL connection pool and provides methods for common
 // database lifecycle operations.
 type DB struct {
-	ConnPool ConnenctionPool
+	ConnPool ConnectionPool
 }
 
 // DBWithPool returns a DB instance using the provided connection pool.
 // Useful for testing or injecting a mock pool.
-func DBWithPool(pool ConnenctionPool) (*DB, error) {
+func DBWithPool(pool ConnectionPool) (*DB, error) {
 	if pool == nil {
 		return nil, e.ErrInvalidInput
 	}
@@ -35,14 +44,18 @@ func DBWithPool(pool ConnenctionPool) (*DB, error) {
 func NewDB(ctx context.Context, connString string) (*DB, error) {
 	config, err := pgxpool.ParseConfig(connString)
 	if err != nil {
-		return nil, e.ErrParse
+		return nil, fmt.Errorf("[%w] pg connection string", e.ErrParse)
 	}
 
-	config.MaxConns = 30
+	// configuring pool
+	config.MaxConns = pgPoolMaxSize
+	config.MinConns = pgPoolMinSize
+	config.MaxConnLifetime = pgMaxConnLifeTime
+	config.MaxConnIdleTime = pgMaxConnIdleTime
 
 	pool, err := pgxpool.NewWithConfig(ctx, config)
 	if err != nil {
-		return nil, e.ErrInvalidInput
+		return nil, fmt.Errorf("[%w] pg config", e.ErrInvalidInput)
 	}
 
 	return &DB{ConnPool: pool}, nil
@@ -52,11 +65,11 @@ func NewDB(ctx context.Context, connString string) (*DB, error) {
 // Returns ErrNotReady if the pool is nil, or ErrUnavailable if the ping fails.
 func (db *DB) Ping(ctx context.Context) error {
 	if db.ConnPool == nil {
-		return e.ErrNotReady
+		return fmt.Errorf("[%w] pg connection pool", e.ErrNotReady)
 	}
 
 	if err := db.ConnPool.Ping(ctx); err != nil {
-		return e.ErrUnavailable
+		return fmt.Errorf("[%w] pg connection", e.ErrUnavailable)
 	}
 
 	return nil

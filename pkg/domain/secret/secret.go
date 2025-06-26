@@ -39,12 +39,12 @@ type Secret struct {
 
 func (s *Secret) SetCurrentVersion(
 	parentVersion uuid.UUID,
-	s3Ref string,
+	s3URL string,
 	secretSize uint64,
 	secretHash []byte,
 	secretDEK []byte,
 ) *Secret {
-	ver := NewVersion(s.UserID, s.ID, parentVersion, s3Ref, secretSize, secretHash, secretDEK)
+	ver := NewVersion(s.UserID, s.ID, parentVersion, s3URL, secretSize, secretHash, secretDEK)
 
 	return &Secret{
 		ID:               s.ID,
@@ -85,29 +85,5 @@ func NewSecret(userID uuid.UUID, secretName string) *Secret {
 		UpdatedAt:        now,
 		CurrentVersion:   nil,
 		Meta:             nil,
-	}
-}
-
-type Meta struct {
-	UserID    uuid.UUID         `json:"user_id"`
-	SecretID  uuid.UUID         `json:"secret_id"`
-	Data      map[string]string `json:"meta"`
-	CreatedAt time.Time         `json:"created_at"`
-	UpdatedAt time.Time         `json:"updated_at"`
-}
-
-func NewMeta(
-	userID uuid.UUID,
-	secretID uuid.UUID,
-	data map[string]string,
-) *Meta {
-	now := time.Now().UTC()
-
-	return &Meta{
-		UserID:    userID,
-		SecretID:  secretID,
-		Data:      data,
-		CreatedAt: now,
-		UpdatedAt: now,
 	}
 }

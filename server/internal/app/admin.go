@@ -32,10 +32,11 @@ type AdminUseCase interface {
 // AdminUC implements AdminUseCase. It orchestrates the REK unsealing logic
 // using a Shamir share collector and secure keystore, validated against a stored hash.
 type AdminUC struct {
+	AdminUseCase
 	collector *shamir.Collector        // Used to collect and reconstruct the REK
 	kstore    keystore.Keystore        // Secure memory-backed store for the REK
 	repo      repository.REKRepository // Interface to access REK hash stored in the database
-	log       *zerolog.Logger
+	log       zerolog.Logger
 }
 
 // NewAdminUC creates a new instance of AdminUC.
@@ -43,7 +44,7 @@ func NewAdminUC(
 	collector *shamir.Collector,
 	kstore keystore.Keystore,
 	repo repository.REKRepository,
-	log *zerolog.Logger,
+	log zerolog.Logger,
 ) *AdminUC {
 	return &AdminUC{
 		collector: collector,

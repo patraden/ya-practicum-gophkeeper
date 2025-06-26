@@ -24,7 +24,8 @@ func TestKeycloakManagerIntegration(t *testing.T) {
 	client, err := keycloak.NewClient(cfg, log)
 	require.NoError(t, err)
 
-	manager := identity.NewKeycloakManager(client)
+	cache := identity.NewInMemoryIdentityTokenCache()
+	manager := identity.NewCachedManager(client, cache, log)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

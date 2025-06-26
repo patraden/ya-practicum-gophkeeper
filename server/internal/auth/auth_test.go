@@ -35,7 +35,7 @@ func setupTestUsers(t *testing.T) (*user.User, *user.User) {
 	return usr, usrNil
 }
 
-func setupLogger(t *testing.T) *zerolog.Logger {
+func setupLogger(t *testing.T) zerolog.Logger {
 	t.Helper()
 
 	return logger.Stdout(zerolog.DebugLevel).GetZeroLog()

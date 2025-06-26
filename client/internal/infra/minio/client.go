@@ -19,20 +19,16 @@ type Client struct {
 	s3.ClientOperator
 	minio *minio.Client
 	cfg   *s3.ClientConfig
-	log   *zerolog.Logger
+	log   zerolog.Logger
 }
 
 // NewClient initializes a new MinIO S3 client using the provided configuration.
-func NewClient(cfg *s3.ClientConfig, log *zerolog.Logger) (*Client, error) {
+func NewClient(cfg *s3.ClientConfig, log zerolog.Logger) (*Client, error) {
 	builder := transport.NewHTTPTransportBuilder(cfg.S3TLSCertPath, nil, log)
 
 	httptrprt, err := builder.Build()
 	if err != nil {
-		log.Error().Err(err).
-			Str("tls_cert_path", cfg.S3TLSCertPath).
-			Msg("failed to build http transport")
-
-		return nil, fmt.Errorf("%w: MinIO http transport: %v", e.ErrInvalidInput, err.Error())
+		return nil, err
 	}
 
 	client, err := minio.New(cfg.S3Endpoint, &minio.Options{
@@ -45,7 +41,7 @@ func NewClient(cfg *s3.ClientConfig, log *zerolog.Logger) (*Client, error) {
 			Str("endpoint", cfg.S3Endpoint).
 			Msg("failed to initialize MinIO client")
 
-		return nil, fmt.Errorf("%w: MinIO client: %v", e.ErrInit, err.Error())
+		return nil, fmt.Errorf("[%w] MinIO client", e.ErrInit)
 	}
 
 	return &Client{
@@ -65,7 +61,8 @@ func (c *Client) PutObject(
 		Str("object", objectName).
 		Str("file", filePath).Logger()
 
-	ctxLog.Info().Msg("uploading object to storage")
+	ctxLog.Info().
+		Msg("uploading object to storage")
 
 	start := time.Now()
 	info, err := c.minio.FPutObject(ctx, bucketName, objectName, filePath, opts)
@@ -76,7 +73,7 @@ func (c *Client) PutObject(
 			Dur("duration", duration).
 			Msg("failed to upload object to storage")
 
-		return s3.UploadInfo{}, e.ErrInternal
+		return s3.UploadInfo{}, e.InternalErr(err)
 	}
 
 	ctxLog.Info().
@@ -97,7 +94,8 @@ func (c *Client) GetObject(
 		Str("object", objectName).
 		Str("file", filePath).Logger()
 
-	ctxLog.Info().Msg("downloading object from storage")
+	ctxLog.Info().
+		Msg("downloading object from storage")
 
 	start := time.Now()
 	err := c.minio.FGetObject(ctx, bucketName, objectName, filePath, opts)
@@ -108,7 +106,7 @@ func (c *Client) GetObject(
 			Dur("duration", duration).
 			Msg("failed to download object from storage")
 
-		return e.ErrInternal
+		return e.InternalErr(err)
 	}
 
 	ctxLog.Info().

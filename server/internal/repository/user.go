@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/jackc/pgx/v5"
@@ -31,13 +32,13 @@ type UserRepository interface {
 type UserRepo struct {
 	s3client s3.ServerOperator
 	idClient identity.Manager
-	connPool pg.ConnenctionPool
+	connPool pg.ConnectionPool
 	queries  *pg.Queries
-	log      *zerolog.Logger
+	log      zerolog.Logger
 }
 
 // NewUserRepo creates a new instance of UserRepo with the provided database, S3 client, and logger.
-func NewUserRepo(db *pg.DB, s3client s3.ServerOperator, idClient identity.Manager, log *zerolog.Logger) *UserRepo {
+func NewUserRepo(db *pg.DB, s3client s3.ServerOperator, idClient identity.Manager, log zerolog.Logger) *UserRepo {
 	return &UserRepo{
 		connPool: db.ConnPool,
 		queries:  pg.New(db.ConnPool),
@@ -58,24 +59,23 @@ func (repo *UserRepo) withDBRetry(ctx context.Context, dbOp func() error) error 
 	return retry.PG(ctx, backoff.NewExponentialBackOff(), repo.log, dbOp)
 }
 
-func (repo *UserRepo) logWithUserContext(u *user.User) zerolog.Logger {
+func (repo *UserRepo) logWithUserContext(usr *user.User, op string) zerolog.Logger {
 	return repo.log.With().
-		Str("username", u.Username).
-		Str("user_id", u.ID.String()).
-		Str("user_role", u.Role.String()).Logger()
+		Str("repo", "UserRepo").
+		Str("operation", op).
+		Str("username", usr.Username).
+		Str("user_id", usr.ID.String()).
+		Str("user_role", usr.Role.String()).Logger()
 }
 
 // CreateAdmin inserts an admin user directly into the database.
 // This method does not create an S3 bucket or KEK entry.
 // Returns ErrExists if the user or username already exists.
 func (repo *UserRepo) CreateAdmin(ctx context.Context, usr *user.User) (*user.User, error) {
-	logCtx := repo.logWithUserContext(usr)
+	logCtx := repo.logWithUserContext(usr, "CreateAdmin")
 
 	if usr.Role != user.RoleAdmin {
-		logCtx.Error().
-			Str("operation", "CreateAdmin").
-			Msg("expected user with admin role")
-
+		logCtx.Error().Msg("expected user with admin role")
 		return nil, e.ErrInvalidInput
 	}
 
@@ -131,22 +131,16 @@ func (repo *UserRepo) CreateAdmin(ctx context.Context, usr *user.User) (*user.Us
 // it returns ErrServerInternal.
 //
 // This method retries transient database failures using an exponential backoff strategy.
-//
-//nolint:funlen,cyclop // reason: method is lengthy, but has simple logic
 func (repo *UserRepo) CreateUser(ctx context.Context, usr *user.User, key *user.Key) (*user.User, error) {
-	logCtx := repo.logWithUserContext(usr)
+	logCtx := repo.logWithUserContext(usr, "CreateUser")
 
 	if usr.Role != user.RoleUser {
-		logCtx.Error().
-			Str("operation", "CreateUser").
-			Msg("expected user with user role")
-
+		logCtx.Error().Msg("expected user with user role")
 		return nil, e.ErrInvalidInput
 	}
 
 	// Trying to create user in identity first.
-	token, err := repo.createIdentityUser(ctx, usr)
-	if err != nil {
+	if err := repo.createIdentityUser(ctx, usr); err != nil {
 		return nil, e.InternalErr(err)
 	}
 
@@ -162,7 +156,7 @@ func (repo *UserRepo) CreateUser(ctx context.Context, usr *user.User, key *user.
 		pgUser, err := queries.CreateUser(ctx, ToCreateUserParams(usr))
 
 		if pg.IsUniqueViolation(err) {
-			return e.ErrExists
+			return fmt.Errorf("[%w] user", e.ErrExists)
 		}
 
 		if err != nil {
@@ -173,16 +167,12 @@ func (repo *UserRepo) CreateUser(ctx context.Context, usr *user.User, key *user.
 			return err
 		}
 
-		if err = queries.CreateIdentityToken(ctx, ToCreateIdentityTokenParams(token)); err != nil {
-			return err
-		}
-
 		dbUsr = FromPGUser(pgUser)
 
 		// The DB enforces uniqueness on ID and username, but only one constraint may trigger.
 		// Here we ensure both values match what we intended to store.
 		if dbUsr.ID != usr.ID {
-			return e.ErrExists
+			return fmt.Errorf("username %w", e.ErrExists)
 		}
 
 		return nil
@@ -216,22 +206,14 @@ func (repo *UserRepo) CreateUser(ctx context.Context, usr *user.User, key *user.
 // For all other errors, it returns ErrInternal.
 // The password is removed before returning.
 func (repo *UserRepo) GetUser(ctx context.Context, username string) (*user.User, error) {
-	logCtx := repo.log.With().Str("username", username).Logger()
-
 	var dbUsr *user.User
 
 	queryFn := func(queries *pg.Queries) error {
 		pgUser, err := queries.GetUser(ctx, username)
-
-		if errors.Is(err, sql.ErrNoRows) {
-			return e.ErrNotFound
-		}
-
 		if err != nil {
 			return err
 		}
 
-		// password will be removed here.
 		dbUsr = FromPGUser(pgUser)
 
 		return nil
@@ -239,11 +221,12 @@ func (repo *UserRepo) GetUser(ctx context.Context, username string) (*user.User,
 
 	dbErr := repo.withDBRetry(ctx, func() error { return queryFn(repo.queries) })
 	if dbErr != nil {
-		if errors.Is(dbErr, e.ErrNotFound) {
-			return nil, dbErr
+		if errors.Is(dbErr, sql.ErrNoRows) {
+			return nil, e.ErrNotFound
 		}
 
-		logCtx.Error().Err(dbErr).
+		repo.log.Error().Err(dbErr).
+			Str("username", username).
 			Str("operation", "GetUser").
 			Msg("Repo: failed to get user")
 
@@ -275,6 +258,18 @@ func (repo *UserRepo) ValidateUser(ctx context.Context, creds *dto.UserCredentia
 	return user, nil
 }
 
+// createIdentityUser attempts to create identity user.
+func (repo *UserRepo) createIdentityUser(ctx context.Context, usr *user.User) error {
+	iuid, err := repo.idClient.CreateUser(ctx, usr)
+	if err != nil {
+		return err
+	}
+
+	usr.SetIdentityID(iuid)
+
+	return nil
+}
+
 // createBucket attempts to create a dedicated S3 bucket for a new user.
 func (repo *UserRepo) createBucket(
 	ctx context.Context,
@@ -295,23 +290,6 @@ func (repo *UserRepo) createBucket(
 	usr.SetBucketName(bucketName)
 
 	return nil
-}
-
-// createIdentityUser attempts to create identity user.
-func (repo *UserRepo) createIdentityUser(ctx context.Context, usr *user.User) (*user.IdentityToken, error) {
-	iuid, err := repo.idClient.CreateUser(ctx, usr)
-	if err != nil {
-		return nil, err
-	}
-
-	token, err := repo.idClient.GetToken(ctx, usr)
-	if err != nil {
-		return nil, err
-	}
-
-	usr.SetIdentityID(iuid)
-
-	return token, nil
 }
 
 // compensateIdentityUser deletes the previously created identity user.

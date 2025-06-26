@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-type ConnenctionPool interface {
+type ConnectionPool interface {
 	Exec(ctx context.Context, query string, options ...interface{}) (pgconn.CommandTag, error)
 	Query(ctx context.Context, query string, options ...interface{}) (pgx.Rows, error)
 	QueryRow(ctx context.Context, query string, options ...interface{}) pgx.Row

@@ -101,12 +101,14 @@ proto:
 mocks:
 	@mockgen -source=server/internal/grpchandler/adapters.go -destination=server/internal/mock/grpc.go -package=mock UserServiceServer
 	@mockgen -source=server/internal/grpchandler/adapters.go -destination=server/internal/mock/grpc.go -package=mock AdminServiceServer
-	@mockgen -source=server/internal/infra/s3/client.go -destination=server/internal/mock/s3.go -package=mock Client
+	@mockgen -source=server/internal/identity/identity.go -destination=server/internal/mock/identity.go -package=mock -mock_names "Manager=MockIdentityManager" Manager
+	@mockgen -source=pkg/s3/operations.go -destination=server/internal/mock/s3.go -package=mock ServerOperator
 
 .PHONY: json
 json:
 	@$(EASYJSON) -all pkg/dto/shares.go
 	@$(EASYJSON) -all pkg/dto/credentials.go
+	@$(EASYJSON) -all pkg/domain/secret/meta.go
 
 .PHONY: run-server-local
 run-server-local:
@@ -207,6 +209,8 @@ podman-server-run:
 
 .PHONY: podman-certgen-run
 podman-certgen-run:
+	@echo "Creating .certs dir..."
+	@mkdir -p $(CERT_DIR_LOCAL)
 	@echo "Running certgen to generate certs..."
 	@$(PODMAN) run --name certgen --userns=keep-id \
 		-v gophkeeper_app_certs:/certs/gophkeeper \

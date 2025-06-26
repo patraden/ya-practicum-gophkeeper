@@ -27,11 +27,11 @@ type Client struct {
 	clientID     string
 	clientSecret string
 	client       *gocloak.GoCloak
-	log          *zerolog.Logger
+	log          zerolog.Logger
 }
 
 // NewClient creates a Keycloak client. If `secured` is true, it loads TLS from cert path.
-func NewClient(cfg *config.Config, log *zerolog.Logger) (*Client, error) {
+func NewClient(cfg *config.Config, log zerolog.Logger) (*Client, error) {
 	client := gocloak.NewClient(cfg.IdentityEndpoint)
 	secured := cfg.IdentityTLSCertPath != ""
 
@@ -40,11 +40,7 @@ func NewClient(cfg *config.Config, log *zerolog.Logger) (*Client, error) {
 
 		httpTransport, err := builder.Build()
 		if err != nil {
-			log.Error().Err(err).
-				Str("tls_cert_path", cfg.IdentityTLSCertPath).
-				Msg("failed to build Keycloak TLS transport")
-
-			return nil, fmt.Errorf("%w: Keycloak HTTP transport: %v", e.ErrInvalidInput, err.Error())
+			return nil, err
 		}
 
 		restyClient := resty.NewWithClient(&http.Client{Transport: httpTransport})
@@ -75,7 +71,7 @@ func (c *Client) Login(ctx context.Context, usr *user.User) (*user.JWT, error) {
 			Str("username", usr.Username).
 			Msg("failed to login as user")
 
-		return nil, e.ErrInternal
+		return nil, e.InternalErr(err)
 	}
 
 	return token, nil
@@ -90,7 +86,7 @@ func (c *Client) LoginClient(ctx context.Context, scopes ...string) (*user.JWT, 
 			Str("realm", c.realm).
 			Msg("failed to login as client")
 
-		return nil, e.ErrUnavailable
+		return nil, fmt.Errorf("[%w] keyclock login client api", e.ErrUnavailable)
 	}
 
 	return token, nil
@@ -105,7 +101,7 @@ func (c *Client) RefreshToken(ctx context.Context, refreshToken string) (*user.J
 			Str("realm", c.realm).
 			Msg("failed to refresh access token")
 
-		return nil, e.ErrUnavailable
+		return nil, fmt.Errorf("[%w] keyclock refresh token api", e.ErrUnavailable)
 	}
 
 	return token, nil
@@ -134,7 +130,7 @@ func (c *Client) CreateUser(ctx context.Context, usr *user.User, token string) (
 			Str("username", *gcUser.Username).
 			Msg("user already exists")
 
-		return "", e.ErrExists
+		return "", fmt.Errorf("[%w] keyclock user", e.ErrExists)
 	}
 
 	userID, err := c.client.CreateUser(ctx, token, c.realm, gcUser)
@@ -145,7 +141,7 @@ func (c *Client) CreateUser(ctx context.Context, usr *user.User, token string) (
 			Str("username", *gcUser.Username).
 			Msg("failed to create user")
 
-		return "", e.ErrInternal
+		return "", e.InternalErr(err)
 	}
 
 	err = c.client.SetPassword(ctx, token, userID, c.realm, usr.IdentityPassword(), false)
@@ -156,7 +152,7 @@ func (c *Client) CreateUser(ctx context.Context, usr *user.User, token string) (
 			Str("username", *gcUser.Username).
 			Msg("failed to set user password")
 
-		return "", e.ErrGenerate
+		return "", e.InternalErr(err)
 	}
 
 	createdUser, err := c.client.GetUserByID(ctx, token, c.realm, userID)
@@ -167,7 +163,7 @@ func (c *Client) CreateUser(ctx context.Context, usr *user.User, token string) (
 			Str("username", *gcUser.Username).
 			Msg("failed to fetch created user")
 
-		return "", e.ErrInternal
+		return "", e.InternalErr(err)
 	}
 
 	return *createdUser.ID, nil
@@ -183,7 +179,7 @@ func (c *Client) DeleteUser(ctx context.Context, userID, token string) error {
 			Str("user_id", userID).
 			Msg("failed to delete user")
 
-		return e.ErrInternal
+		return e.InternalErr(err)
 	}
 
 	return nil

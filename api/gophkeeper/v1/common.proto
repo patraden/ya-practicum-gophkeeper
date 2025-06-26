@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package gophkeeper.v1;
+
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/patraden/ya-practicum-gophkeeper/api/gophkeeper/v1;proto";
+
+enum UserRole {
+  USER_ROLE_UNSPECIFIED = 0;
+  USER_ROLE_USER = 1;
+  USER_ROLE_ADMIN = 2;
+}
+
+enum SealStatus {
+  SEAL_STATUS_UNSPECIFIED = 0;
+  SEAL_STATUS_SEALED = 1;
+  SEAL_STATUS_UNSEALED = 2;
+}
+
+message TemporaryCredentials {
+  string access_key_id     = 1 [(buf.validate.field).string.min_len = 1]; // Temporary access key
+  string secret_access_key = 2 [(buf.validate.field).string.min_len = 1]; // Temporary secret key
+  string session_token     = 3 [(buf.validate.field).string.min_len = 1]; // Session token (required for auth)
+  string expiration        = 4 [(buf.validate.field).string.min_len = 1]; // Expiration timestamp (ISO8601)
+}

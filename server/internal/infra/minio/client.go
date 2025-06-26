@@ -21,14 +21,14 @@ import (
 // and logging capabilities for interacting with an S3-compatible MinIO backend.
 type Client struct {
 	s3.ServerOperator
-	minio    *minio.Client
-	identity *WebIdentityClient
-	cfg      *s3.ClientConfig
-	log      *zerolog.Logger
+	minio       *minio.Client
+	webIDClient *WebIdentityClient
+	cfg         *s3.ClientConfig
+	log         zerolog.Logger
 }
 
 // NewMinIOClient initializes a new MinIO S3 client using the provided configuration.
-func NewClient(config *config.Config, log *zerolog.Logger) (*Client, error) {
+func NewClient(config *config.Config, log zerolog.Logger) (*Client, error) {
 	cfg := &s3.ClientConfig{
 		S3Endpoint:    config.S3Endpoint,
 		S3TLSCertPath: config.S3TLSCertPath,
@@ -43,11 +43,7 @@ func NewClient(config *config.Config, log *zerolog.Logger) (*Client, error) {
 
 	httptrprt, err := builder.Build()
 	if err != nil {
-		log.Error().Err(err).
-			Str("tls_cert_path", cfg.S3TLSCertPath).
-			Msg("failed to build http transport")
-
-		return nil, fmt.Errorf("%w: MinIO http transport: %v", e.ErrInvalidInput, err.Error())
+		return nil, err
 	}
 
 	client, err := minio.New(cfg.S3Endpoint, &minio.Options{
@@ -60,18 +56,18 @@ func NewClient(config *config.Config, log *zerolog.Logger) (*Client, error) {
 			Str("endpoint", cfg.S3Endpoint).
 			Msg("failed to initialize MinIO client")
 
-		return nil, fmt.Errorf("%w: MinIO client: %v", e.ErrInit, err.Error())
+		return nil, fmt.Errorf("[%w] MinIO client", e.ErrInit)
 	}
 
 	secure := cfg.S3TLSCertPath != ""
 	webURL := getWebURL(cfg.S3Endpoint, secure)
-	identity := NewMinioWebIdentityClient(webURL, nil, httptrprt, log)
+	webIDClient := NewMinioWebIdentityClient(webURL, nil, httptrprt, log)
 
 	return &Client{
-		minio:    client,
-		identity: identity,
-		cfg:      cfg,
-		log:      log,
+		minio:       client,
+		webIDClient: webIDClient,
+		cfg:         cfg,
+		log:         log,
 	}, nil
 }
 
@@ -128,7 +124,7 @@ func (c *Client) MakeBucket(
 	}
 
 	if exists {
-		return e.ErrExists
+		return fmt.Errorf("[%w] MinIO bucket", e.ErrExists)
 	}
 
 	err = c.minio.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{Region: c.cfg.S3Region})
@@ -227,8 +223,8 @@ func (c *Client) RemoveBucket(ctx context.Context, bucketName string) error {
 	}
 
 	if !exists {
-		logCtx.Warn().Msg("bucket does not exist")
-		return e.ErrNotFound
+		logCtx.Info().Msg("bucket does not exist")
+		return fmt.Errorf("[%w] MinIO bucket", e.ErrNotFound)
 	}
 
 	if err := c.minio.RemoveBucket(ctx, bucketName); err != nil {
@@ -246,7 +242,7 @@ func (c *Client) AssumeRole(
 	identityToken string,
 	durationSeconds int,
 ) (*s3.TemporaryCredentials, error) {
-	return c.identity.AssumeRole(ctx, identityToken, durationSeconds)
+	return c.webIDClient.AssumeRole(ctx, identityToken, durationSeconds)
 }
 
 func (c *Client) AddCannedPolicy(_ context.Context, _ string, _ []byte) error {

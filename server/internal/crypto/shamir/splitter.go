@@ -1,6 +1,8 @@
 package shamir
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/vault/shamir"
 	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
 	"github.com/rs/zerolog"
@@ -8,11 +10,11 @@ import (
 
 // Splitter splitts secrets into shares according to Shamir's Secret Sharing.
 type Splitter struct {
-	log *zerolog.Logger
+	log zerolog.Logger
 }
 
 // NewSplitter creates a new Splitter using the provided logger.
-func NewSplitter(log *zerolog.Logger) *Splitter {
+func NewSplitter(log zerolog.Logger) *Splitter {
 	return &Splitter{log: log}
 }
 
@@ -25,7 +27,7 @@ func (s *Splitter) Split(secret []byte) ([][]byte, error) {
 			Int("threshold", ThresholdShares).
 			Msg("shamir's secret split")
 
-		return nil, e.ErrInvalidInput
+		return nil, fmt.Errorf("[%w] shamir's secret", e.ErrInvalidInput)
 	}
 
 	return shares, nil

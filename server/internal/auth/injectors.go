@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func StoreTokenInGRPCHeader(ctx context.Context, token string, log *zerolog.Logger) error {
+func StoreTokenInGRPCHeader(ctx context.Context, token string, log zerolog.Logger) error {
 	err := grpc.SetHeader(ctx, metadata.Pairs("authorization", "Bearer "+token))
 	if err != nil {
 		log.Error().Err(err).

@@ -18,24 +18,24 @@ type JWT = gocloak.JWT
 // IdentityToken represents an identity provider token associated with a user.
 type IdentityToken struct {
 	UserID           uuid.UUID `json:"user_id"`            // Internal GophKeeper user ID
-	AccessToken      string    `json:"access_token"`       // Access token provided by the identity provider
-	ExpiresAt        time.Time `json:"expires_at"`         // UTC time when the access token expires
-	RefreshExpiresAt time.Time `json:"refresh_expires_at"` // UTC time when the refresh token expires
-	RefreshToken     string    `json:"refresh_token"`      // Refresh token used to obtain a new access token
-	Scope            string    `json:"scope"`              // Scope granted by the identity provider
-	CreatedAt        time.Time `json:"created_at"`         // Timestamp of token creation
-	UpdatedAt        time.Time `json:"updated_at"`         // Timestamp of last token update
+	AccessToken      string    `json:"access_token"`       // Access token from the identity provider
+	ExpiresAt        time.Time `json:"expires_at"`         // UTC time when access token expires
+	RefreshExpiresAt time.Time `json:"refresh_expires_at"` // UTC time when refresh token expires
+	RefreshToken     string    `json:"refresh_token"`      // Refresh token for obtaining a new access token
+	Scope            string    `json:"scope"`              // Granted scope from identity provider
+	CreatedAt        time.Time `json:"created_at"`         // Time of token creation
+	UpdatedAt        time.Time `json:"updated_at"`         // Time of last token update
 }
 
-// TokenFromJWT constructs an IdentityToken from a gocloak.JWT and the associated user ID.
+// TokenFromJWT constructs an IdentityToken from a gocloak.JWT and user ID.
 func TokenFromJWT(uid uuid.UUID, jwt *JWT) *IdentityToken {
 	if jwt == nil {
 		return nil
 	}
 
 	now := time.Now().UTC()
-	expiresAt := now.Add(time.Second * time.Duration(jwt.ExpiresIn-tokenExpirationBuffer))
-	refreshExpiresAt := now.Add(time.Second * time.Duration(jwt.RefreshExpiresIn-tokenExpirationBuffer))
+	expiresAt := now.Add(time.Second * time.Duration(jwt.ExpiresIn))
+	refreshExpiresAt := now.Add(time.Second * time.Duration(jwt.RefreshExpiresIn))
 
 	return &IdentityToken{
 		UserID:           uid,
@@ -49,12 +49,34 @@ func TokenFromJWT(uid uuid.UUID, jwt *JWT) *IdentityToken {
 	}
 }
 
-// IsValid checks whether the access token is still valid, based on current UTC time.
+// IsValid returns true if the access token is still valid.
 func (t *IdentityToken) IsValid() bool {
-	return t.AccessToken != "" && time.Now().UTC().Before(t.ExpiresAt)
+	return t.AccessToken != "" && t.ExpiresIn() > 0
 }
 
-// IsRefreshable checks whether the refresh token can still be used to obtain a new access token.
+// IsRefreshable returns true if the refresh token is still usable.
 func (t *IdentityToken) IsRefreshable() bool {
-	return t.RefreshToken != "" && time.Now().UTC().Before(t.RefreshExpiresAt)
+	return t.RefreshToken != "" && t.RefreshExpiresIn() > 0
+}
+
+// ExpiresIn returns seconds until the access token expires, minus buffer.
+// Returns 0 if already expired or within buffer range.
+func (t *IdentityToken) ExpiresIn() int {
+	remaining := int(t.ExpiresAt.Sub(time.Now().UTC()).Seconds()) - tokenExpirationBuffer
+	if remaining < 0 {
+		return 0
+	}
+
+	return remaining
+}
+
+// RefreshExpiresIn returns seconds until the refresh token expires, minus buffer.
+// Returns 0 if already expired or within buffer range.
+func (t *IdentityToken) RefreshExpiresIn() int {
+	remaining := int(t.RefreshExpiresAt.Sub(time.Now().UTC()).Seconds()) - tokenExpirationBuffer
+	if remaining < 0 {
+		return 0
+	}
+
+	return remaining
 }

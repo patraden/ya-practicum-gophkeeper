@@ -19,11 +19,11 @@ type UserServer struct {
 	config *config.Config
 	auth   *auth.Auth
 	app    app.UserUseCase
-	log    *zerolog.Logger
+	log    zerolog.Logger
 	pb.UnimplementedUserServiceServer
 }
 
-func NewUserServer(config *config.Config, auth *auth.Auth, app app.UserUseCase, log *zerolog.Logger) *UserServer {
+func NewUserServer(config *config.Config, auth *auth.Auth, app app.UserUseCase, log zerolog.Logger) *UserServer {
 	return &UserServer{
 		config: config,
 		auth:   auth,

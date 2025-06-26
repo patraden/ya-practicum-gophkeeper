@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -50,11 +51,11 @@ func FromContext(ctx context.Context) (*jwt.Token, *Claims, error) {
 // Auth is a struct that provides JWT-based authentication and authorization capabilities.
 type Auth struct {
 	keyFunc jwt.Keyfunc
-	log     *zerolog.Logger
+	log     zerolog.Logger
 }
 
 // New creates a new object of type Auth.
-func New(keyFunc jwt.Keyfunc, log *zerolog.Logger) *Auth {
+func New(keyFunc jwt.Keyfunc, log zerolog.Logger) *Auth {
 	return &Auth{
 		keyFunc: keyFunc,
 		log:     log,
@@ -70,7 +71,7 @@ func (auth *Auth) Validate(tokenString string) (*jwt.Token, error) {
 		auth.log.Error().Err(err).
 			Msg("failed to parse JWT token")
 
-		return nil, e.ErrInvalidInput
+		return nil, fmt.Errorf("[%w] auth jwt token", e.ErrInvalidInput)
 	}
 
 	claims, ok := token.Claims.(*Claims)
@@ -79,7 +80,7 @@ func (auth *Auth) Validate(tokenString string) (*jwt.Token, error) {
 			Str("user_id", claims.UserID).
 			Msg("invalid claims")
 
-		return nil, e.ErrUnauthenticated
+		return nil, fmt.Errorf("[%w] invalid auth jwt claims", e.ErrUnauthenticated)
 	}
 
 	return token, nil
@@ -109,7 +110,7 @@ func (auth *Auth) Encoder() TokenEncoder {
 				Str("username", user.Username).
 				Msg("failed to retrieve signing key")
 
-			return "", e.ErrGenerate
+			return "", fmt.Errorf("[%w] auth jwt signing key", e.ErrGenerate)
 		}
 
 		tokenString, err := token.SignedString(signingKey)
@@ -119,7 +120,7 @@ func (auth *Auth) Encoder() TokenEncoder {
 				Str("username", user.Username).
 				Msg("failed to sign token")
 
-			return "", e.ErrGenerate
+			return "", fmt.Errorf("[%w] auth jwt token string", e.ErrGenerate)
 		}
 
 		auth.log.Info().
@@ -147,10 +148,10 @@ func (auth *Auth) VerifyContext(ctx context.Context, extractors ...TokenExtracto
 	}
 
 	if tokenString == "" {
-		auth.log.Error().
+		auth.log.Info().
 			Msg("token not found in request")
 
-		return nil, e.ErrNotFound
+		return nil, fmt.Errorf("[%w] auth jwt token", e.ErrNotFound)
 	}
 
 	return auth.Validate(tokenString)

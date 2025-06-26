@@ -17,11 +17,11 @@ import (
 type AdminServer struct {
 	usecase app.AdminUseCase
 	config  *config.Config
-	log     *zerolog.Logger
+	log     zerolog.Logger
 	pb.UnimplementedAdminServiceServer
 }
 
-func NewAdminServer(config *config.Config, usecase app.AdminUseCase, log *zerolog.Logger) *AdminServer {
+func NewAdminServer(config *config.Config, usecase app.AdminUseCase, log zerolog.Logger) *AdminServer {
 	return &AdminServer{
 		usecase: usecase,
 		config:  config,

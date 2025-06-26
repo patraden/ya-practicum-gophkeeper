@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/jackc/pgerrcode"
@@ -25,13 +26,13 @@ type REKRepository interface {
 
 // REKRepo implements REKRepository backed by PostgreSQL.
 type REKRepo struct {
-	connPool pg.ConnenctionPool
+	connPool pg.ConnectionPool
 	queries  *pg.Queries
-	log      *zerolog.Logger
+	log      zerolog.Logger
 }
 
 // NewREKRepo creates a new REKRepo instance.
-func NewREKRepo(db *pg.DB, log *zerolog.Logger) *REKRepo {
+func NewREKRepo(db *pg.DB, log zerolog.Logger) *REKRepo {
 	return &REKRepo{
 		connPool: db.ConnPool,
 		queries:  pg.New(db.ConnPool),
@@ -58,7 +59,7 @@ func (repo *REKRepo) StoreHash(ctx context.Context, hash []byte) error {
 
 		err := queries.CreateREKHash(ctx, hash)
 		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
-			return e.ErrExists
+			return fmt.Errorf("[%w] rek hash", e.ErrExists)
 		}
 
 		return err
@@ -72,6 +73,7 @@ func (repo *REKRepo) StoreHash(ctx context.Context, hash []byte) error {
 
 	if dbErr != nil {
 		repo.log.Error().Err(dbErr).
+			Str("repo", "REKRepo").
 			Str("operation", "StoreHash").
 			Msg("failed to create rek hash")
 
@@ -100,6 +102,7 @@ func (repo *REKRepo) GetHash(ctx context.Context) ([]byte, error) {
 	dbErr := repo.withDBRetry(ctx, func() error { return queryFn(repo.queries) })
 	if dbErr != nil {
 		repo.log.Error().Err(dbErr).
+			Str("repo", "REKRepo").
 			Str("operation", "GetHash").
 			Msg("failed to get rek hash")
 

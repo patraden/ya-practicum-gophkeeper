@@ -31,7 +31,7 @@ func RetriablePG(err error) bool {
 func PG(
 	ctx context.Context,
 	boff backoff.BackOff,
-	log *zerolog.Logger,
+	log zerolog.Logger,
 	op func() error,
 ) error {
 	return WithRetry(ctx, boff, log, RetriablePG, op)

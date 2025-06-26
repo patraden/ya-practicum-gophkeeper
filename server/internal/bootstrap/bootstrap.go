@@ -14,7 +14,6 @@ import (
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/crypto/shamir"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/grpchandler"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/identity"
-	"github.com/patraden/ya-practicum-gophkeeper/server/internal/infra/keycloak"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/infra/minio"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/infra/pg"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/repository"
@@ -49,11 +48,10 @@ func Server(cfg *config.Config) *fx.App {
 			fx.Supply(cfg),
 			fx.Supply(appLogger),
 			fx.Provide(version.New),
-			fx.Provide(func(l *logger.Logger) *zerolog.Logger { return l.GetZeroLog() }),
+			fx.Provide(func(l logger.Logger) zerolog.Logger { return l.GetZeroLog() }),
 			fx.Provide(pgDBFunc),
 			fx.Provide(shamir.NewSplitter),
-			fx.Provide(fx.Annotate(keycloak.NewClient, fx.As(new(identity.Client)))),
-			fx.Provide(fx.Annotate(identity.NewKeycloakManager, fx.As(new(identity.Manager)))),
+			fx.Provide(fx.Annotate(identity.KeycloakPGManager, fx.As(new(identity.Manager)))),
 			fx.Provide(fx.Annotate(minio.NewClient, fx.As(new(s3.ServerOperator)))),
 			fx.Provide(fx.Annotate(repository.NewUserRepo, fx.As(new(repository.UserRepository)))),
 			fx.Provide(fx.Annotate(repository.NewREKRepo, fx.As(new(repository.REKRepository)))),
@@ -70,12 +68,11 @@ func Server(cfg *config.Config) *fx.App {
 		fx.Supply(server.PublicGRPCMethods),
 		fx.Supply(appLogger),
 		fx.Provide(version.New),
-		fx.Provide(func(l *logger.Logger) *zerolog.Logger { return l.GetZeroLog() }),
-		fx.Provide(func(l *logger.Logger) *auth.Auth { return auth.New(jwtKeyFunc, l.GetZeroLog()) }),
+		fx.Provide(func(l logger.Logger) zerolog.Logger { return l.GetZeroLog() }),
+		fx.Provide(func(l logger.Logger) *auth.Auth { return auth.New(jwtKeyFunc, l.GetZeroLog()) }),
 		fx.Provide(pgDBFunc),
 		fx.Provide(shamir.NewCollector),
-		fx.Provide(fx.Annotate(keycloak.NewClient, fx.As(new(identity.Client)))),
-		fx.Provide(fx.Annotate(identity.NewKeycloakManager, fx.As(new(identity.Manager)))),
+		fx.Provide(fx.Annotate(identity.KeycloakPGManager, fx.As(new(identity.Manager)))),
 		fx.Provide(fx.Annotate(minio.NewClient, fx.As(new(s3.ServerOperator)))),
 		fx.Provide(fx.Annotate(keystore.NewInMemoryKeystore, fx.As(new(keystore.Keystore)))),
 		fx.Provide(fx.Annotate(repository.NewREKRepo, fx.As(new(repository.REKRepository)))),

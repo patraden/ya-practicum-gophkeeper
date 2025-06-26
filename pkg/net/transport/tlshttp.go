@@ -3,6 +3,7 @@ package transport
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -15,11 +16,11 @@ import (
 type TLSHTTPTransportBuilder struct {
 	CertBytes []byte
 	CertPath  string
-	log       *zerolog.Logger
+	log       zerolog.Logger
 }
 
 // NewHTTPTransportBuilder creates a builder for HTTP transport with optional certificate input.
-func NewHTTPTransportBuilder(certPath string, certBytes []byte, log *zerolog.Logger) *TLSHTTPTransportBuilder {
+func NewHTTPTransportBuilder(certPath string, certBytes []byte, log zerolog.Logger) *TLSHTTPTransportBuilder {
 	return &TLSHTTPTransportBuilder{
 		CertBytes: certBytes,
 		CertPath:  certPath,
@@ -36,16 +37,16 @@ func (b *TLSHTTPTransportBuilder) Build() (*http.Transport, error) {
 			b.log.Error().
 				Msg("path to certificate file is empty")
 
-			return nil, e.ErrEmptyInput
+			return nil, fmt.Errorf("[%w] tls certificate file path", e.ErrEmptyInput)
 		}
 
 		certData, err := os.ReadFile(b.CertPath)
 		if err != nil {
-			b.log.Error().
+			b.log.Error().Err(err).
 				Str("file_path", b.CertPath).
 				Msg("failed to read certificate from file")
 
-			return nil, e.ErrRead
+			return nil, fmt.Errorf("[%w] tls certificate", e.ErrRead)
 		}
 
 		b.CertBytes = certData
@@ -56,7 +57,7 @@ func (b *TLSHTTPTransportBuilder) Build() (*http.Transport, error) {
 		b.log.Error().
 			Msg("failed to add certificate to the pool")
 
-		return nil, e.ErrInvalidInput
+		return nil, fmt.Errorf("[%w] tls certificate data", e.ErrInvalidInput)
 	}
 
 	tlsConfig := &tls.Config{

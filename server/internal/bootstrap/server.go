@@ -15,7 +15,7 @@ import (
 
 func fxServerInvoke(
 	lc fx.Lifecycle,
-	log *zerolog.Logger,
+	log zerolog.Logger,
 	cfg *config.Config,
 	shutdowner fx.Shutdowner,
 	version *version.Version,
@@ -40,7 +40,7 @@ func fxServerInvoke(
 	})
 }
 
-func handleSignals(shutdowner fx.Shutdowner, log *zerolog.Logger) {
+func handleSignals(shutdowner fx.Shutdowner, log zerolog.Logger) {
 	stopChan := make(chan os.Signal, 1)
 	signal.Notify(stopChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
@@ -59,7 +59,7 @@ func handleSignals(shutdowner fx.Shutdowner, log *zerolog.Logger) {
 	}()
 }
 
-func startServerAsync(shutdowner fx.Shutdowner, server *server.GRPCServer, log *zerolog.Logger) {
+func startServerAsync(shutdowner fx.Shutdowner, server *server.GRPCServer, log zerolog.Logger) {
 	go func() {
 		err := server.Run()
 		if err != nil {
@@ -75,7 +75,7 @@ func startServerAsync(shutdowner fx.Shutdowner, server *server.GRPCServer, log *
 	}()
 }
 
-func logStart(log *zerolog.Logger, config *config.Config) {
+func logStart(log zerolog.Logger, config *config.Config) {
 	log.Info().
 		Str("SERVER_ADDRESS", config.ServerAddr).
 		Str("SERVER_TLS_KEY_PATH", config.ServerTLSKeyPath).
@@ -86,7 +86,7 @@ func logStart(log *zerolog.Logger, config *config.Config) {
 		Msg("App started")
 }
 
-func logStop(log *zerolog.Logger, config *config.Config) {
+func logStop(log zerolog.Logger, config *config.Config) {
 	log.Info().
 		Str("SERVER_ADDRESS", config.ServerAddr).
 		Str("SERVER_TLS_KEY_PATH", config.ServerTLSKeyPath).

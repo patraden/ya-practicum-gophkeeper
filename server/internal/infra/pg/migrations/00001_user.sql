@@ -22,7 +22,7 @@ CREATE TABLE user_crypto_keys (
 );
 
 CREATE TABLE user_identity_tokens (
-    user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    user_id UUID PRIMARY KEY,
     access_token TEXT NOT NULL,
     refresh_token TEXT NOT NULL,
     expires_at TIMESTAMP NOT NULL,

@@ -1,6 +1,7 @@
 package keystore
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/awnumar/memguard"
@@ -37,7 +38,7 @@ func (ks *InMemoryKeystore) Load(secret []byte) error {
 	defer ks.mu.Unlock()
 
 	if ks.loaded && ks.rek != nil {
-		return e.ErrConflict
+		return fmt.Errorf("[%w] key store", e.ErrConflict)
 	}
 
 	buf := memguard.NewBufferFromBytes(secret)
@@ -53,7 +54,7 @@ func (ks *InMemoryKeystore) Get() ([]byte, error) {
 	defer ks.mu.RUnlock()
 
 	if !ks.loaded || ks.rek == nil {
-		return nil, e.ErrNotReady
+		return nil, fmt.Errorf("[%w] key store", e.ErrNotReady)
 	}
 
 	buf := ks.rek.Bytes()
@@ -67,7 +68,7 @@ func (ks *InMemoryKeystore) Get() ([]byte, error) {
 // IsLoaded returns true if a REK is loaded.
 // KeyStore usage should guarantee that loaded key is valid.
 // For example, during unsealing process prior to storing the key
-// it will be validate against expected key hash in pg.
+// it will be validated against expected key hash in pg.
 //
 // Method should be simple and performant as it will be heavily used
 // by gRPC interceptor on every request to the server.

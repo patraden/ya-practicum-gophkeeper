@@ -3,6 +3,7 @@ package repository_test
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"testing"
 	"time"
 
@@ -290,7 +291,12 @@ func TestSecretRepoCreateSecretInitRequest(t *testing.T) {
 			result, err := repo.CreateSecretInitRequest(context.Background(), req)
 			if tt.expectErr != nil {
 				require.ErrorIs(t, err, tt.expectErr)
-				require.Nil(t, result)
+
+				if errors.Is(err, e.ErrExists) {
+					require.NotNil(t, result)
+				} else {
+					require.Nil(t, result)
+				}
 			} else {
 				require.NoError(t, err)
 				require.NotNil(t, result)

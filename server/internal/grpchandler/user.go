@@ -123,11 +123,12 @@ func (s *UserServer) Register(ctx context.Context, req *pb.RegisterRequest) (*pb
 	}
 
 	return &pb.RegisterResponse{
-		UserId:     usr.ID.String(),
-		Token:      token,
-		Role:       usr.Role,
-		Verifier:   usr.Verifier,
-		Salt:       usr.Salt,
-		BucketName: usr.BucketName,
+		UserId:          usr.ID.String(),
+		Token:           token,
+		Role:            usr.Role,
+		Verifier:        usr.Verifier,
+		Salt:            usr.Salt,
+		BucketName:      usr.BucketName,
+		TokenTtlSeconds: uint32(auth.MaxTokenDuration.Seconds()), // this is just for simplicity
 	}, nil
 }

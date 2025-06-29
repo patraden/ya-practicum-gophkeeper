@@ -11,11 +11,18 @@ import (
 )
 
 type User struct {
-	ID        string
-	Username  string
-	Verifier  string
-	Role      user.Role
-	Salt      string
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID         string
+	Username   string
+	Verifier   []byte
+	Role       user.Role
+	Salt       []byte
+	Bucketname string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+}
+
+type UsersServerToken struct {
+	UserID string
+	Token  string
+	Ttl    int64
 }

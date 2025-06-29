@@ -24,9 +24,10 @@ message LoginRequest {
 }
 
 message LoginResponse {
-  string token = 1;
-  string user_id = 2;
-  UserRole role = 3;
+  string user_id = 1;
+  UserRole role = 2;
+  string token = 3;
+  uint32 token_ttl_seconds = 4 [(buf.validate.field).uint32.gt = 0];
 }
 
 message RegisterRequest {
@@ -39,7 +40,8 @@ message RegisterResponse {
   string token = 1;
   string user_id = 2;
   UserRole role = 3;
-  bytes salt = 4 [(buf.validate.field).bytes.min_len = 1];         // Required: random salt used for verifier generation
-  bytes verifier = 5 [(buf.validate.field).bytes.min_len = 1];     // Required: verifier derived from password and salt
-  string bucket_name = 6 [(buf.validate.field).string.min_len = 1]; // Required: S3 bucket name for the user
+  bytes salt = 4 [(buf.validate.field).bytes.min_len = 1];
+  bytes verifier = 5 [(buf.validate.field).bytes.min_len = 1];
+  string bucket_name = 6 [(buf.validate.field).string.min_len = 1];
+  uint32 token_ttl_seconds = 7 [(buf.validate.field).uint32.gt = 0]; // e.g., 3600 for 1 hour
 }

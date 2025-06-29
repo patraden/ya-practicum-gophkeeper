@@ -1,39 +1,53 @@
 package config
 
 import (
-	"flag"
-	"fmt"
-	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/caarlos0/env/v6"
-	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
+	easyjson "github.com/mailru/easyjson"
+	"github.com/patraden/ya-practicum-gophkeeper/pkg/logger"
+	"github.com/rs/zerolog"
 )
 
 type builder struct {
 	cfg *Config
+	log zerolog.Logger
 }
 
-func newBuilder() *builder {
+func newBuilder(dcfg *Config) *builder {
 	return &builder{
-		cfg: DefaultConfig(),
+		cfg: dcfg,
+		log: logger.StdoutConsole(zerolog.InfoLevel).GetZeroLog(),
 	}
 }
 
 func (b *builder) loadEnv() {
 	if err := env.Parse(b.cfg); err != nil {
-		log.Fatal(fmt.Errorf("failed to parse env: %w", e.ErrInvalidInput))
+		b.log.Fatal().Err(err).
+			Msg("Failed to parse config env")
 	}
 }
 
-func (b *builder) loadFlags() {
-	flag.StringVar(&b.cfg.DatabaseDSN, "dsn", b.cfg.DatabaseDSN, "databse dsn")
-	flag.BoolVar(&b.cfg.InstallMode, "install", b.cfg.InstallMode, "install server application")
-	flag.BoolVar(&b.cfg.DebugMode, "d", b.cfg.DebugMode, "debug")
-	flag.Parse()
+func (b *builder) loadFromFile() {
+	path := filepath.Join(b.cfg.InstallDir, ConfigFileName)
+
+	file, err := os.ReadFile(path)
+	if err != nil {
+		b.log.Fatal().Err(err).
+			Str("file_path", path).
+			Msg("Failed to open config file (run `gkcli install`?)")
+	}
+
+	if err := easyjson.Unmarshal(file, b.cfg); err != nil {
+		b.log.Fatal().Err(err).
+			Str("file_path", path).
+			Msg("Failed to parse config file")
+	}
 }
 
 func (b *builder) getConfig() *Config {
-	b.loadFlags()
+	b.loadFromFile()
 	b.loadEnv()
 
 	return b.cfg

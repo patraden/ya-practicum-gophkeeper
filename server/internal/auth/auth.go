@@ -27,7 +27,7 @@ type (
 const (
 	TokenCtxKey      = contextKey("Token")
 	ErrorCtxKey      = contextKey("TokenErr")
-	maxTokenDuration = 365 * 24 * time.Hour
+	MaxTokenDuration = 365 * 24 * time.Hour
 )
 
 // FromContext gets token and claims from context added by GRPCServerVerifier interceptor.
@@ -97,7 +97,7 @@ func (auth *Auth) Encoder() TokenEncoder {
 			Role:     user.Role.String(),
 			RegisteredClaims: jwt.RegisteredClaims{
 				IssuedAt:  jwt.NewNumericDate(now),
-				ExpiresAt: jwt.NewNumericDate(now.Add(maxTokenDuration)),
+				ExpiresAt: jwt.NewNumericDate(now.Add(MaxTokenDuration)),
 			},
 		}
 

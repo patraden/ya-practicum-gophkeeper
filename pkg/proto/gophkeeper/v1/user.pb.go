@@ -76,12 +76,13 @@ func (x *LoginRequest) GetPassword() string {
 }
 
 type LoginResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
-	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Role          UserRole               `protobuf:"varint,3,opt,name=role,proto3,enum=gophkeeper.v1.UserRole" json:"role,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	UserId          string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Role            UserRole               `protobuf:"varint,2,opt,name=role,proto3,enum=gophkeeper.v1.UserRole" json:"role,omitempty"`
+	Token           string                 `protobuf:"bytes,3,opt,name=token,proto3" json:"token,omitempty"`
+	TokenTtlSeconds uint32                 `protobuf:"varint,4,opt,name=token_ttl_seconds,json=tokenTtlSeconds,proto3" json:"token_ttl_seconds,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *LoginResponse) Reset() {
@@ -114,13 +115,6 @@ func (*LoginResponse) Descriptor() ([]byte, []int) {
 	return file_gophkeeper_v1_user_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *LoginResponse) GetToken() string {
-	if x != nil {
-		return x.Token
-	}
-	return ""
-}
-
 func (x *LoginResponse) GetUserId() string {
 	if x != nil {
 		return x.UserId
@@ -133,6 +127,20 @@ func (x *LoginResponse) GetRole() UserRole {
 		return x.Role
 	}
 	return UserRole_USER_ROLE_UNSPECIFIED
+}
+
+func (x *LoginResponse) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
+func (x *LoginResponse) GetTokenTtlSeconds() uint32 {
+	if x != nil {
+		return x.TokenTtlSeconds
+	}
+	return 0
 }
 
 type RegisterRequest struct {
@@ -196,15 +204,16 @@ func (x *RegisterRequest) GetRole() UserRole {
 }
 
 type RegisterResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
-	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Role          UserRole               `protobuf:"varint,3,opt,name=role,proto3,enum=gophkeeper.v1.UserRole" json:"role,omitempty"`
-	Salt          []byte                 `protobuf:"bytes,4,opt,name=salt,proto3" json:"salt,omitempty"`                               // Required: random salt used for verifier generation
-	Verifier      []byte                 `protobuf:"bytes,5,opt,name=verifier,proto3" json:"verifier,omitempty"`                       // Required: verifier derived from password and salt
-	BucketName    string                 `protobuf:"bytes,6,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"` // Required: S3 bucket name for the user
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Token           string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	UserId          string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Role            UserRole               `protobuf:"varint,3,opt,name=role,proto3,enum=gophkeeper.v1.UserRole" json:"role,omitempty"`
+	Salt            []byte                 `protobuf:"bytes,4,opt,name=salt,proto3" json:"salt,omitempty"`
+	Verifier        []byte                 `protobuf:"bytes,5,opt,name=verifier,proto3" json:"verifier,omitempty"`
+	BucketName      string                 `protobuf:"bytes,6,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
+	TokenTtlSeconds uint32                 `protobuf:"varint,7,opt,name=token_ttl_seconds,json=tokenTtlSeconds,proto3" json:"token_ttl_seconds,omitempty"` // e.g., 3600 for 1 hour
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *RegisterResponse) Reset() {
@@ -279,6 +288,13 @@ func (x *RegisterResponse) GetBucketName() string {
 	return ""
 }
 
+func (x *RegisterResponse) GetTokenTtlSeconds() uint32 {
+	if x != nil {
+		return x.TokenTtlSeconds
+	}
+	return 0
+}
+
 var File_gophkeeper_v1_user_proto protoreflect.FileDescriptor
 
 const file_gophkeeper_v1_user_proto_rawDesc = "" +
@@ -287,15 +303,16 @@ const file_gophkeeper_v1_user_proto_rawDesc = "" +
 	"\fLoginRequest\x12%\n" +
 	"\busername\x18\x01 \x01(\tB\t\xbaH\x06r\x04\x10\x03\x18@R\busername\x12&\n" +
 	"\bpassword\x18\x02 \x01(\tB\n" +
-	"\xbaH\ar\x05\x10\b\x18\x80\x01R\bpassword\"k\n" +
-	"\rLoginResponse\x12\x14\n" +
-	"\x05token\x18\x01 \x01(\tR\x05token\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\x12+\n" +
-	"\x04role\x18\x03 \x01(\x0e2\x17.gophkeeper.v1.UserRoleR\x04role\"\x92\x01\n" +
+	"\xbaH\ar\x05\x10\b\x18\x80\x01R\bpassword\"\xa0\x01\n" +
+	"\rLoginResponse\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12+\n" +
+	"\x04role\x18\x02 \x01(\x0e2\x17.gophkeeper.v1.UserRoleR\x04role\x12\x14\n" +
+	"\x05token\x18\x03 \x01(\tR\x05token\x123\n" +
+	"\x11token_ttl_seconds\x18\x04 \x01(\rB\a\xbaH\x04*\x02 \x00R\x0ftokenTtlSeconds\"\x92\x01\n" +
 	"\x0fRegisterRequest\x12#\n" +
 	"\busername\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x03R\busername\x12#\n" +
 	"\bpassword\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\bR\bpassword\x125\n" +
-	"\x04role\x18\x03 \x01(\x0e2\x17.gophkeeper.v1.UserRoleB\b\xbaH\x05\x82\x01\x02\x10\x01R\x04role\"\xda\x01\n" +
+	"\x04role\x18\x03 \x01(\x0e2\x17.gophkeeper.v1.UserRoleB\b\xbaH\x05\x82\x01\x02\x10\x01R\x04role\"\x8f\x02\n" +
 	"\x10RegisterResponse\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12+\n" +
@@ -303,7 +320,8 @@ const file_gophkeeper_v1_user_proto_rawDesc = "" +
 	"\x04salt\x18\x04 \x01(\fB\a\xbaH\x04z\x02\x10\x01R\x04salt\x12#\n" +
 	"\bverifier\x18\x05 \x01(\fB\a\xbaH\x04z\x02\x10\x01R\bverifier\x12(\n" +
 	"\vbucket_name\x18\x06 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\n" +
-	"bucketName2\x9e\x01\n" +
+	"bucketName\x123\n" +
+	"\x11token_ttl_seconds\x18\a \x01(\rB\a\xbaH\x04*\x02 \x00R\x0ftokenTtlSeconds2\x9e\x01\n" +
 	"\vUserService\x12B\n" +
 	"\x05Login\x12\x1b.gophkeeper.v1.LoginRequest\x1a\x1c.gophkeeper.v1.LoginResponse\x12K\n" +
 	"\bRegister\x12\x1e.gophkeeper.v1.RegisterRequest\x1a\x1f.gophkeeper.v1.RegisterResponseB\xb8\x01\n" +

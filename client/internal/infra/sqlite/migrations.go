@@ -2,6 +2,7 @@ package sqlite
 
 import (
 	"embed"
+	"path"
 
 	"github.com/patraden/ya-practicum-gophkeeper/client/internal/config"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/logger"
@@ -15,5 +16,6 @@ var embedMigrations embed.FS
 
 // RunClientMigrations applies all SQLite migrations embedded in the binary.
 func RunClientMigrations(config *config.Config, logger logger.Logger) error {
-	return migrations.RunSQLite(config.DatabaseDSN, embedMigrations, migrationsDir, logger)
+	dsn := path.Join(config.InstallDir, config.DatabaseFileName)
+	return migrations.RunSQLite(dsn, embedMigrations, migrationsDir, logger)
 }

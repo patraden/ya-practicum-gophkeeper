@@ -12,58 +12,48 @@ import (
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/domain/user"
 )
 
-const countUser = `-- name: CountUser :one
-SELECT count(*) FROM users
-`
-
-func (q *Queries) CountUser(ctx context.Context) (int64, error) {
-	row := q.db.QueryRowContext(ctx, countUser)
-	var count int64
-	err := row.Scan(&count)
-	return count, err
-}
-
-const createUser = `-- name: CreateUser :one
-INSERT INTO users (id, username, verifier, role, created_at, updated_at)
-VALUES (?, ?, ?, ?, ?, ?)
-RETURNING id, username, verifier, role, created_at, updated_at
+const createUser = `-- name: CreateUser :exec
+INSERT INTO users (id, username, verifier, role, salt, bucketname, created_at, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateUserParams struct {
-	ID        string
-	Username  string
-	Verifier  string
-	Role      user.Role
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID         string
+	Username   string
+	Verifier   []byte
+	Role       user.Role
+	Salt       []byte
+	Bucketname string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }
 
-type CreateUserRow struct {
-	ID        string
-	Username  string
-	Verifier  string
-	Role      user.Role
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
-
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
-	row := q.db.QueryRowContext(ctx, createUser,
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) error {
+	_, err := q.db.ExecContext(ctx, createUser,
 		arg.ID,
 		arg.Username,
 		arg.Verifier,
 		arg.Role,
+		arg.Salt,
+		arg.Bucketname,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 	)
-	var i CreateUserRow
-	err := row.Scan(
-		&i.ID,
-		&i.Username,
-		&i.Verifier,
-		&i.Role,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
+	return err
+}
+
+const createUserToken = `-- name: CreateUserToken :exec
+INSERT INTO users_server_tokens (user_id, token, ttl)
+VALUES (?, ?, ?)
+`
+
+type CreateUserTokenParams struct {
+	UserID string
+	Token  string
+	Ttl    int64
+}
+
+func (q *Queries) CreateUserToken(ctx context.Context, arg CreateUserTokenParams) error {
+	_, err := q.db.ExecContext(ctx, createUserToken, arg.UserID, arg.Token, arg.Ttl)
+	return err
 }

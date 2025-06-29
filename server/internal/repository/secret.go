@@ -30,6 +30,7 @@ type SecretRepository interface {
 
 // SecretRepo implements SecretRepository using PostgreSQL and S3.
 type SecretRepo struct {
+	SecretRepository
 	s3client s3.ServerOperator
 	idClient identity.Manager
 	connPool pg.ConnectionPool
@@ -97,6 +98,10 @@ func (repo *SecretRepo) CreateSecretInitRequest(
 	}
 
 	dbErr := repo.withDBRetry(ctx, func() error { return queryFn(repo.queries) })
+	if errors.Is(dbErr, e.ErrExists) {
+		return dbReq, dbErr
+	}
+
 	if errors.Is(dbErr, e.ErrInvalidInput) || errors.Is(dbErr, e.ErrExists) {
 		return nil, dbErr
 	}
@@ -133,4 +138,13 @@ func (repo *SecretRepo) getS3Credentials(
 	}
 
 	return creds, nil
+}
+
+func (repo *SecretRepo) CreateSecretCommitRequest(
+	_ context.Context,
+	_ *secret.CommitRequest,
+) (*secret.CommitRequest, error) {
+	var dbReq *secret.CommitRequest
+
+	return dbReq, nil
 }

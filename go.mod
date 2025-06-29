@@ -6,6 +6,7 @@ toolchain go1.24.4
 
 require (
 	buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go v1.36.6-20250613105001-9f2d3c737feb.1
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/Nerzal/gocloak/v13 v13.9.0
 	github.com/awnumar/memguard v0.22.5
 	github.com/caarlos0/env/v6 v6.10.1
@@ -25,6 +26,7 @@ require (
 	github.com/pashagolub/pgxmock/v4 v4.7.0
 	github.com/pressly/goose/v3 v3.24.3
 	github.com/rs/zerolog v1.34.0
+	github.com/spf13/cobra v1.9.1
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/fx v1.24.0
 	go.uber.org/mock v0.5.2
@@ -40,6 +42,7 @@ require (
 	github.com/go-ini/ini v1.67.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.2 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
@@ -61,6 +64,7 @@ require (
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/segmentio/ksuid v1.0.4 // indirect
 	github.com/sethvargo/go-retry v0.3.0 // indirect
+	github.com/spf13/pflag v1.0.6 // indirect
 	go.opentelemetry.io/otel/sdk v1.35.0 // indirect
 	go.uber.org/dig v1.19.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect

@@ -160,11 +160,13 @@ func (m *LoginResponse) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Token
-
 	// no validation rules for UserId
 
 	// no validation rules for Role
+
+	// no validation rules for Token
+
+	// no validation rules for TokenTtlSeconds
 
 	if len(errors) > 0 {
 		return LoginResponseMultiError(errors)
@@ -383,6 +385,8 @@ func (m *RegisterResponse) validate(all bool) error {
 	// no validation rules for Verifier
 
 	// no validation rules for BucketName
+
+	// no validation rules for TokenTtlSeconds
 
 	if len(errors) > 0 {
 		return RegisterResponseMultiError(errors)

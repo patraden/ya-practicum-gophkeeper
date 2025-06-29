@@ -25,6 +25,8 @@ import (
 )
 
 // Server returns server appl function as fx.App.
+//
+//nolint:funlen //reason: ignoring length error.
 func Server(cfg *config.Config) *fx.App {
 	logLevel := zerolog.ErrorLevel
 	if cfg.DebugMode {
@@ -77,10 +79,13 @@ func Server(cfg *config.Config) *fx.App {
 		fx.Provide(fx.Annotate(keystore.NewInMemoryKeystore, fx.As(new(keystore.Keystore)))),
 		fx.Provide(fx.Annotate(repository.NewREKRepo, fx.As(new(repository.REKRepository)))),
 		fx.Provide(fx.Annotate(repository.NewUserRepo, fx.As(new(repository.UserRepository)))),
+		fx.Provide(fx.Annotate(repository.NewSecretRepo, fx.As(new(repository.SecretRepository)))),
 		fx.Provide(fx.Annotate(app.NewAdminUC, fx.As(new(app.AdminUseCase)))),
 		fx.Provide(fx.Annotate(app.NewUserUC, fx.As(new(app.UserUseCase)))),
+		fx.Provide(fx.Annotate(app.NewSecretUC, fx.As(new(app.SecretUseCase)))),
 		fx.Provide(fx.Annotate(grpchandler.NewAdminServer, fx.As(new(grpchandler.AdminServiceServer)))),
 		fx.Provide(fx.Annotate(grpchandler.NewUserServer, fx.As(new(grpchandler.UserServiceServer)))),
+		fx.Provide(fx.Annotate(grpchandler.NewSecretServer, fx.As(new(grpchandler.SecretServiceServer)))),
 		fx.Provide(server.New),
 		fx.WithLogger(fxevent.NopLogger),
 		// fx.WithLogger(func() fxevent.Logger { return fxevent.NopLogger }),

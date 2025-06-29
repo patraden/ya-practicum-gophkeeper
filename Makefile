@@ -111,6 +111,7 @@ json:
 	@$(EASYJSON) -all pkg/dto/shares.go
 	@$(EASYJSON) -all pkg/dto/credentials.go
 	@$(EASYJSON) -all pkg/domain/secret/meta.go
+	@$(EASYJSON) -all client/internal/config/config.go
 
 .PHONY: run-server-local
 run-server-local:

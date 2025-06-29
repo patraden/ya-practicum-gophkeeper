@@ -378,6 +378,12 @@ func (m *RegisterResponse) validate(all bool) error {
 
 	// no validation rules for Role
 
+	// no validation rules for Salt
+
+	// no validation rules for Verifier
+
+	// no validation rules for BucketName
+
 	if len(errors) > 0 {
 		return RegisterResponseMultiError(errors)
 	}

@@ -101,6 +101,8 @@ proto:
 mocks:
 	@mockgen -source=server/internal/grpchandler/adapters.go -destination=server/internal/mock/grpc.go -package=mock UserServiceServer
 	@mockgen -source=server/internal/grpchandler/adapters.go -destination=server/internal/mock/grpc.go -package=mock AdminServiceServer
+	@mockgen -source=server/internal/grpchandler/adapters.go -destination=server/internal/mock/grpc.go -package=mock SecretServiceServer
+	@mockgen -source=server/internal/crypto/keystore/keystore.go -destination=server/internal/mock/keystore.go -package=mock Keystore
 	@mockgen -source=server/internal/identity/identity.go -destination=server/internal/mock/identity.go -package=mock -mock_names "Manager=MockIdentityManager" Manager
 	@mockgen -source=pkg/s3/operations.go -destination=server/internal/mock/s3.go -package=mock ServerOperator
 

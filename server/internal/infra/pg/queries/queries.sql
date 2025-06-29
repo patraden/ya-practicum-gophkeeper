@@ -67,24 +67,24 @@ FROM rek
 LIMIT 1;
 
 -- name: CreateSecret :exec
-INSERT INTO secrets (user_id, secret_id, secret_name, current_version, created_at, updated_at)
+INSERT INTO secrets (user_id, secret_id, secret_name, current_version_id, created_at, updated_at)
 VALUES ($1, $2, $3, $4, $5, $6);
 
 -- name: UpdateSecret :exec
 UPDATE secrets
-SET current_version = $3,
+SET current_version_id = $3,
     updated_at = NOW()
 WHERE user_id = $1 AND secret_id = $2;
 
 -- name: CreateSecretInitRequest :one
-WITH candidate(parent_version) AS (
+WITH candidate(parent_version_id) AS (
   -- Case: existing secret with matching parent
-  SELECT current_version AS parent_version
+  SELECT current_version_id AS parent_version_id
   FROM secrets
-  WHERE user_id = $1 AND secret_id = $2 AND COALESCE(secrets.current_version, $6) = $6
+  WHERE user_id = $1 AND secret_id = $2 AND COALESCE(secrets.current_version_id, $6) = $6
   UNION ALL
   -- Case: new secret
-  SELECT NULL::UUID AS parent_version
+  SELECT NULL::UUID AS parent_version_id
   WHERE NOT EXISTS (
     SELECT 1 FROM secrets WHERE user_id = $1 AND secret_id = $2
   )
@@ -94,8 +94,8 @@ INSERT INTO secret_requests_in_progress (
   secret_id,
   secret_name,
   s3_url,
-  version,
-  parent_version,
+  version_id,
+  parent_version_id,
   request_type,
   token,
   client_info,
@@ -107,7 +107,7 @@ INSERT INTO secret_requests_in_progress (
   expires_at
 )
 SELECT
-  $1, $2, $3, $4, $5, candidate.parent_version, $7, $8,
+  $1, $2, $3, $4, $5, candidate.parent_version_id, $7, $8,
   $9, $10, $11, $12, $13, $14, $15
 FROM candidate
 ON CONFLICT (user_id, secret_id) DO UPDATE
@@ -117,8 +117,8 @@ RETURNING
   secret_id,
   secret_name,
   s3_url,
-  version,
-  parent_version,
+  version_id,
+  parent_version_id,
   request_type,
   token,
   client_info,
@@ -138,8 +138,8 @@ INSERT INTO secret_requests_completed (
     user_id,
     secret_id,
     s3_url,
-    version,
-    parent_version,
+    version_id,
+    parent_version_id,
     request_type,
     token,
     client_info,

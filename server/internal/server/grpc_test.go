@@ -14,6 +14,7 @@ import (
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/testutil/certtest"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/auth"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/config"
+	"github.com/patraden/ya-practicum-gophkeeper/server/internal/crypto/keystore"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/mock"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/server"
 	"github.com/rs/zerolog"
@@ -45,6 +46,8 @@ func TestGRPCServerWithTLS(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	adminSrv := mock.NewMockAdminServiceServer(ctrl)
 	userSrv := mock.NewMockUserServiceServer(ctrl)
+	secretSrv := mock.NewMockSecretServiceServer(ctrl)
+	kstore := keystore.NewInMemoryKeystore()
 
 	adminSrv.EXPECT().
 		Unseal(gomock.Any(), gomock.Any()).
@@ -53,7 +56,7 @@ func TestGRPCServerWithTLS(t *testing.T) {
 			Status:  pb.SealStatus_SEAL_STATUS_UNSEALED,
 		}, nil)
 
-	server, err := server.New(cfg, adminSrv, userSrv, authenticator, isPublicMethod, log)
+	server, err := server.New(cfg, adminSrv, userSrv, secretSrv, authenticator, kstore, isPublicMethod, log)
 	require.NoError(t, err)
 
 	runErrCh := make(chan error, 1)

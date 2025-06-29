@@ -39,4 +39,7 @@ message RegisterResponse {
   string token = 1;
   string user_id = 2;
   UserRole role = 3;
+  bytes salt = 4 [(buf.validate.field).bytes.min_len = 1];         // Required: random salt used for verifier generation
+  bytes verifier = 5 [(buf.validate.field).bytes.min_len = 1];     // Required: verifier derived from password and salt
+  string bucket_name = 6 [(buf.validate.field).string.min_len = 1]; // Required: S3 bucket name for the user
 }

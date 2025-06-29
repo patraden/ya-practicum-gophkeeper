@@ -200,6 +200,9 @@ type RegisterResponse struct {
 	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
 	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	Role          UserRole               `protobuf:"varint,3,opt,name=role,proto3,enum=gophkeeper.v1.UserRole" json:"role,omitempty"`
+	Salt          []byte                 `protobuf:"bytes,4,opt,name=salt,proto3" json:"salt,omitempty"`                               // Required: random salt used for verifier generation
+	Verifier      []byte                 `protobuf:"bytes,5,opt,name=verifier,proto3" json:"verifier,omitempty"`                       // Required: verifier derived from password and salt
+	BucketName    string                 `protobuf:"bytes,6,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"` // Required: S3 bucket name for the user
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -255,6 +258,27 @@ func (x *RegisterResponse) GetRole() UserRole {
 	return UserRole_USER_ROLE_UNSPECIFIED
 }
 
+func (x *RegisterResponse) GetSalt() []byte {
+	if x != nil {
+		return x.Salt
+	}
+	return nil
+}
+
+func (x *RegisterResponse) GetVerifier() []byte {
+	if x != nil {
+		return x.Verifier
+	}
+	return nil
+}
+
+func (x *RegisterResponse) GetBucketName() string {
+	if x != nil {
+		return x.BucketName
+	}
+	return ""
+}
+
 var File_gophkeeper_v1_user_proto protoreflect.FileDescriptor
 
 const file_gophkeeper_v1_user_proto_rawDesc = "" +
@@ -271,11 +295,15 @@ const file_gophkeeper_v1_user_proto_rawDesc = "" +
 	"\x0fRegisterRequest\x12#\n" +
 	"\busername\x18\x01 \x01(\tB\a\xbaH\x04r\x02\x10\x03R\busername\x12#\n" +
 	"\bpassword\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\bR\bpassword\x125\n" +
-	"\x04role\x18\x03 \x01(\x0e2\x17.gophkeeper.v1.UserRoleB\b\xbaH\x05\x82\x01\x02\x10\x01R\x04role\"n\n" +
+	"\x04role\x18\x03 \x01(\x0e2\x17.gophkeeper.v1.UserRoleB\b\xbaH\x05\x82\x01\x02\x10\x01R\x04role\"\xda\x01\n" +
 	"\x10RegisterResponse\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12+\n" +
-	"\x04role\x18\x03 \x01(\x0e2\x17.gophkeeper.v1.UserRoleR\x04role2\x9e\x01\n" +
+	"\x04role\x18\x03 \x01(\x0e2\x17.gophkeeper.v1.UserRoleR\x04role\x12\x1b\n" +
+	"\x04salt\x18\x04 \x01(\fB\a\xbaH\x04z\x02\x10\x01R\x04salt\x12#\n" +
+	"\bverifier\x18\x05 \x01(\fB\a\xbaH\x04z\x02\x10\x01R\bverifier\x12(\n" +
+	"\vbucket_name\x18\x06 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\n" +
+	"bucketName2\x9e\x01\n" +
 	"\vUserService\x12B\n" +
 	"\x05Login\x12\x1b.gophkeeper.v1.LoginRequest\x1a\x1c.gophkeeper.v1.LoginResponse\x12K\n" +
 	"\bRegister\x12\x1e.gophkeeper.v1.RegisterRequest\x1a\x1f.gophkeeper.v1.RegisterResponseB\xb8\x01\n" +

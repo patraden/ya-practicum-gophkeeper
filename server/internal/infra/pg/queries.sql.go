@@ -67,17 +67,17 @@ func (q *Queries) CreateREKHash(ctx context.Context, rekHash []byte) error {
 }
 
 const CreateSecret = `-- name: CreateSecret :exec
-INSERT INTO secrets (user_id, secret_id, secret_name, current_version, created_at, updated_at)
+INSERT INTO secrets (user_id, secret_id, secret_name, current_version_id, created_at, updated_at)
 VALUES ($1, $2, $3, $4, $5, $6)
 `
 
 type CreateSecretParams struct {
-	UserID         uuid.UUID `db:"user_id"`
-	SecretID       uuid.UUID `db:"secret_id"`
-	SecretName     string    `db:"secret_name"`
-	CurrentVersion uuid.UUID `db:"current_version"`
-	CreatedAt      time.Time `db:"created_at"`
-	UpdatedAt      time.Time `db:"updated_at"`
+	UserID           uuid.UUID `db:"user_id"`
+	SecretID         uuid.UUID `db:"secret_id"`
+	SecretName       string    `db:"secret_name"`
+	CurrentVersionID uuid.UUID `db:"current_version_id"`
+	CreatedAt        time.Time `db:"created_at"`
+	UpdatedAt        time.Time `db:"updated_at"`
 }
 
 func (q *Queries) CreateSecret(ctx context.Context, arg CreateSecretParams) error {
@@ -85,7 +85,7 @@ func (q *Queries) CreateSecret(ctx context.Context, arg CreateSecretParams) erro
 		arg.UserID,
 		arg.SecretID,
 		arg.SecretName,
-		arg.CurrentVersion,
+		arg.CurrentVersionID,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 	)
@@ -97,8 +97,8 @@ INSERT INTO secret_requests_completed (
     user_id,
     secret_id,
     s3_url,
-    version,
-    parent_version,
+    version_id,
+    parent_version_id,
     request_type,
     token,
     client_info,
@@ -117,22 +117,22 @@ INSERT INTO secret_requests_completed (
 `
 
 type CreateSecretCommitRequestParams struct {
-	UserID        uuid.UUID       `db:"user_id"`
-	SecretID      uuid.UUID       `db:"secret_id"`
-	S3Url         string          `db:"s3_url"`
-	Version       uuid.UUID       `db:"version"`
-	ParentVersion uuid.UUID       `db:"parent_version"`
-	RequestType   RequestType     `db:"request_type"`
-	Token         int64           `db:"token"`
-	ClientInfo    string          `db:"client_info"`
-	SecretSize    int64           `db:"secret_size"`
-	SecretHash    []byte          `db:"secret_hash"`
-	SecretDek     []byte          `db:"secret_dek"`
-	CreatedAt     time.Time       `db:"created_at"`
-	ExpiresAt     time.Time       `db:"expires_at"`
-	FinishedAt    time.Time       `db:"finished_at"`
-	Status        RequestStatus   `db:"status"`
-	CommitedBy    RequestCommiter `db:"commited_by"`
+	UserID          uuid.UUID       `db:"user_id"`
+	SecretID        uuid.UUID       `db:"secret_id"`
+	S3Url           string          `db:"s3_url"`
+	VersionID       uuid.UUID       `db:"version_id"`
+	ParentVersionID uuid.UUID       `db:"parent_version_id"`
+	RequestType     RequestType     `db:"request_type"`
+	Token           int64           `db:"token"`
+	ClientInfo      string          `db:"client_info"`
+	SecretSize      int64           `db:"secret_size"`
+	SecretHash      []byte          `db:"secret_hash"`
+	SecretDek       []byte          `db:"secret_dek"`
+	CreatedAt       time.Time       `db:"created_at"`
+	ExpiresAt       time.Time       `db:"expires_at"`
+	FinishedAt      time.Time       `db:"finished_at"`
+	Status          RequestStatus   `db:"status"`
+	CommitedBy      RequestCommiter `db:"commited_by"`
 }
 
 func (q *Queries) CreateSecretCommitRequest(ctx context.Context, arg CreateSecretCommitRequestParams) error {
@@ -140,8 +140,8 @@ func (q *Queries) CreateSecretCommitRequest(ctx context.Context, arg CreateSecre
 		arg.UserID,
 		arg.SecretID,
 		arg.S3Url,
-		arg.Version,
-		arg.ParentVersion,
+		arg.VersionID,
+		arg.ParentVersionID,
 		arg.RequestType,
 		arg.Token,
 		arg.ClientInfo,
@@ -158,14 +158,14 @@ func (q *Queries) CreateSecretCommitRequest(ctx context.Context, arg CreateSecre
 }
 
 const CreateSecretInitRequest = `-- name: CreateSecretInitRequest :one
-WITH candidate(parent_version) AS (
+WITH candidate(parent_version_id) AS (
   -- Case: existing secret with matching parent
-  SELECT current_version AS parent_version
+  SELECT current_version_id AS parent_version_id
   FROM secrets
-  WHERE user_id = $1 AND secret_id = $2 AND COALESCE(secrets.current_version, $6) = $6
+  WHERE user_id = $1 AND secret_id = $2 AND COALESCE(secrets.current_version_id, $6) = $6
   UNION ALL
   -- Case: new secret
-  SELECT NULL::UUID AS parent_version
+  SELECT NULL::UUID AS parent_version_id
   WHERE NOT EXISTS (
     SELECT 1 FROM secrets WHERE user_id = $1 AND secret_id = $2
   )
@@ -175,8 +175,8 @@ INSERT INTO secret_requests_in_progress (
   secret_id,
   secret_name,
   s3_url,
-  version,
-  parent_version,
+  version_id,
+  parent_version_id,
   request_type,
   token,
   client_info,
@@ -188,7 +188,7 @@ INSERT INTO secret_requests_in_progress (
   expires_at
 )
 SELECT
-  $1, $2, $3, $4, $5, candidate.parent_version, $7, $8,
+  $1, $2, $3, $4, $5, candidate.parent_version_id, $7, $8,
   $9, $10, $11, $12, $13, $14, $15
 FROM candidate
 ON CONFLICT (user_id, secret_id) DO UPDATE
@@ -198,8 +198,8 @@ RETURNING
   secret_id,
   secret_name,
   s3_url,
-  version,
-  parent_version,
+  version_id,
+  parent_version_id,
   request_type,
   token,
   client_info,
@@ -212,39 +212,39 @@ RETURNING
 `
 
 type CreateSecretInitRequestParams struct {
-	UserID         uuid.UUID   `db:"user_id"`
-	SecretID       uuid.UUID   `db:"secret_id"`
-	SecretName     string      `db:"secret_name"`
-	S3Url          string      `db:"s3_url"`
-	Version        uuid.UUID   `db:"version"`
-	CurrentVersion uuid.UUID   `db:"current_version"`
-	RequestType    RequestType `db:"request_type"`
-	Token          int64       `db:"token"`
-	ClientInfo     string      `db:"client_info"`
-	SecretSize     int64       `db:"secret_size"`
-	SecretHash     []byte      `db:"secret_hash"`
-	SecretDek      []byte      `db:"secret_dek"`
-	Meta           []byte      `db:"meta"`
-	CreatedAt      time.Time   `db:"created_at"`
-	ExpiresAt      time.Time   `db:"expires_at"`
+	UserID           uuid.UUID   `db:"user_id"`
+	SecretID         uuid.UUID   `db:"secret_id"`
+	SecretName       string      `db:"secret_name"`
+	S3Url            string      `db:"s3_url"`
+	VersionID        uuid.UUID   `db:"version_id"`
+	CurrentVersionID uuid.UUID   `db:"current_version_id"`
+	RequestType      RequestType `db:"request_type"`
+	Token            int64       `db:"token"`
+	ClientInfo       string      `db:"client_info"`
+	SecretSize       int64       `db:"secret_size"`
+	SecretHash       []byte      `db:"secret_hash"`
+	SecretDek        []byte      `db:"secret_dek"`
+	Meta             []byte      `db:"meta"`
+	CreatedAt        time.Time   `db:"created_at"`
+	ExpiresAt        time.Time   `db:"expires_at"`
 }
 
 type CreateSecretInitRequestRow struct {
-	UserID        uuid.UUID   `db:"user_id"`
-	SecretID      uuid.UUID   `db:"secret_id"`
-	SecretName    string      `db:"secret_name"`
-	S3Url         string      `db:"s3_url"`
-	Version       uuid.UUID   `db:"version"`
-	ParentVersion uuid.UUID   `db:"parent_version"`
-	RequestType   RequestType `db:"request_type"`
-	Token         int64       `db:"token"`
-	ClientInfo    string      `db:"client_info"`
-	SecretSize    int64       `db:"secret_size"`
-	SecretHash    []byte      `db:"secret_hash"`
-	SecretDek     []byte      `db:"secret_dek"`
-	Meta          []byte      `db:"meta"`
-	CreatedAt     time.Time   `db:"created_at"`
-	ExpiresAt     time.Time   `db:"expires_at"`
+	UserID          uuid.UUID   `db:"user_id"`
+	SecretID        uuid.UUID   `db:"secret_id"`
+	SecretName      string      `db:"secret_name"`
+	S3Url           string      `db:"s3_url"`
+	VersionID       uuid.UUID   `db:"version_id"`
+	ParentVersionID uuid.UUID   `db:"parent_version_id"`
+	RequestType     RequestType `db:"request_type"`
+	Token           int64       `db:"token"`
+	ClientInfo      string      `db:"client_info"`
+	SecretSize      int64       `db:"secret_size"`
+	SecretHash      []byte      `db:"secret_hash"`
+	SecretDek       []byte      `db:"secret_dek"`
+	Meta            []byte      `db:"meta"`
+	CreatedAt       time.Time   `db:"created_at"`
+	ExpiresAt       time.Time   `db:"expires_at"`
 }
 
 func (q *Queries) CreateSecretInitRequest(ctx context.Context, arg CreateSecretInitRequestParams) (CreateSecretInitRequestRow, error) {
@@ -253,8 +253,8 @@ func (q *Queries) CreateSecretInitRequest(ctx context.Context, arg CreateSecretI
 		arg.SecretID,
 		arg.SecretName,
 		arg.S3Url,
-		arg.Version,
-		arg.CurrentVersion,
+		arg.VersionID,
+		arg.CurrentVersionID,
 		arg.RequestType,
 		arg.Token,
 		arg.ClientInfo,
@@ -271,8 +271,8 @@ func (q *Queries) CreateSecretInitRequest(ctx context.Context, arg CreateSecretI
 		&i.SecretID,
 		&i.SecretName,
 		&i.S3Url,
-		&i.Version,
-		&i.ParentVersion,
+		&i.VersionID,
+		&i.ParentVersionID,
 		&i.RequestType,
 		&i.Token,
 		&i.ClientInfo,
@@ -484,18 +484,18 @@ func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (User, error) {
 
 const UpdateSecret = `-- name: UpdateSecret :exec
 UPDATE secrets
-SET current_version = $3,
+SET current_version_id = $3,
     updated_at = NOW()
 WHERE user_id = $1 AND secret_id = $2
 `
 
 type UpdateSecretParams struct {
-	UserID         uuid.UUID `db:"user_id"`
-	SecretID       uuid.UUID `db:"secret_id"`
-	CurrentVersion uuid.UUID `db:"current_version"`
+	UserID           uuid.UUID `db:"user_id"`
+	SecretID         uuid.UUID `db:"secret_id"`
+	CurrentVersionID uuid.UUID `db:"current_version_id"`
 }
 
 func (q *Queries) UpdateSecret(ctx context.Context, arg UpdateSecretParams) error {
-	_, err := q.db.Exec(ctx, UpdateSecret, arg.UserID, arg.SecretID, arg.CurrentVersion)
+	_, err := q.db.Exec(ctx, UpdateSecret, arg.UserID, arg.SecretID, arg.CurrentVersionID)
 	return err
 }

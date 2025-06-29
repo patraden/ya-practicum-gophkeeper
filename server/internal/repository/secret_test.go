@@ -29,22 +29,22 @@ func defaultSecretInitRequest(t *testing.T) *secret.InitRequest {
 	usr := user.New("test_user", user.RoleUser)
 
 	return &secret.InitRequest{
-		UserID:        usr.ID,
-		User:          usr,
-		SecretID:      uuid.New(),
-		SecretName:    "test.txt",
-		S3URL:         "some-url",
-		Version:       uuid.New(),
-		ParentVersion: uuid.Nil,
-		RequestType:   secret.RequestTypePut,
-		Token:         123,
-		ClientInfo:    "test-client",
-		SecretSize:    1024,
-		SecretHash:    []byte("hash"),
-		SecretDEK:     []byte("dek"),
-		MetaData:      secret.MetaData{"key": "value"},
-		CreatedAt:     time.Now().UTC(),
-		ExpiresAt:     time.Now().Add(10 * time.Minute),
+		UserID:          usr.ID,
+		User:            usr,
+		SecretID:        uuid.New(),
+		SecretName:      "test.txt",
+		S3URL:           "some-url",
+		VersionID:       uuid.New(),
+		ParentVersionID: uuid.Nil,
+		RequestType:     secret.RequestTypePut,
+		Token:           123,
+		ClientInfo:      "test-client",
+		SecretSize:      1024,
+		SecretHash:      []byte("hash"),
+		SecretDEK:       []byte("dek"),
+		MetaData:        secret.MetaData{"key": "value"},
+		CreatedAt:       time.Now().UTC(),
+		ExpiresAt:       time.Now().Add(10 * time.Minute),
 	}
 }
 
@@ -68,18 +68,18 @@ func mockSuccessCase(
 	meta, err := req.MetaData.MarshalJSON()
 	require.NoError(t, err)
 
-	pool.ExpectQuery(`WITH candidate\(parent_version\)`).
+	pool.ExpectQuery(`WITH candidate\(parent_version_id\)`).
 		WithArgs(
-			req.UserID, req.SecretID, req.SecretName, req.S3URL, req.Version, req.ParentVersion,
+			req.UserID, req.SecretID, req.SecretName, req.S3URL, req.VersionID, req.ParentVersionID,
 			pg.RequestType(req.RequestType), req.Token, req.ClientInfo, req.SecretSize,
 			req.SecretHash, req.SecretDEK, meta, req.CreatedAt, req.ExpiresAt,
 		).
 		WillReturnRows(pgxmock.NewRows([]string{
-			"user_id", "secret_id", "secret_name", "s3_url", "version", "parent_version",
+			"user_id", "secret_id", "secret_name", "s3_url", "version_id", "parent_version_id",
 			"request_type", "token", "client_info", "secret_size", "secret_hash", "secret_dek",
 			"meta", "created_at", "expires_at",
 		}).AddRow(
-			req.UserID, req.SecretID, req.SecretName, req.S3URL, req.Version, req.ParentVersion,
+			req.UserID, req.SecretID, req.SecretName, req.S3URL, req.VersionID, req.ParentVersionID,
 			pg.RequestType(req.RequestType), req.Token, req.ClientInfo, req.SecretSize,
 			req.SecretHash, req.SecretDEK, meta, req.CreatedAt, req.ExpiresAt,
 		))
@@ -105,9 +105,9 @@ func mockInvalidParentVersion(
 	meta, err := req.MetaData.MarshalJSON()
 	require.NoError(t, err)
 
-	pool.ExpectQuery(`WITH candidate\(parent_version\)`).
+	pool.ExpectQuery(`WITH candidate\(parent_version_id\)`).
 		WithArgs(
-			req.UserID, req.SecretID, req.SecretName, req.S3URL, req.Version, req.ParentVersion,
+			req.UserID, req.SecretID, req.SecretName, req.S3URL, req.VersionID, req.ParentVersionID,
 			pg.RequestType(req.RequestType), req.Token, req.ClientInfo, req.SecretSize,
 			req.SecretHash, req.SecretDEK, meta, req.CreatedAt, req.ExpiresAt,
 		).
@@ -126,18 +126,18 @@ func mockConflictVersionOrTime(
 	meta, err := req.MetaData.MarshalJSON()
 	require.NoError(t, err)
 
-	pool.ExpectQuery(`WITH candidate\(parent_version\)`).
+	pool.ExpectQuery(`WITH candidate\(parent_version_id\)`).
 		WithArgs(
-			req.UserID, req.SecretID, req.SecretName, req.S3URL, req.Version, req.ParentVersion,
+			req.UserID, req.SecretID, req.SecretName, req.S3URL, req.VersionID, req.ParentVersionID,
 			pg.RequestType(req.RequestType), req.Token, req.ClientInfo, req.SecretSize,
 			req.SecretHash, req.SecretDEK, meta, req.CreatedAt, req.ExpiresAt,
 		).
 		WillReturnRows(pgxmock.NewRows([]string{
-			"user_id", "secret_id", "secret_name", "s3_url", "version", "parent_version",
+			"user_id", "secret_id", "secret_name", "s3_url", "version_id", "parent_version_id",
 			"request_type", "token", "client_info", "secret_size", "secret_hash", "secret_dek",
 			"meta", "created_at", "expires_at",
 		}).AddRow(
-			req.UserID, req.SecretID, req.SecretName, req.S3URL, uuid.New(), req.ParentVersion,
+			req.UserID, req.SecretID, req.SecretName, req.S3URL, uuid.New(), req.ParentVersionID,
 			pg.RequestType(req.RequestType), req.Token, req.ClientInfo, req.SecretSize,
 			req.SecretHash, req.SecretDEK, meta, req.CreatedAt.Add(-time.Hour), req.ExpiresAt,
 		))
@@ -155,18 +155,18 @@ func mockIdentityTokenError(
 	meta, err := req.MetaData.MarshalJSON()
 	require.NoError(t, err)
 
-	pool.ExpectQuery(`WITH candidate\(parent_version\)`).
+	pool.ExpectQuery(`WITH candidate\(parent_version_id\)`).
 		WithArgs(
-			req.UserID, req.SecretID, req.SecretName, req.S3URL, req.Version, req.ParentVersion,
+			req.UserID, req.SecretID, req.SecretName, req.S3URL, req.VersionID, req.ParentVersionID,
 			pg.RequestType(req.RequestType), req.Token, req.ClientInfo, req.SecretSize,
 			req.SecretHash, req.SecretDEK, meta, req.CreatedAt, req.ExpiresAt,
 		).
 		WillReturnRows(pgxmock.NewRows([]string{
-			"user_id", "secret_id", "secret_name", "s3_url", "version", "parent_version",
+			"user_id", "secret_id", "secret_name", "s3_url", "version_id", "parent_version_id",
 			"request_type", "token", "client_info", "secret_size", "secret_hash", "secret_dek",
 			"meta", "created_at", "expires_at",
 		}).AddRow(
-			req.UserID, req.SecretID, req.SecretName, req.S3URL, req.Version, req.ParentVersion,
+			req.UserID, req.SecretID, req.SecretName, req.S3URL, req.VersionID, req.ParentVersionID,
 			pg.RequestType(req.RequestType), req.Token, req.ClientInfo, req.SecretSize,
 			req.SecretHash, req.SecretDEK, meta, req.CreatedAt, req.ExpiresAt,
 		))
@@ -189,36 +189,36 @@ func mockSuccessAfterRetriesCase(
 	require.NoError(t, err)
 
 	// First retry: ConnectionFailure
-	pool.ExpectQuery(`WITH candidate\(parent_version\)`).
+	pool.ExpectQuery(`WITH candidate\(parent_version_id\)`).
 		WithArgs(
-			req.UserID, req.SecretID, req.SecretName, req.S3URL, req.Version, req.ParentVersion,
+			req.UserID, req.SecretID, req.SecretName, req.S3URL, req.VersionID, req.ParentVersionID,
 			pg.RequestType(req.RequestType), req.Token, req.ClientInfo, req.SecretSize,
 			req.SecretHash, req.SecretDEK, meta, req.CreatedAt, req.ExpiresAt,
 		).
 		WillReturnError(&pgconn.PgError{Code: pgerrcode.ConnectionFailure})
 
 	// Second retry: SQLClientUnableToEstablishSQLConnection
-	pool.ExpectQuery(`WITH candidate\(parent_version\)`).
+	pool.ExpectQuery(`WITH candidate\(parent_version_id\)`).
 		WithArgs(
-			req.UserID, req.SecretID, req.SecretName, req.S3URL, req.Version, req.ParentVersion,
+			req.UserID, req.SecretID, req.SecretName, req.S3URL, req.VersionID, req.ParentVersionID,
 			pg.RequestType(req.RequestType), req.Token, req.ClientInfo, req.SecretSize,
 			req.SecretHash, req.SecretDEK, meta, req.CreatedAt, req.ExpiresAt,
 		).
 		WillReturnError(&pgconn.PgError{Code: pgerrcode.SQLClientUnableToEstablishSQLConnection})
 
 	// Third attempt succeeds
-	pool.ExpectQuery(`WITH candidate\(parent_version\)`).
+	pool.ExpectQuery(`WITH candidate\(parent_version_id\)`).
 		WithArgs(
-			req.UserID, req.SecretID, req.SecretName, req.S3URL, req.Version, req.ParentVersion,
+			req.UserID, req.SecretID, req.SecretName, req.S3URL, req.VersionID, req.ParentVersionID,
 			pg.RequestType(req.RequestType), req.Token, req.ClientInfo, req.SecretSize,
 			req.SecretHash, req.SecretDEK, meta, req.CreatedAt, req.ExpiresAt,
 		).
 		WillReturnRows(pgxmock.NewRows([]string{
-			"user_id", "secret_id", "secret_name", "s3_url", "version", "parent_version",
+			"user_id", "secret_id", "secret_name", "s3_url", "version_id", "parent_version_id",
 			"request_type", "token", "client_info", "secret_size", "secret_hash", "secret_dek",
 			"meta", "created_at", "expires_at",
 		}).AddRow(
-			req.UserID, req.SecretID, req.SecretName, req.S3URL, req.Version, req.ParentVersion,
+			req.UserID, req.SecretID, req.SecretName, req.S3URL, req.VersionID, req.ParentVersionID,
 			pg.RequestType(req.RequestType), req.Token, req.ClientInfo, req.SecretSize,
 			req.SecretHash, req.SecretDEK, meta, req.CreatedAt, req.ExpiresAt,
 		))

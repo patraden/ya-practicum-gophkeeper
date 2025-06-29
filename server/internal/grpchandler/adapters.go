@@ -15,6 +15,11 @@ type UserServiceServer interface {
 	Register(ctx context.Context, r *pb.RegisterRequest) (*pb.RegisterResponse, error)
 }
 
+type SecretServiceServer interface {
+	SecretUpdateInit(ctx context.Context, req *pb.SecretUpdateInitRequest) (*pb.SecretUpdateInitResponse, error)
+	SecretUpdateCommit(ctx context.Context, req *pb.SecretUpdateCommitRequest) (*pb.SecretUpdateCommitResponse, error)
+}
+
 type AdminServiceAdapter struct {
 	impl AdminServiceServer
 	pb.UnimplementedAdminServiceServer
@@ -47,4 +52,29 @@ func (u *UserServiceAdapter) Login(ctx context.Context, req *pb.LoginRequest) (*
 
 func (u *UserServiceAdapter) Register(ctx context.Context, req *pb.RegisterRequest) (*pb.RegisterResponse, error) {
 	return u.impl.Register(ctx, req)
+}
+
+type SecretServiceAdapter struct {
+	impl SecretServiceServer
+	pb.UnimplementedSecretServiceServer
+}
+
+func NewSecretServiceAdapter(impl SecretServiceServer) *SecretServiceAdapter {
+	return &SecretServiceAdapter{
+		impl: impl,
+	}
+}
+
+func (s *SecretServiceAdapter) SecretUpdateInit(
+	ctx context.Context,
+	req *pb.SecretUpdateInitRequest,
+) (*pb.SecretUpdateInitResponse, error) {
+	return s.impl.SecretUpdateInit(ctx, req)
+}
+
+func (s *SecretServiceAdapter) SecretUpdateCommit(
+	ctx context.Context,
+	req *pb.SecretUpdateCommitRequest,
+) (*pb.SecretUpdateCommitResponse, error) {
+	return s.impl.SecretUpdateCommit(ctx, req)
 }

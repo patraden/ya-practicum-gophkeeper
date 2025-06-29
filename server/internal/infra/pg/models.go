@@ -149,12 +149,12 @@ type Rek struct {
 }
 
 type Secret struct {
-	UserID         uuid.UUID `db:"user_id"`
-	SecretID       uuid.UUID `db:"secret_id"`
-	SecretName     string    `db:"secret_name"`
-	CurrentVersion uuid.UUID `db:"current_version"`
-	CreatedAt      time.Time `db:"created_at"`
-	UpdatedAt      time.Time `db:"updated_at"`
+	UserID           uuid.UUID `db:"user_id"`
+	SecretID         uuid.UUID `db:"secret_id"`
+	SecretName       string    `db:"secret_name"`
+	CurrentVersionID uuid.UUID `db:"current_version_id"`
+	CreatedAt        time.Time `db:"created_at"`
+	UpdatedAt        time.Time `db:"updated_at"`
 }
 
 type SecretMetum struct {
@@ -167,55 +167,55 @@ type SecretMetum struct {
 }
 
 type SecretRequestsCompleted struct {
-	ID            int64           `db:"id"`
-	UserID        uuid.UUID       `db:"user_id"`
-	SecretID      uuid.UUID       `db:"secret_id"`
-	S3Url         string          `db:"s3_url"`
-	Version       uuid.UUID       `db:"version"`
-	ParentVersion uuid.UUID       `db:"parent_version"`
-	RequestType   RequestType     `db:"request_type"`
-	Token         int64           `db:"token"`
-	ClientInfo    string          `db:"client_info"`
-	SecretSize    int64           `db:"secret_size"`
-	SecretHash    []byte          `db:"secret_hash"`
-	SecretDek     []byte          `db:"secret_dek"`
-	CreatedAt     time.Time       `db:"created_at"`
-	ExpiresAt     time.Time       `db:"expires_at"`
-	FinishedAt    time.Time       `db:"finished_at"`
-	Status        RequestStatus   `db:"status"`
-	CommitedBy    RequestCommiter `db:"commited_by"`
+	ID              int64           `db:"id"`
+	UserID          uuid.UUID       `db:"user_id"`
+	SecretID        uuid.UUID       `db:"secret_id"`
+	S3Url           string          `db:"s3_url"`
+	VersionID       uuid.UUID       `db:"version_id"`
+	ParentVersionID uuid.UUID       `db:"parent_version_id"`
+	RequestType     RequestType     `db:"request_type"`
+	Token           int64           `db:"token"`
+	ClientInfo      string          `db:"client_info"`
+	SecretSize      int64           `db:"secret_size"`
+	SecretHash      []byte          `db:"secret_hash"`
+	SecretDek       []byte          `db:"secret_dek"`
+	CreatedAt       time.Time       `db:"created_at"`
+	ExpiresAt       time.Time       `db:"expires_at"`
+	FinishedAt      time.Time       `db:"finished_at"`
+	Status          RequestStatus   `db:"status"`
+	CommitedBy      RequestCommiter `db:"commited_by"`
 }
 
 type SecretRequestsInProgress struct {
-	ID            int64       `db:"id"`
-	UserID        uuid.UUID   `db:"user_id"`
-	SecretID      uuid.UUID   `db:"secret_id"`
-	SecretName    string      `db:"secret_name"`
-	S3Url         string      `db:"s3_url"`
-	Version       uuid.UUID   `db:"version"`
-	ParentVersion uuid.UUID   `db:"parent_version"`
-	RequestType   RequestType `db:"request_type"`
-	Token         int64       `db:"token"`
-	ClientInfo    string      `db:"client_info"`
-	SecretSize    int64       `db:"secret_size"`
-	SecretHash    []byte      `db:"secret_hash"`
-	SecretDek     []byte      `db:"secret_dek"`
-	Meta          []byte      `db:"meta"`
-	CreatedAt     time.Time   `db:"created_at"`
-	ExpiresAt     time.Time   `db:"expires_at"`
+	ID              int64       `db:"id"`
+	UserID          uuid.UUID   `db:"user_id"`
+	SecretID        uuid.UUID   `db:"secret_id"`
+	SecretName      string      `db:"secret_name"`
+	S3Url           string      `db:"s3_url"`
+	VersionID       uuid.UUID   `db:"version_id"`
+	ParentVersionID uuid.UUID   `db:"parent_version_id"`
+	RequestType     RequestType `db:"request_type"`
+	Token           int64       `db:"token"`
+	ClientInfo      string      `db:"client_info"`
+	SecretSize      int64       `db:"secret_size"`
+	SecretHash      []byte      `db:"secret_hash"`
+	SecretDek       []byte      `db:"secret_dek"`
+	Meta            []byte      `db:"meta"`
+	CreatedAt       time.Time   `db:"created_at"`
+	ExpiresAt       time.Time   `db:"expires_at"`
 }
 
 type SecretVersion struct {
-	ID            int64     `db:"id"`
-	UserID        uuid.UUID `db:"user_id"`
-	SecretID      uuid.UUID `db:"secret_id"`
-	Version       uuid.UUID `db:"version"`
-	ParentVersion uuid.UUID `db:"parent_version"`
-	S3Url         string    `db:"s3_url"`
-	SecretSize    int64     `db:"secret_size"`
-	SecretHash    []byte    `db:"secret_hash"`
-	SecretDek     []byte    `db:"secret_dek"`
-	CreatedAt     time.Time `db:"created_at"`
+	ID              int64     `db:"id"`
+	UserID          uuid.UUID `db:"user_id"`
+	SecretID        uuid.UUID `db:"secret_id"`
+	VersionID       uuid.UUID `db:"version_id"`
+	ParentVersionID uuid.UUID `db:"parent_version_id"`
+	S3Url           string    `db:"s3_url"`
+	SecretSize      int64     `db:"secret_size"`
+	SecretHash      []byte    `db:"secret_hash"`
+	SecretDek       []byte    `db:"secret_dek"`
+	CreatedAt       time.Time `db:"created_at"`
 }
 
 type User struct {

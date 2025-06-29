@@ -5,27 +5,27 @@ CREATE TYPE request_status AS ENUM ('completed', 'aborted', 'expired', 'cancelle
 CREATE TYPE request_commiter AS ENUM ('user', 'server', 's3');
 
 CREATE TABLE secrets (
-    user_id         UUID NOT NULL,
-    secret_id       UUID NOT NULL,
-    secret_name     VARCHAR(64) NOT NULL,
-    current_version UUID NOT NULL,
-    created_at      TIMESTAMP NOT NULL,
-    updated_at      TIMESTAMP NOT NULL,
+    user_id             UUID NOT NULL,
+    secret_id           UUID NOT NULL,
+    secret_name         VARCHAR(64) NOT NULL,
+    current_version_id  UUID NOT NULL,
+    created_at          TIMESTAMP NOT NULL,
+    updated_at          TIMESTAMP NOT NULL,
     PRIMARY KEY (user_id, secret_id),
     UNIQUE (user_id, secret_name)
 );
 
 CREATE TABLE secret_versions (
-    id             BIGSERIAL PRIMARY KEY,
-    user_id        UUID NOT NULL,
-    secret_id      UUID NOT NULL,
-    version        UUID NOT NULL,
-    parent_version UUID,
-    s3_url         TEXT NOT NULL,
-    secret_size    BIGINT NOT NULL,
-    secret_hash    BYTEA NOT NULL,
-    secret_dek     BYTEA NOT NULL,
-    created_at     TIMESTAMP NOT NULL,
+    id                BIGSERIAL PRIMARY KEY,
+    user_id           UUID NOT NULL,
+    secret_id         UUID NOT NULL,
+    version_id        UUID NOT NULL,
+    parent_version_id UUID,
+    s3_url            TEXT NOT NULL,
+    secret_size       BIGINT NOT NULL,
+    secret_hash       BYTEA NOT NULL,
+    secret_dek        BYTEA NOT NULL,
+    created_at        TIMESTAMP NOT NULL,
     FOREIGN KEY (user_id, secret_id) REFERENCES secrets(user_id, secret_id) ON DELETE CASCADE
 );
 
@@ -49,8 +49,8 @@ CREATE TABLE secret_requests_in_progress (
     secret_id         UUID NOT NULL,
     secret_name       VARCHAR(64) NOT NULL,
     s3_url            TEXT NOT NULL,
-    version           UUID NOT NULL,
-    parent_version    UUID NULL,
+    version_id        UUID NOT NULL,
+    parent_version_id UUID NULL,
     request_type      request_type NOT NULL,
     token             BIGINT NOT NULL,
     client_info       VARCHAR(128) NOT NULL,
@@ -68,8 +68,8 @@ CREATE TABLE secret_requests_completed (
     user_id           UUID NOT NULL,
     secret_id         UUID NOT NULL,
     s3_url            TEXT NOT NULL,
-    version           UUID NOT NULL,
-    parent_version    UUID NULL,
+    version_id        UUID NOT NULL,
+    parent_version_id UUID NULL,
     request_type      request_type NOT NULL,
     token             BIGINT NOT NULL,
     client_info       VARCHAR(128) NOT NULL,
@@ -78,7 +78,7 @@ CREATE TABLE secret_requests_completed (
     secret_dek        BYTEA,
     created_at        TIMESTAMP NOT NULL,
     expires_at        TIMESTAMP NOT NULL,
-    finished_at       TIMESTAMP NOT NULL,
+    finished_at       TIMESTAMP NOT NULL DEFAULT NOW(),
     status            request_status NOT NULL,
     commited_by       request_commiter NOT NULL
 );

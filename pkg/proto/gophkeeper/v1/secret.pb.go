@@ -23,38 +23,36 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type UpdateInitRequest struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	UserId           string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`                                   // Required: ID of the user performing the operation
-	SecretId         string                 `protobuf:"bytes,2,opt,name=secret_id,json=secretId,proto3" json:"secret_id,omitempty"`                             // Required: Target secret UUID (client-generated)
-	ParentVersion    string                 `protobuf:"bytes,3,opt,name=parent_version,json=parentVersion,proto3" json:"parent_version,omitempty"`              // Optional: Expected current version; empty for new secret
-	Version          string                 `protobuf:"bytes,4,opt,name=version,proto3" json:"version,omitempty"`                                               // Required: New version UUID (client-generated)
-	SecretName       string                 `protobuf:"bytes,5,opt,name=secret_name,json=secretName,proto3" json:"secret_name,omitempty"`                       // Required: Secret name (for new secrets only)
-	Size             int64                  `protobuf:"varint,6,opt,name=size,proto3" json:"size,omitempty"`                                                    // Required: Size of encrypted content
-	Hash             []byte                 `protobuf:"bytes,7,opt,name=hash,proto3" json:"hash,omitempty"`                                                     // Required: Hash of encrypted content
-	EncryptedDek     []byte                 `protobuf:"bytes,8,opt,name=encrypted_dek,json=encryptedDek,proto3" json:"encrypted_dek,omitempty"`                 // Required: Encrypted Data Encryption Key (DEK)
-	ClientInfo       string                 `protobuf:"bytes,9,opt,name=client_info,json=clientInfo,proto3" json:"client_info,omitempty"`                       // Required: Info about client/device (agent, version, etc.)
-	ExpiresInSeconds int64                  `protobuf:"varint,10,opt,name=expires_in_seconds,json=expiresInSeconds,proto3" json:"expires_in_seconds,omitempty"` // Required: TTL for upload request in seconds
-	MetaJson         string                 `protobuf:"bytes,11,opt,name=meta_json,json=metaJson,proto3" json:"meta_json,omitempty"`                            // Optional: JSON string with user-defined metadata
-	RequestType      string                 `protobuf:"bytes,12,opt,name=request_type,json=requestType,proto3" json:"request_type,omitempty"`                   // Optional: Request type (default: "put")
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+type SecretUpdateInitRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	UserId          string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`                              // Required: ID of the user performing the operation
+	SecretId        string                 `protobuf:"bytes,2,opt,name=secret_id,json=secretId,proto3" json:"secret_id,omitempty"`                        // Required: Target secret UUID (client-generated)
+	SecretName      string                 `protobuf:"bytes,3,opt,name=secret_name,json=secretName,proto3" json:"secret_name,omitempty"`                  // Required: Secret name (for new secrets only)
+	VersionId       string                 `protobuf:"bytes,4,opt,name=version_id,json=versionId,proto3" json:"version_id,omitempty"`                     // Required: New version UUID (client-generated)
+	ParentVersionId string                 `protobuf:"bytes,5,opt,name=parent_version_id,json=parentVersionId,proto3" json:"parent_version_id,omitempty"` // Optional: Expected current version; empty for new secret
+	ClientInfo      string                 `protobuf:"bytes,6,opt,name=client_info,json=clientInfo,proto3" json:"client_info,omitempty"`                  // Required: Info about client/device (agent, version, etc.)
+	Size            int64                  `protobuf:"varint,7,opt,name=size,proto3" json:"size,omitempty"`                                               // Required: Size of encrypted content
+	Hash            []byte                 `protobuf:"bytes,8,opt,name=hash,proto3" json:"hash,omitempty"`                                                // Required: Hash of encrypted content
+	EncryptedDek    []byte                 `protobuf:"bytes,9,opt,name=encrypted_dek,json=encryptedDek,proto3" json:"encrypted_dek,omitempty"`            // Required: Encrypted Data Encryption Key (DEK)
+	MetadataJson    string                 `protobuf:"bytes,10,opt,name=metadata_json,json=metadataJson,proto3" json:"metadata_json,omitempty"`           // Optional: JSON string with user-defined metadata
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
-func (x *UpdateInitRequest) Reset() {
-	*x = UpdateInitRequest{}
+func (x *SecretUpdateInitRequest) Reset() {
+	*x = SecretUpdateInitRequest{}
 	mi := &file_gophkeeper_v1_secret_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UpdateInitRequest) String() string {
+func (x *SecretUpdateInitRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UpdateInitRequest) ProtoMessage() {}
+func (*SecretUpdateInitRequest) ProtoMessage() {}
 
-func (x *UpdateInitRequest) ProtoReflect() protoreflect.Message {
+func (x *SecretUpdateInitRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_gophkeeper_v1_secret_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -66,121 +64,108 @@ func (x *UpdateInitRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UpdateInitRequest.ProtoReflect.Descriptor instead.
-func (*UpdateInitRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use SecretUpdateInitRequest.ProtoReflect.Descriptor instead.
+func (*SecretUpdateInitRequest) Descriptor() ([]byte, []int) {
 	return file_gophkeeper_v1_secret_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *UpdateInitRequest) GetUserId() string {
+func (x *SecretUpdateInitRequest) GetUserId() string {
 	if x != nil {
 		return x.UserId
 	}
 	return ""
 }
 
-func (x *UpdateInitRequest) GetSecretId() string {
+func (x *SecretUpdateInitRequest) GetSecretId() string {
 	if x != nil {
 		return x.SecretId
 	}
 	return ""
 }
 
-func (x *UpdateInitRequest) GetParentVersion() string {
-	if x != nil {
-		return x.ParentVersion
-	}
-	return ""
-}
-
-func (x *UpdateInitRequest) GetVersion() string {
-	if x != nil {
-		return x.Version
-	}
-	return ""
-}
-
-func (x *UpdateInitRequest) GetSecretName() string {
+func (x *SecretUpdateInitRequest) GetSecretName() string {
 	if x != nil {
 		return x.SecretName
 	}
 	return ""
 }
 
-func (x *UpdateInitRequest) GetSize() int64 {
+func (x *SecretUpdateInitRequest) GetVersionId() string {
 	if x != nil {
-		return x.Size
+		return x.VersionId
 	}
-	return 0
+	return ""
 }
 
-func (x *UpdateInitRequest) GetHash() []byte {
+func (x *SecretUpdateInitRequest) GetParentVersionId() string {
 	if x != nil {
-		return x.Hash
+		return x.ParentVersionId
 	}
-	return nil
+	return ""
 }
 
-func (x *UpdateInitRequest) GetEncryptedDek() []byte {
-	if x != nil {
-		return x.EncryptedDek
-	}
-	return nil
-}
-
-func (x *UpdateInitRequest) GetClientInfo() string {
+func (x *SecretUpdateInitRequest) GetClientInfo() string {
 	if x != nil {
 		return x.ClientInfo
 	}
 	return ""
 }
 
-func (x *UpdateInitRequest) GetExpiresInSeconds() int64 {
+func (x *SecretUpdateInitRequest) GetSize() int64 {
 	if x != nil {
-		return x.ExpiresInSeconds
+		return x.Size
 	}
 	return 0
 }
 
-func (x *UpdateInitRequest) GetMetaJson() string {
+func (x *SecretUpdateInitRequest) GetHash() []byte {
 	if x != nil {
-		return x.MetaJson
+		return x.Hash
+	}
+	return nil
+}
+
+func (x *SecretUpdateInitRequest) GetEncryptedDek() []byte {
+	if x != nil {
+		return x.EncryptedDek
+	}
+	return nil
+}
+
+func (x *SecretUpdateInitRequest) GetMetadataJson() string {
+	if x != nil {
+		return x.MetadataJson
 	}
 	return ""
 }
 
-func (x *UpdateInitRequest) GetRequestType() string {
-	if x != nil {
-		return x.RequestType
-	}
-	return ""
+type SecretUpdateInitResponse struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	UserId          string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`                              // Echoed back user ID
+	SecretId        string                 `protobuf:"bytes,2,opt,name=secret_id,json=secretId,proto3" json:"secret_id,omitempty"`                        // Secret ID for which the request was created
+	VersionId       string                 `protobuf:"bytes,3,opt,name=version_id,json=versionId,proto3" json:"version_id,omitempty"`                     // Version UUID being uploaded
+	ParentVersionId string                 `protobuf:"bytes,4,opt,name=parent_version_id,json=parentVersionId,proto3" json:"parent_version_id,omitempty"` // Optional: Expected current version; empty for new secret
+	S3Url           string                 `protobuf:"bytes,5,opt,name=s3_url,json=s3Url,proto3" json:"s3_url,omitempty"`                                 // Presigned URL or base bucket path for upload
+	Token           int64                  `protobuf:"varint,6,opt,name=token,proto3" json:"token,omitempty"`                                             // Token to be used in UpdateCommit for validation
+	Credentials     *TemporaryCredentials  `protobuf:"bytes,7,opt,name=credentials,proto3" json:"credentials,omitempty"`                                  // STS credentials to be used with S3
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
-type UpdateInitResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`       // Echoed back user ID
-	SecretId      string                 `protobuf:"bytes,2,opt,name=secret_id,json=secretId,proto3" json:"secret_id,omitempty"` // Secret ID for which the request was created
-	Version       string                 `protobuf:"bytes,3,opt,name=version,proto3" json:"version,omitempty"`                   // Version UUID being uploaded
-	S3Url         string                 `protobuf:"bytes,4,opt,name=s3_url,json=s3Url,proto3" json:"s3_url,omitempty"`          // Presigned URL or base bucket path for upload
-	Token         int64                  `protobuf:"varint,5,opt,name=token,proto3" json:"token,omitempty"`                      // Token to be used in UpdateCommit for validation
-	Credentials   *TemporaryCredentials  `protobuf:"bytes,6,opt,name=credentials,proto3" json:"credentials,omitempty"`           // STS credentials to be used with S3
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *UpdateInitResponse) Reset() {
-	*x = UpdateInitResponse{}
+func (x *SecretUpdateInitResponse) Reset() {
+	*x = SecretUpdateInitResponse{}
 	mi := &file_gophkeeper_v1_secret_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UpdateInitResponse) String() string {
+func (x *SecretUpdateInitResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UpdateInitResponse) ProtoMessage() {}
+func (*SecretUpdateInitResponse) ProtoMessage() {}
 
-func (x *UpdateInitResponse) ProtoReflect() protoreflect.Message {
+func (x *SecretUpdateInitResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_gophkeeper_v1_secret_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -192,73 +177,89 @@ func (x *UpdateInitResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UpdateInitResponse.ProtoReflect.Descriptor instead.
-func (*UpdateInitResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use SecretUpdateInitResponse.ProtoReflect.Descriptor instead.
+func (*SecretUpdateInitResponse) Descriptor() ([]byte, []int) {
 	return file_gophkeeper_v1_secret_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *UpdateInitResponse) GetUserId() string {
+func (x *SecretUpdateInitResponse) GetUserId() string {
 	if x != nil {
 		return x.UserId
 	}
 	return ""
 }
 
-func (x *UpdateInitResponse) GetSecretId() string {
+func (x *SecretUpdateInitResponse) GetSecretId() string {
 	if x != nil {
 		return x.SecretId
 	}
 	return ""
 }
 
-func (x *UpdateInitResponse) GetVersion() string {
+func (x *SecretUpdateInitResponse) GetVersionId() string {
 	if x != nil {
-		return x.Version
+		return x.VersionId
 	}
 	return ""
 }
 
-func (x *UpdateInitResponse) GetS3Url() string {
+func (x *SecretUpdateInitResponse) GetParentVersionId() string {
+	if x != nil {
+		return x.ParentVersionId
+	}
+	return ""
+}
+
+func (x *SecretUpdateInitResponse) GetS3Url() string {
 	if x != nil {
 		return x.S3Url
 	}
 	return ""
 }
 
-func (x *UpdateInitResponse) GetToken() int64 {
+func (x *SecretUpdateInitResponse) GetToken() int64 {
 	if x != nil {
 		return x.Token
 	}
 	return 0
 }
 
-func (x *UpdateInitResponse) GetCredentials() *TemporaryCredentials {
+func (x *SecretUpdateInitResponse) GetCredentials() *TemporaryCredentials {
 	if x != nil {
 		return x.Credentials
 	}
 	return nil
 }
 
-type UpdateCommitRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+type SecretUpdateCommitRequest struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	UserId          string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`                              // Required: ID of the user performing the operation
+	SecretId        string                 `protobuf:"bytes,2,opt,name=secret_id,json=secretId,proto3" json:"secret_id,omitempty"`                        // Required: Target secret UUID (client-generated)
+	VersionId       string                 `protobuf:"bytes,3,opt,name=version_id,json=versionId,proto3" json:"version_id,omitempty"`                     // Required: New version UUID (client-generated)
+	ParentVersionId string                 `protobuf:"bytes,4,opt,name=parent_version_id,json=parentVersionId,proto3" json:"parent_version_id,omitempty"` // Optional: Expected current version; empty for new secret
+	ClientInfo      string                 `protobuf:"bytes,5,opt,name=client_info,json=clientInfo,proto3" json:"client_info,omitempty"`                  // Required: Info about client/device (agent, version, etc.)
+	Size            int64                  `protobuf:"varint,6,opt,name=size,proto3" json:"size,omitempty"`                                               // Required: Size of encrypted content
+	Hash            []byte                 `protobuf:"bytes,7,opt,name=hash,proto3" json:"hash,omitempty"`                                                // Required: Hash of encrypted content
+	EncryptedDek    []byte                 `protobuf:"bytes,8,opt,name=encrypted_dek,json=encryptedDek,proto3" json:"encrypted_dek,omitempty"`            // Required: Encrypted Data Encryption Key (DEK)
+	Token           int64                  `protobuf:"varint,9,opt,name=token,proto3" json:"token,omitempty"`                                             // Required: Token from UpdateInit for validation
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
-func (x *UpdateCommitRequest) Reset() {
-	*x = UpdateCommitRequest{}
+func (x *SecretUpdateCommitRequest) Reset() {
+	*x = SecretUpdateCommitRequest{}
 	mi := &file_gophkeeper_v1_secret_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UpdateCommitRequest) String() string {
+func (x *SecretUpdateCommitRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UpdateCommitRequest) ProtoMessage() {}
+func (*SecretUpdateCommitRequest) ProtoMessage() {}
 
-func (x *UpdateCommitRequest) ProtoReflect() protoreflect.Message {
+func (x *SecretUpdateCommitRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_gophkeeper_v1_secret_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -270,31 +271,98 @@ func (x *UpdateCommitRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UpdateCommitRequest.ProtoReflect.Descriptor instead.
-func (*UpdateCommitRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use SecretUpdateCommitRequest.ProtoReflect.Descriptor instead.
+func (*SecretUpdateCommitRequest) Descriptor() ([]byte, []int) {
 	return file_gophkeeper_v1_secret_proto_rawDescGZIP(), []int{2}
 }
 
-type UpdateCommitResponse struct {
+func (x *SecretUpdateCommitRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *SecretUpdateCommitRequest) GetSecretId() string {
+	if x != nil {
+		return x.SecretId
+	}
+	return ""
+}
+
+func (x *SecretUpdateCommitRequest) GetVersionId() string {
+	if x != nil {
+		return x.VersionId
+	}
+	return ""
+}
+
+func (x *SecretUpdateCommitRequest) GetParentVersionId() string {
+	if x != nil {
+		return x.ParentVersionId
+	}
+	return ""
+}
+
+func (x *SecretUpdateCommitRequest) GetClientInfo() string {
+	if x != nil {
+		return x.ClientInfo
+	}
+	return ""
+}
+
+func (x *SecretUpdateCommitRequest) GetSize() int64 {
+	if x != nil {
+		return x.Size
+	}
+	return 0
+}
+
+func (x *SecretUpdateCommitRequest) GetHash() []byte {
+	if x != nil {
+		return x.Hash
+	}
+	return nil
+}
+
+func (x *SecretUpdateCommitRequest) GetEncryptedDek() []byte {
+	if x != nil {
+		return x.EncryptedDek
+	}
+	return nil
+}
+
+func (x *SecretUpdateCommitRequest) GetToken() int64 {
+	if x != nil {
+		return x.Token
+	}
+	return 0
+}
+
+type SecretUpdateCommitResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`             // Required: ID of the user performing the operation
+	SecretId      string                 `protobuf:"bytes,2,opt,name=secret_id,json=secretId,proto3" json:"secret_id,omitempty"`       // Required: Target secret UUID (client-generated)
+	SecretName    string                 `protobuf:"bytes,3,opt,name=secret_name,json=secretName,proto3" json:"secret_name,omitempty"` // Required: Secret name (for new secrets only)
+	VersionId     string                 `protobuf:"bytes,4,opt,name=version_id,json=versionId,proto3" json:"version_id,omitempty"`    // Required: New version UUID (client-generated)
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *UpdateCommitResponse) Reset() {
-	*x = UpdateCommitResponse{}
+func (x *SecretUpdateCommitResponse) Reset() {
+	*x = SecretUpdateCommitResponse{}
 	mi := &file_gophkeeper_v1_secret_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *UpdateCommitResponse) String() string {
+func (x *SecretUpdateCommitResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*UpdateCommitResponse) ProtoMessage() {}
+func (*SecretUpdateCommitResponse) ProtoMessage() {}
 
-func (x *UpdateCommitResponse) ProtoReflect() protoreflect.Message {
+func (x *SecretUpdateCommitResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_gophkeeper_v1_secret_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -306,45 +374,90 @@ func (x *UpdateCommitResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use UpdateCommitResponse.ProtoReflect.Descriptor instead.
-func (*UpdateCommitResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use SecretUpdateCommitResponse.ProtoReflect.Descriptor instead.
+func (*SecretUpdateCommitResponse) Descriptor() ([]byte, []int) {
 	return file_gophkeeper_v1_secret_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *SecretUpdateCommitResponse) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *SecretUpdateCommitResponse) GetSecretId() string {
+	if x != nil {
+		return x.SecretId
+	}
+	return ""
+}
+
+func (x *SecretUpdateCommitResponse) GetSecretName() string {
+	if x != nil {
+		return x.SecretName
+	}
+	return ""
+}
+
+func (x *SecretUpdateCommitResponse) GetVersionId() string {
+	if x != nil {
+		return x.VersionId
+	}
+	return ""
 }
 
 var File_gophkeeper_v1_secret_proto protoreflect.FileDescriptor
 
 const file_gophkeeper_v1_secret_proto_rawDesc = "" +
 	"\n" +
-	"\x1agophkeeper/v1/secret.proto\x12\rgophkeeper.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1agophkeeper/v1/common.proto\"\xdd\x03\n" +
-	"\x11UpdateInitRequest\x12!\n" +
+	"\x1agophkeeper/v1/secret.proto\x12\rgophkeeper.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1agophkeeper/v1/common.proto\"\x9b\x03\n" +
+	"\x17SecretUpdateInitRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12%\n" +
-	"\tsecret_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\bsecretId\x12%\n" +
-	"\x0eparent_version\x18\x03 \x01(\tR\rparentVersion\x12\"\n" +
-	"\aversion\x18\x04 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\aversion\x12*\n" +
-	"\vsecret_name\x18\x05 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\n" +
-	"secretName\x12\x1b\n" +
+	"\tsecret_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\bsecretId\x12*\n" +
+	"\vsecret_name\x18\x03 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\n" +
+	"secretName\x12'\n" +
+	"\n" +
+	"version_id\x18\x04 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\tversionId\x12*\n" +
+	"\x11parent_version_id\x18\x05 \x01(\tR\x0fparentVersionId\x12(\n" +
+	"\vclient_info\x18\x06 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\n" +
+	"clientInfo\x12\x1b\n" +
+	"\x04size\x18\a \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x04size\x12\x1b\n" +
+	"\x04hash\x18\b \x01(\fB\a\xbaH\x04z\x02\x10\x01R\x04hash\x12,\n" +
+	"\rencrypted_dek\x18\t \x01(\fB\a\xbaH\x04z\x02\x10\x01R\fencryptedDek\x12#\n" +
+	"\rmetadata_json\x18\n" +
+	" \x01(\tR\fmetadataJson\"\xc0\x02\n" +
+	"\x18SecretUpdateInitResponse\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12%\n" +
+	"\tsecret_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\bsecretId\x12'\n" +
+	"\n" +
+	"version_id\x18\x03 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\tversionId\x12*\n" +
+	"\x11parent_version_id\x18\x04 \x01(\tR\x0fparentVersionId\x12\x1f\n" +
+	"\x06s3_url\x18\x05 \x01(\tB\b\xbaH\x05r\x03\x88\x01\x01R\x05s3Url\x12\x1d\n" +
+	"\x05token\x18\x06 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x05token\x12E\n" +
+	"\vcredentials\x18\a \x01(\v2#.gophkeeper.v1.TemporaryCredentialsR\vcredentials\"\xeb\x02\n" +
+	"\x19SecretUpdateCommitRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12%\n" +
+	"\tsecret_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\bsecretId\x12'\n" +
+	"\n" +
+	"version_id\x18\x03 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\tversionId\x12*\n" +
+	"\x11parent_version_id\x18\x04 \x01(\tR\x0fparentVersionId\x12(\n" +
+	"\vclient_info\x18\x05 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\n" +
+	"clientInfo\x12\x1b\n" +
 	"\x04size\x18\x06 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x04size\x12\x1b\n" +
 	"\x04hash\x18\a \x01(\fB\a\xbaH\x04z\x02\x10\x01R\x04hash\x12,\n" +
-	"\rencrypted_dek\x18\b \x01(\fB\a\xbaH\x04z\x02\x10\x01R\fencryptedDek\x12(\n" +
-	"\vclient_info\x18\t \x01(\tB\a\xbaH\x04r\x02\x10\x01R\n" +
-	"clientInfo\x125\n" +
-	"\x12expires_in_seconds\x18\n" +
-	" \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x10expiresInSeconds\x12\x1b\n" +
-	"\tmeta_json\x18\v \x01(\tR\bmetaJson\x12!\n" +
-	"\frequest_type\x18\f \x01(\tR\vrequestType\"\x89\x02\n" +
-	"\x12UpdateInitResponse\x12!\n" +
+	"\rencrypted_dek\x18\b \x01(\fB\a\xbaH\x04z\x02\x10\x01R\fencryptedDek\x12\x1d\n" +
+	"\x05token\x18\t \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x05token\"\xbb\x01\n" +
+	"\x1aSecretUpdateCommitResponse\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12%\n" +
-	"\tsecret_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\bsecretId\x12\"\n" +
-	"\aversion\x18\x03 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\aversion\x12\x1f\n" +
-	"\x06s3_url\x18\x04 \x01(\tB\b\xbaH\x05r\x03\x88\x01\x01R\x05s3Url\x12\x1d\n" +
-	"\x05token\x18\x05 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x05token\x12E\n" +
-	"\vcredentials\x18\x06 \x01(\v2#.gophkeeper.v1.TemporaryCredentialsR\vcredentials\"\x15\n" +
-	"\x13UpdateCommitRequest\"\x16\n" +
-	"\x14UpdateCommitResponse2\xbb\x01\n" +
-	"\rSecretService\x12Q\n" +
+	"\tsecret_id\x18\x02 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\bsecretId\x12*\n" +
+	"\vsecret_name\x18\x03 \x01(\tB\t\xbaH\x06r\x04\x10\x01\x18@R\n" +
+	"secretName\x12'\n" +
 	"\n" +
-	"UpdateInit\x12 .gophkeeper.v1.UpdateInitRequest\x1a!.gophkeeper.v1.UpdateInitResponse\x12W\n" +
-	"\fUpdateCommit\x12\".gophkeeper.v1.UpdateCommitRequest\x1a#.gophkeeper.v1.UpdateCommitResponseB\xba\x01\n" +
+	"version_id\x18\x04 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\tversionId2\xdf\x01\n" +
+	"\rSecretService\x12c\n" +
+	"\x10SecretUpdateInit\x12&.gophkeeper.v1.SecretUpdateInitRequest\x1a'.gophkeeper.v1.SecretUpdateInitResponse\x12i\n" +
+	"\x12SecretUpdateCommit\x12(.gophkeeper.v1.SecretUpdateCommitRequest\x1a).gophkeeper.v1.SecretUpdateCommitResponseB\xba\x01\n" +
 	"\x11com.gophkeeper.v1B\vSecretProtoP\x01ZCgithub.com/patraden/ya-practicum-gophkeeper/api/gophkeeper/v1;proto\xa2\x02\x03GXX\xaa\x02\rGophkeeper.V1\xca\x02\rGophkeeper\\V1\xe2\x02\x19Gophkeeper\\V1\\GPBMetadata\xea\x02\x0eGophkeeper::V1b\x06proto3"
 
 var (
@@ -361,18 +474,18 @@ func file_gophkeeper_v1_secret_proto_rawDescGZIP() []byte {
 
 var file_gophkeeper_v1_secret_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_gophkeeper_v1_secret_proto_goTypes = []any{
-	(*UpdateInitRequest)(nil),    // 0: gophkeeper.v1.UpdateInitRequest
-	(*UpdateInitResponse)(nil),   // 1: gophkeeper.v1.UpdateInitResponse
-	(*UpdateCommitRequest)(nil),  // 2: gophkeeper.v1.UpdateCommitRequest
-	(*UpdateCommitResponse)(nil), // 3: gophkeeper.v1.UpdateCommitResponse
-	(*TemporaryCredentials)(nil), // 4: gophkeeper.v1.TemporaryCredentials
+	(*SecretUpdateInitRequest)(nil),    // 0: gophkeeper.v1.SecretUpdateInitRequest
+	(*SecretUpdateInitResponse)(nil),   // 1: gophkeeper.v1.SecretUpdateInitResponse
+	(*SecretUpdateCommitRequest)(nil),  // 2: gophkeeper.v1.SecretUpdateCommitRequest
+	(*SecretUpdateCommitResponse)(nil), // 3: gophkeeper.v1.SecretUpdateCommitResponse
+	(*TemporaryCredentials)(nil),       // 4: gophkeeper.v1.TemporaryCredentials
 }
 var file_gophkeeper_v1_secret_proto_depIdxs = []int32{
-	4, // 0: gophkeeper.v1.UpdateInitResponse.credentials:type_name -> gophkeeper.v1.TemporaryCredentials
-	0, // 1: gophkeeper.v1.SecretService.UpdateInit:input_type -> gophkeeper.v1.UpdateInitRequest
-	2, // 2: gophkeeper.v1.SecretService.UpdateCommit:input_type -> gophkeeper.v1.UpdateCommitRequest
-	1, // 3: gophkeeper.v1.SecretService.UpdateInit:output_type -> gophkeeper.v1.UpdateInitResponse
-	3, // 4: gophkeeper.v1.SecretService.UpdateCommit:output_type -> gophkeeper.v1.UpdateCommitResponse
+	4, // 0: gophkeeper.v1.SecretUpdateInitResponse.credentials:type_name -> gophkeeper.v1.TemporaryCredentials
+	0, // 1: gophkeeper.v1.SecretService.SecretUpdateInit:input_type -> gophkeeper.v1.SecretUpdateInitRequest
+	2, // 2: gophkeeper.v1.SecretService.SecretUpdateCommit:input_type -> gophkeeper.v1.SecretUpdateCommitRequest
+	1, // 3: gophkeeper.v1.SecretService.SecretUpdateInit:output_type -> gophkeeper.v1.SecretUpdateInitResponse
+	3, // 4: gophkeeper.v1.SecretService.SecretUpdateCommit:output_type -> gophkeeper.v1.SecretUpdateCommitResponse
 	3, // [3:5] is the sub-list for method output_type
 	1, // [1:3] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name

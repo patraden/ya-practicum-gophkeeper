@@ -1,238 +1,183 @@
 package dto
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/patraden/ya-practicum-gophkeeper/pkg/crypto/keys"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/domain/secret"
 	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
-	"github.com/rs/zerolog"
+	pb "github.com/patraden/ya-practicum-gophkeeper/pkg/proto/gophkeeper/v1"
+	"github.com/patraden/ya-practicum-gophkeeper/pkg/s3"
 )
 
 // SecretUploadInitRequest represents an upload request that is in progress.
 type SecretUploadInitRequest struct {
-	UserID        string             `json:"user_id"`
-	SecretID      string             `json:"secret_id"`
-	SecretName    string             `json:"secret_name"`
-	Version       string             `json:"version"`
-	ParentVersion string             `json:"parent_version,omitempty"`
-	RequestType   secret.RequestType `json:"request_type"`
-	S3URL         string             `json:"url,omitempty"`
-	Token         int64              `json:"token"`
-	ClientInfo    string             `json:"client_info"`
-	SecretSize    int64              `json:"secret_size"`
-	SecretHash    []byte             `json:"secret_hash,omitempty"`
-	SecretDEK     []byte             `json:"secret_dek,omitempty"`
-	MetaData      secret.MetaData    `json:"meta,omitempty"`
-	CreatedAt     time.Time          `json:"created_at"`
-	ExpiresAt     time.Time          `json:"expires_at"`
+	UserID          string `json:"user_id"`
+	SecretID        string `json:"secret_id"`
+	SecretName      string `json:"secret_name"`
+	VersionID       string `json:"version_id"`
+	ParentVersionID string `json:"parent_version_id,omitempty"`
+	ClientInfo      string `json:"client_info"`
+	SecretSize      int64  `json:"secret_size"`
+	SecretHash      []byte `json:"secret_hash,omitempty"`
+	SecretDEK       []byte `json:"secret_dek,omitempty"`
+	MetaData        string `json:"meta,omitempty"`
 }
 
-func (r *SecretUploadInitRequest) ToDomain(log zerolog.Logger) (*secret.InitRequest, error) {
+func SecretUploadInitRequestFromProto(req *pb.SecretUpdateInitRequest) *SecretUploadInitRequest {
+	return &SecretUploadInitRequest{
+		UserID:          req.GetUserId(),
+		SecretID:        req.GetSecretId(),
+		SecretName:      req.GetSecretName(),
+		VersionID:       req.GetVersionId(),
+		ParentVersionID: req.GetParentVersionId(),
+		ClientInfo:      req.GetClientInfo(),
+		SecretSize:      req.GetSize(),
+		SecretHash:      req.GetHash(),
+		SecretDEK:       req.GetEncryptedDek(),
+		MetaData:        req.GetMetadataJson(),
+	}
+}
+
+func (r *SecretUploadInitRequest) ToDomain() (*secret.InitRequest, error) {
 	userID, err := uuid.Parse(r.UserID)
 	if err != nil {
-		log.Error().Err(err).
-			Msg("validation failed: invalid user_id UUID")
-
-		return nil, e.ErrValidation
+		return nil, fmt.Errorf("[%w] invalid userID", e.ErrValidation)
 	}
 
 	secretID, err := uuid.Parse(r.SecretID)
 	if err != nil {
-		log.Error().Err(err).
-			Msg("validation failed: invalid secret_id UUID")
-
-		return nil, e.ErrValidation
+		return nil, fmt.Errorf("[%w] invalid secretID", e.ErrValidation)
 	}
 
-	version, err := uuid.Parse(r.Version)
+	version, err := uuid.Parse(r.VersionID)
 	if err != nil {
-		log.Error().Err(err).
-			Msg("validation failed: invalid version UUID")
-
-		return nil, e.ErrValidation
+		return nil, fmt.Errorf("[%w] invalid versionID", e.ErrValidation)
 	}
 
-	var parent uuid.UUID
+	var parentID uuid.UUID
 
-	if r.ParentVersion != "" {
-		pparent, err := uuid.Parse(r.ParentVersion)
+	if r.ParentVersionID != "" {
+		pparent, err := uuid.Parse(r.ParentVersionID)
 		if err != nil {
-			log.Error().Err(err).
-				Msg("validation failed: invalid parent_version UUID")
-
-			return nil, e.ErrValidation
+			return nil, fmt.Errorf("[%w] invalid parent versionID", e.ErrValidation)
 		}
 
-		parent = pparent
+		parentID = pparent
 	}
 
+	var metaData secret.MetaData
+
+	if err := metaData.UnmarshalJSON([]byte(r.MetaData)); err != nil {
+		return nil, fmt.Errorf("[%w] invalid secret metadata", e.ErrUnmarshal)
+	}
+
+	now := time.Now().UTC()
+
 	return &secret.InitRequest{
-		UserID:        userID,
-		SecretID:      secretID,
-		SecretName:    r.SecretName,
-		Version:       version,
-		ParentVersion: parent,
-		RequestType:   r.RequestType,
-		S3URL:         r.S3URL,
-		Token:         r.Token,
-		ClientInfo:    r.ClientInfo,
-		SecretSize:    r.SecretSize,
-		SecretHash:    r.SecretHash,
-		SecretDEK:     r.SecretDEK,
-		MetaData:      r.MetaData,
-		CreatedAt:     r.CreatedAt,
-		ExpiresAt:     r.ExpiresAt,
+		UserID:          userID,
+		SecretID:        secretID,
+		SecretName:      r.SecretName,
+		VersionID:       version,
+		ParentVersionID: parentID,
+		RequestType:     secret.RequestTypePut,
+		ClientInfo:      r.ClientInfo,
+		SecretSize:      r.SecretSize,
+		SecretHash:      r.SecretHash,
+		SecretDEK:       r.SecretDEK,
+		MetaData:        metaData,
+		CreatedAt:       now,
 	}, nil
 }
 
-func (r *SecretUploadInitRequest) Validate(kek []byte, log zerolog.Logger) error {
-	switch {
-	case r.SecretName == "":
-		log.Error().Msg("validation failed: secret_name is empty")
-	case r.RequestType != secret.RequestTypePut:
-		log.Error().
-			Str("type", string(r.RequestType)).
-			Msg("validation failed: request_type must be 'put'")
-	case r.ClientInfo == "":
-		log.Error().Msg("validation failed: client_info is empty")
-	case r.SecretSize == 0:
-		log.Error().
-			Int64("size", r.SecretSize).
-			Msg("validation failed: secret_size must be positive")
-	case len(r.SecretHash) == 0:
-		log.Error().
-			Int("hash_len", len(r.SecretHash)).
-			Msg("validation failed: secret_hash must be positive")
-	case len(r.SecretDEK) == 0:
-		log.Error().
-			Int("dek_len", len(r.SecretDEK)).
-			Msg("validation failed: secret_dek must be positive")
-	case r.ExpiresAt.Before(time.Now().UTC()):
-		log.Error().
-			Time("expires_at", r.ExpiresAt).
-			Msg("validation failed: expires_at in the past")
-	default:
-		if _, err := keys.UnwrapDEK(kek, r.SecretDEK); err != nil {
-			log.Error().Err(err).
-				Msg("validation failed: failed to unwrap secret_dek")
-		} else {
-			return nil
-		}
-	}
+// SecretUploadInitResponse represents response to secret upload request.
+type SecretUploadInitResponse struct {
+	UserID          string `json:"user_id"`
+	SecretID        string `json:"secret_id"`
+	VersionID       string `json:"version_id"`
+	ParentVersionID string `json:"parent_version_id,omitempty"`
+	S3URL           string `json:"s3_url"`
+	Token           int64  `json:"token"`
+	S3Creds         s3.TemporaryCredentials
+}
 
-	return e.ErrValidation
+func (resp *SecretUploadInitResponse) ToProto() *pb.SecretUpdateInitResponse {
+	return &pb.SecretUpdateInitResponse{
+		UserId:          resp.UserID,
+		SecretId:        resp.SecretID,
+		VersionId:       resp.VersionID,
+		ParentVersionId: resp.ParentVersionID,
+		S3Url:           resp.S3URL,
+		Token:           resp.Token,
+		Credentials:     resp.S3Creds.ToProto(),
+	}
 }
 
 // SecretUploadCommitRequest represents a finalized and committed upload.
 type SecretUploadCommitRequest struct {
-	UserID        string                  `json:"user_id"`
-	SecretID      string                  `json:"secret_id"`
-	Version       string                  `json:"version"`
-	ParentVersion *string                 `json:"parent_version,omitempty"`
-	RequestType   secret.RequestType      `json:"request_type"`
-	S3URL         string                  `json:"url,omitempty"`
-	Token         int64                   `json:"token"`
-	ClientInfo    string                  `json:"client_info"`
-	SecretSize    int64                   `json:"secret_size"`
-	SecretHash    []byte                  `json:"secret_hash,omitempty"`
-	SecretDEK     []byte                  `json:"secret_dek,omitempty"`
-	CreatedAt     time.Time               `json:"created_at"`
-	ExpiresAt     time.Time               `json:"expires_at"`
-	FinishedAt    time.Time               `json:"finished_at"`
-	Status        secret.RequestStatus    `json:"status"`
-	CommittedBy   secret.RequestCommitter `json:"committed_by"`
+	UserID          string `json:"user_id"`
+	SecretID        string `json:"secret_id"`
+	VersionID       string `json:"version_id"`
+	ParentVersionID string `json:"parent_version_id,omitempty"`
+	ClientInfo      string `json:"client_info"`
+	SecretSize      int64  `json:"secret_size"`
+	SecretHash      []byte `json:"secret_hash,omitempty"`
+	SecretDEK       []byte `json:"secret_dek,omitempty"`
+	Token           int64  `json:"token"`
 }
 
-func (r *SecretUploadCommitRequest) ToDomain(log zerolog.Logger) (*secret.CommitRequest, error) {
+func SecretUploadCommitRequestFromProto(req *pb.SecretUpdateCommitRequest) *SecretUploadCommitRequest {
+	return &SecretUploadCommitRequest{
+		UserID:          req.GetUserId(),
+		SecretID:        req.GetSecretId(),
+		VersionID:       req.GetVersionId(),
+		ParentVersionID: req.GetParentVersionId(),
+		ClientInfo:      req.GetClientInfo(),
+		SecretSize:      req.GetSize(),
+		SecretHash:      req.GetHash(),
+		SecretDEK:       req.GetEncryptedDek(),
+		Token:           req.GetToken(),
+	}
+}
+
+func (r *SecretUploadCommitRequest) ToDomain() (*secret.CommitRequest, error) {
 	userID, err := uuid.Parse(r.UserID)
 	if err != nil {
-		log.Error().Err(err).
-			Msg("validation failed: invalid user_id UUID")
-		return nil, e.ErrValidation
+		return nil, fmt.Errorf("[%w] invalid userID", e.ErrValidation)
 	}
 
 	secretID, err := uuid.Parse(r.SecretID)
 	if err != nil {
-		log.Error().Err(err).
-			Msg("validation failed: invalid secret_id UUID")
-		return nil, e.ErrValidation
+		return nil, fmt.Errorf("[%w] invalid secretID", e.ErrValidation)
 	}
 
-	version, err := uuid.Parse(r.Version)
+	version, err := uuid.Parse(r.VersionID)
 	if err != nil {
-		log.Error().Err(err).
-			Msg("validation failed: invalid version UUID")
-		return nil, e.ErrValidation
+		return nil, fmt.Errorf("[%w] invalid versionID", e.ErrValidation)
 	}
 
-	var parent uuid.UUID
+	var parentID uuid.UUID
 
-	if r.ParentVersion != nil {
-		pparent, err := uuid.Parse(*r.ParentVersion)
+	if r.ParentVersionID != "" {
+		pparent, err := uuid.Parse(r.ParentVersionID)
 		if err != nil {
-			log.Error().Err(err).
-				Msg("validation failed: invalid parent_version UUID")
-			return nil, e.ErrValidation
+			return nil, fmt.Errorf("[%w] invalid parent versionID", e.ErrValidation)
 		}
 
-		parent = pparent
+		parentID = pparent
 	}
 
 	return &secret.CommitRequest{
-		UserID:        userID,
-		SecretID:      secretID,
-		S3URL:         r.S3URL,
-		Version:       version,
-		ParentVersion: parent,
-		RequestType:   r.RequestType,
-		Token:         r.Token,
-		ClientInfo:    r.ClientInfo,
-		SecretSize:    r.SecretSize,
-		SecretHash:    r.SecretHash,
-		SecretDEK:     r.SecretDEK,
-		CreatedAt:     r.CreatedAt,
-		ExpiresAt:     r.ExpiresAt,
-		FinishedAt:    r.FinishedAt,
-		Status:        r.Status,
-		CommittedBy:   r.CommittedBy,
+		UserID:          userID,
+		SecretID:        secretID,
+		VersionID:       version,
+		ParentVersionID: parentID,
+		RequestType:     secret.RequestTypePut,
+		ClientInfo:      r.ClientInfo,
+		SecretSize:      r.SecretSize,
+		SecretHash:      r.SecretHash,
+		SecretDEK:       r.SecretDEK,
+		Token:           r.Token,
 	}, nil
-}
-
-// Validate validates UUID fields and basic constraints.
-func (r *SecretUploadCommitRequest) Validate(log zerolog.Logger) error {
-	switch {
-	case r.RequestType != secret.RequestTypePut:
-		log.Error().
-			Str("type", string(r.RequestType)).
-			Msg("validation failed: request_type must be 'put'")
-	case r.ClientInfo == "":
-		log.Error().Msg("validation failed: client_info is empty")
-	case r.SecretSize == 0:
-		log.Error().
-			Int64("size", r.SecretSize).
-			Msg("validation failed: secret_size must be positive")
-	case len(r.SecretHash) == 0:
-		log.Error().
-			Int("hash_len", len(r.SecretHash)).
-			Msg("validation failed: secret_hash must be positive")
-	case len(r.SecretDEK) == 0:
-		log.Error().
-			Int("dek_len", len(r.SecretDEK)).
-			Msg("validation failed: secret_dek must be positive")
-	case r.ExpiresAt.Before(time.Now().UTC()):
-		log.Error().
-			Time("expires_at", r.ExpiresAt).
-			Msg("validation failed: expires_at in the past")
-	case r.FinishedAt.Before(r.CreatedAt):
-		log.Error().
-			Time("finished_at", r.FinishedAt).
-			Time("created_at", r.CreatedAt).
-			Msg("validation failed: finished_at is before created_at")
-	default:
-		return nil
-	}
-
-	return e.ErrValidation
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/cenkalti/backoff/v4"
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/domain/user"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/dto"
@@ -22,6 +23,10 @@ import (
 type UserRepository interface {
 	// CreateUser registers a regular user with KEK and an S3 bucket.
 	CreateUser(ctx context.Context, usr *user.User, kek *user.Key) (*user.User, error)
+	// GetUser get user by username.
+	GetUser(ctx context.Context, username string) (*user.User, error)
+	// GetUserByID get user by user id.
+	GetUserByID(ctx context.Context, uid uuid.UUID) (*user.User, error)
 	// CreateAdmin inserts an admin user without S3/KEK provisioning.
 	CreateAdmin(ctx context.Context, usr *user.User) (*user.User, error)
 	// ValidateUser Validates user credentials on Login.
@@ -136,7 +141,7 @@ func (repo *UserRepo) CreateUser(ctx context.Context, usr *user.User, key *user.
 
 	if usr.Role != user.RoleUser {
 		logCtx.Error().Msg("expected user with user role")
-		return nil, e.ErrInvalidInput
+		return nil, fmt.Errorf("[%w] bad user role", e.ErrInvalidInput)
 	}
 
 	// Trying to create user in identity first.
@@ -179,15 +184,12 @@ func (repo *UserRepo) CreateUser(ctx context.Context, usr *user.User, key *user.
 	})
 
 	dbErr := repo.withDBRetry(ctx, func() error { return queryFn(repo.queries) })
+	if errors.Is(dbErr, e.ErrExists) {
+		return nil, dbErr
+	}
+
 	if dbErr != nil {
-		if errors.Is(dbErr, e.ErrExists) {
-			return nil, dbErr
-		}
-
-		logCtx.Error().Err(dbErr).
-			Str("operation", "CreateUser").
-			Msg("Repo: failed to create user")
-
+		logCtx.Error().Err(dbErr).Msg("ailed to create user")
 		// Compensate and remove created bucket and identity user.
 		// Considering bucket and identity user removal compensation as "best-effort" operation.
 		// It is non-critical and can be later compensated by background reconciliation.
@@ -208,6 +210,12 @@ func (repo *UserRepo) CreateUser(ctx context.Context, usr *user.User, key *user.
 func (repo *UserRepo) GetUser(ctx context.Context, username string) (*user.User, error) {
 	var dbUsr *user.User
 
+	logCtx := repo.log.With().
+		Str("repo", "UserRepo").
+		Str("operation", "GetUser").
+		Str("username", username).
+		Logger()
+
 	queryFn := func(queries *pg.Queries) error {
 		pgUser, err := queries.GetUser(ctx, username)
 		if err != nil {
@@ -220,16 +228,50 @@ func (repo *UserRepo) GetUser(ctx context.Context, username string) (*user.User,
 	}
 
 	dbErr := repo.withDBRetry(ctx, func() error { return queryFn(repo.queries) })
+	if errors.Is(dbErr, sql.ErrNoRows) {
+		return nil, fmt.Errorf("[%w] user", e.ErrNotFound)
+	}
+
 	if dbErr != nil {
-		if errors.Is(dbErr, sql.ErrNoRows) {
-			return nil, e.ErrNotFound
+		logCtx.Error().Err(dbErr).Msg("failed to get user")
+		return nil, e.InternalErr(dbErr)
+	}
+
+	return dbUsr, nil
+}
+
+// GetUserByID retrieves a user by id from the database.
+//
+// It returns ErrNotFound if the user does not exist.
+// For all other errors, it returns ErrInternal.
+// The password is removed before returning.
+func (repo *UserRepo) GetUserByID(ctx context.Context, uid uuid.UUID) (*user.User, error) {
+	var dbUsr *user.User
+
+	logCtx := repo.log.With().
+		Str("repo", "UserRepo").
+		Str("operation", "GetUser").
+		Str("user_id", uid.String()).
+		Logger()
+
+	queryFn := func(queries *pg.Queries) error {
+		pgUser, err := queries.GetUserByID(ctx, uid)
+		if err != nil {
+			return err
 		}
 
-		repo.log.Error().Err(dbErr).
-			Str("username", username).
-			Str("operation", "GetUser").
-			Msg("Repo: failed to get user")
+		dbUsr = FromPGUser(pgUser)
 
+		return nil
+	}
+
+	dbErr := repo.withDBRetry(ctx, func() error { return queryFn(repo.queries) })
+	if errors.Is(dbErr, sql.ErrNoRows) {
+		return nil, fmt.Errorf("[%w] user", e.ErrNotFound)
+	}
+
+	if dbErr != nil {
+		logCtx.Error().Err(dbErr).Msg("failed to get user")
 		return nil, e.InternalErr(dbErr)
 	}
 
@@ -242,17 +284,20 @@ func (repo *UserRepo) GetUser(ctx context.Context, username string) (*user.User,
 // Returns ErrValidation if the password is incorrect and ErrNotFound if the user does not exist.
 // For all other errors, it returns ErrInternal.
 func (repo *UserRepo) ValidateUser(ctx context.Context, creds *dto.UserCredentials) (*user.User, error) {
+	logCtx := repo.log.With().
+		Str("repo", "UserRepo").
+		Str("operation", "GetUser").
+		Str("username", creds.Username).
+		Logger()
+
 	user, err := repo.GetUser(ctx, creds.Username)
 	if err != nil {
 		return nil, err
 	}
 
 	if !user.CheckPassword(creds.Password) {
-		repo.log.Info().
-			Str("username", creds.Username).
-			Msg("invalid password attempt")
-
-		return nil, e.ErrValidation
+		logCtx.Info().Msg("invalid password attempt")
+		return nil, fmt.Errorf("[%w] user password", e.ErrValidation)
 	}
 
 	return user, nil

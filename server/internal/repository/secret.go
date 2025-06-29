@@ -8,7 +8,6 @@ import (
 
 	"github.com/cenkalti/backoff/v4"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/domain/secret"
-	"github.com/patraden/ya-practicum-gophkeeper/pkg/domain/user"
 	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/retry"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/s3"
@@ -26,7 +25,6 @@ type SecretRepository interface {
 	CreateSecretCommitRequest(
 		ctx context.Context,
 		req *secret.CommitRequest,
-		usr *user.User,
 	) (*secret.CommitRequest, error)
 }
 
@@ -91,7 +89,7 @@ func (repo *SecretRepo) CreateSecretInitRequest(
 		}
 
 		dbReq = FromCreateSecretInitRequestParams(row)
-		if dbReq.CreatedAt.Before(req.CreatedAt) || dbReq.Version != req.Version {
+		if dbReq.CreatedAt.Before(req.CreatedAt) || dbReq.VersionID != req.VersionID {
 			return fmt.Errorf("[%w] secret init request", e.ErrExists)
 		}
 

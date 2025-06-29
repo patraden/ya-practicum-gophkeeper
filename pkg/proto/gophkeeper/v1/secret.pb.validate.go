@@ -35,22 +35,22 @@ var (
 	_ = sort.Sort
 )
 
-// Validate checks the field values on UpdateInitRequest with the rules defined
-// in the proto definition for this message. If any rules are violated, the
-// first error encountered is returned, or nil if there are no violations.
-func (m *UpdateInitRequest) Validate() error {
+// Validate checks the field values on SecretUpdateInitRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *SecretUpdateInitRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on UpdateInitRequest with the rules
-// defined in the proto definition for this message. If any rules are
+// ValidateAll checks the field values on SecretUpdateInitRequest with the
+// rules defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// UpdateInitRequestMultiError, or nil if none found.
-func (m *UpdateInitRequest) ValidateAll() error {
+// SecretUpdateInitRequestMultiError, or nil if none found.
+func (m *SecretUpdateInitRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *UpdateInitRequest) validate(all bool) error {
+func (m *SecretUpdateInitRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -61,11 +61,13 @@ func (m *UpdateInitRequest) validate(all bool) error {
 
 	// no validation rules for SecretId
 
-	// no validation rules for ParentVersion
-
-	// no validation rules for Version
-
 	// no validation rules for SecretName
+
+	// no validation rules for VersionId
+
+	// no validation rules for ParentVersionId
+
+	// no validation rules for ClientInfo
 
 	// no validation rules for Size
 
@@ -73,28 +75,22 @@ func (m *UpdateInitRequest) validate(all bool) error {
 
 	// no validation rules for EncryptedDek
 
-	// no validation rules for ClientInfo
-
-	// no validation rules for ExpiresInSeconds
-
-	// no validation rules for MetaJson
-
-	// no validation rules for RequestType
+	// no validation rules for MetadataJson
 
 	if len(errors) > 0 {
-		return UpdateInitRequestMultiError(errors)
+		return SecretUpdateInitRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// UpdateInitRequestMultiError is an error wrapping multiple validation errors
-// returned by UpdateInitRequest.ValidateAll() if the designated constraints
-// aren't met.
-type UpdateInitRequestMultiError []error
+// SecretUpdateInitRequestMultiError is an error wrapping multiple validation
+// errors returned by SecretUpdateInitRequest.ValidateAll() if the designated
+// constraints aren't met.
+type SecretUpdateInitRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m UpdateInitRequestMultiError) Error() string {
+func (m SecretUpdateInitRequestMultiError) Error() string {
 	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -103,11 +99,11 @@ func (m UpdateInitRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m UpdateInitRequestMultiError) AllErrors() []error { return m }
+func (m SecretUpdateInitRequestMultiError) AllErrors() []error { return m }
 
-// UpdateInitRequestValidationError is the validation error returned by
-// UpdateInitRequest.Validate if the designated constraints aren't met.
-type UpdateInitRequestValidationError struct {
+// SecretUpdateInitRequestValidationError is the validation error returned by
+// SecretUpdateInitRequest.Validate if the designated constraints aren't met.
+type SecretUpdateInitRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -115,24 +111,24 @@ type UpdateInitRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e UpdateInitRequestValidationError) Field() string { return e.field }
+func (e SecretUpdateInitRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e UpdateInitRequestValidationError) Reason() string { return e.reason }
+func (e SecretUpdateInitRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e UpdateInitRequestValidationError) Cause() error { return e.cause }
+func (e SecretUpdateInitRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e UpdateInitRequestValidationError) Key() bool { return e.key }
+func (e SecretUpdateInitRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e UpdateInitRequestValidationError) ErrorName() string {
-	return "UpdateInitRequestValidationError"
+func (e SecretUpdateInitRequestValidationError) ErrorName() string {
+	return "SecretUpdateInitRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e UpdateInitRequestValidationError) Error() string {
+func (e SecretUpdateInitRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -144,14 +140,14 @@ func (e UpdateInitRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sUpdateInitRequest.%s: %s%s",
+		"invalid %sSecretUpdateInitRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = UpdateInitRequestValidationError{}
+var _ error = SecretUpdateInitRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -159,24 +155,24 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = UpdateInitRequestValidationError{}
+} = SecretUpdateInitRequestValidationError{}
 
-// Validate checks the field values on UpdateInitResponse with the rules
+// Validate checks the field values on SecretUpdateInitResponse with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *UpdateInitResponse) Validate() error {
+func (m *SecretUpdateInitResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on UpdateInitResponse with the rules
-// defined in the proto definition for this message. If any rules are
+// ValidateAll checks the field values on SecretUpdateInitResponse with the
+// rules defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// UpdateInitResponseMultiError, or nil if none found.
-func (m *UpdateInitResponse) ValidateAll() error {
+// SecretUpdateInitResponseMultiError, or nil if none found.
+func (m *SecretUpdateInitResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *UpdateInitResponse) validate(all bool) error {
+func (m *SecretUpdateInitResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -187,7 +183,9 @@ func (m *UpdateInitResponse) validate(all bool) error {
 
 	// no validation rules for SecretId
 
-	// no validation rules for Version
+	// no validation rules for VersionId
+
+	// no validation rules for ParentVersionId
 
 	// no validation rules for S3Url
 
@@ -197,7 +195,7 @@ func (m *UpdateInitResponse) validate(all bool) error {
 		switch v := interface{}(m.GetCredentials()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, UpdateInitResponseValidationError{
+				errors = append(errors, SecretUpdateInitResponseValidationError{
 					field:  "Credentials",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -205,7 +203,7 @@ func (m *UpdateInitResponse) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, UpdateInitResponseValidationError{
+				errors = append(errors, SecretUpdateInitResponseValidationError{
 					field:  "Credentials",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -214,7 +212,7 @@ func (m *UpdateInitResponse) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetCredentials()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return UpdateInitResponseValidationError{
+			return SecretUpdateInitResponseValidationError{
 				field:  "Credentials",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -223,19 +221,19 @@ func (m *UpdateInitResponse) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return UpdateInitResponseMultiError(errors)
+		return SecretUpdateInitResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// UpdateInitResponseMultiError is an error wrapping multiple validation errors
-// returned by UpdateInitResponse.ValidateAll() if the designated constraints
-// aren't met.
-type UpdateInitResponseMultiError []error
+// SecretUpdateInitResponseMultiError is an error wrapping multiple validation
+// errors returned by SecretUpdateInitResponse.ValidateAll() if the designated
+// constraints aren't met.
+type SecretUpdateInitResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m UpdateInitResponseMultiError) Error() string {
+func (m SecretUpdateInitResponseMultiError) Error() string {
 	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -244,11 +242,11 @@ func (m UpdateInitResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m UpdateInitResponseMultiError) AllErrors() []error { return m }
+func (m SecretUpdateInitResponseMultiError) AllErrors() []error { return m }
 
-// UpdateInitResponseValidationError is the validation error returned by
-// UpdateInitResponse.Validate if the designated constraints aren't met.
-type UpdateInitResponseValidationError struct {
+// SecretUpdateInitResponseValidationError is the validation error returned by
+// SecretUpdateInitResponse.Validate if the designated constraints aren't met.
+type SecretUpdateInitResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -256,24 +254,24 @@ type UpdateInitResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e UpdateInitResponseValidationError) Field() string { return e.field }
+func (e SecretUpdateInitResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e UpdateInitResponseValidationError) Reason() string { return e.reason }
+func (e SecretUpdateInitResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e UpdateInitResponseValidationError) Cause() error { return e.cause }
+func (e SecretUpdateInitResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e UpdateInitResponseValidationError) Key() bool { return e.key }
+func (e SecretUpdateInitResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e UpdateInitResponseValidationError) ErrorName() string {
-	return "UpdateInitResponseValidationError"
+func (e SecretUpdateInitResponseValidationError) ErrorName() string {
+	return "SecretUpdateInitResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e UpdateInitResponseValidationError) Error() string {
+func (e SecretUpdateInitResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -285,14 +283,14 @@ func (e UpdateInitResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sUpdateInitResponse.%s: %s%s",
+		"invalid %sSecretUpdateInitResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = UpdateInitResponseValidationError{}
+var _ error = SecretUpdateInitResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -300,44 +298,62 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = UpdateInitResponseValidationError{}
+} = SecretUpdateInitResponseValidationError{}
 
-// Validate checks the field values on UpdateCommitRequest with the rules
+// Validate checks the field values on SecretUpdateCommitRequest with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *UpdateCommitRequest) Validate() error {
+func (m *SecretUpdateCommitRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on UpdateCommitRequest with the rules
-// defined in the proto definition for this message. If any rules are
+// ValidateAll checks the field values on SecretUpdateCommitRequest with the
+// rules defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// UpdateCommitRequestMultiError, or nil if none found.
-func (m *UpdateCommitRequest) ValidateAll() error {
+// SecretUpdateCommitRequestMultiError, or nil if none found.
+func (m *SecretUpdateCommitRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *UpdateCommitRequest) validate(all bool) error {
+func (m *SecretUpdateCommitRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
+	// no validation rules for UserId
+
+	// no validation rules for SecretId
+
+	// no validation rules for VersionId
+
+	// no validation rules for ParentVersionId
+
+	// no validation rules for ClientInfo
+
+	// no validation rules for Size
+
+	// no validation rules for Hash
+
+	// no validation rules for EncryptedDek
+
+	// no validation rules for Token
+
 	if len(errors) > 0 {
-		return UpdateCommitRequestMultiError(errors)
+		return SecretUpdateCommitRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// UpdateCommitRequestMultiError is an error wrapping multiple validation
-// errors returned by UpdateCommitRequest.ValidateAll() if the designated
-// constraints aren't met.
-type UpdateCommitRequestMultiError []error
+// SecretUpdateCommitRequestMultiError is an error wrapping multiple validation
+// errors returned by SecretUpdateCommitRequest.ValidateAll() if the
+// designated constraints aren't met.
+type SecretUpdateCommitRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m UpdateCommitRequestMultiError) Error() string {
+func (m SecretUpdateCommitRequestMultiError) Error() string {
 	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -346,11 +362,11 @@ func (m UpdateCommitRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m UpdateCommitRequestMultiError) AllErrors() []error { return m }
+func (m SecretUpdateCommitRequestMultiError) AllErrors() []error { return m }
 
-// UpdateCommitRequestValidationError is the validation error returned by
-// UpdateCommitRequest.Validate if the designated constraints aren't met.
-type UpdateCommitRequestValidationError struct {
+// SecretUpdateCommitRequestValidationError is the validation error returned by
+// SecretUpdateCommitRequest.Validate if the designated constraints aren't met.
+type SecretUpdateCommitRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -358,24 +374,24 @@ type UpdateCommitRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e UpdateCommitRequestValidationError) Field() string { return e.field }
+func (e SecretUpdateCommitRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e UpdateCommitRequestValidationError) Reason() string { return e.reason }
+func (e SecretUpdateCommitRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e UpdateCommitRequestValidationError) Cause() error { return e.cause }
+func (e SecretUpdateCommitRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e UpdateCommitRequestValidationError) Key() bool { return e.key }
+func (e SecretUpdateCommitRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e UpdateCommitRequestValidationError) ErrorName() string {
-	return "UpdateCommitRequestValidationError"
+func (e SecretUpdateCommitRequestValidationError) ErrorName() string {
+	return "SecretUpdateCommitRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e UpdateCommitRequestValidationError) Error() string {
+func (e SecretUpdateCommitRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -387,14 +403,14 @@ func (e UpdateCommitRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sUpdateCommitRequest.%s: %s%s",
+		"invalid %sSecretUpdateCommitRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = UpdateCommitRequestValidationError{}
+var _ error = SecretUpdateCommitRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -402,44 +418,52 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = UpdateCommitRequestValidationError{}
+} = SecretUpdateCommitRequestValidationError{}
 
-// Validate checks the field values on UpdateCommitResponse with the rules
-// defined in the proto definition for this message. If any rules are
+// Validate checks the field values on SecretUpdateCommitResponse with the
+// rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *UpdateCommitResponse) Validate() error {
+func (m *SecretUpdateCommitResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on UpdateCommitResponse with the rules
-// defined in the proto definition for this message. If any rules are
+// ValidateAll checks the field values on SecretUpdateCommitResponse with the
+// rules defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// UpdateCommitResponseMultiError, or nil if none found.
-func (m *UpdateCommitResponse) ValidateAll() error {
+// SecretUpdateCommitResponseMultiError, or nil if none found.
+func (m *SecretUpdateCommitResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *UpdateCommitResponse) validate(all bool) error {
+func (m *SecretUpdateCommitResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
 
 	var errors []error
 
+	// no validation rules for UserId
+
+	// no validation rules for SecretId
+
+	// no validation rules for SecretName
+
+	// no validation rules for VersionId
+
 	if len(errors) > 0 {
-		return UpdateCommitResponseMultiError(errors)
+		return SecretUpdateCommitResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// UpdateCommitResponseMultiError is an error wrapping multiple validation
-// errors returned by UpdateCommitResponse.ValidateAll() if the designated
-// constraints aren't met.
-type UpdateCommitResponseMultiError []error
+// SecretUpdateCommitResponseMultiError is an error wrapping multiple
+// validation errors returned by SecretUpdateCommitResponse.ValidateAll() if
+// the designated constraints aren't met.
+type SecretUpdateCommitResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m UpdateCommitResponseMultiError) Error() string {
+func (m SecretUpdateCommitResponseMultiError) Error() string {
 	msgs := make([]string, 0, len(m))
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -448,11 +472,11 @@ func (m UpdateCommitResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m UpdateCommitResponseMultiError) AllErrors() []error { return m }
+func (m SecretUpdateCommitResponseMultiError) AllErrors() []error { return m }
 
-// UpdateCommitResponseValidationError is the validation error returned by
-// UpdateCommitResponse.Validate if the designated constraints aren't met.
-type UpdateCommitResponseValidationError struct {
+// SecretUpdateCommitResponseValidationError is the validation error returned
+// by SecretUpdateCommitResponse.Validate if the designated constraints aren't met.
+type SecretUpdateCommitResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -460,24 +484,24 @@ type UpdateCommitResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e UpdateCommitResponseValidationError) Field() string { return e.field }
+func (e SecretUpdateCommitResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e UpdateCommitResponseValidationError) Reason() string { return e.reason }
+func (e SecretUpdateCommitResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e UpdateCommitResponseValidationError) Cause() error { return e.cause }
+func (e SecretUpdateCommitResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e UpdateCommitResponseValidationError) Key() bool { return e.key }
+func (e SecretUpdateCommitResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e UpdateCommitResponseValidationError) ErrorName() string {
-	return "UpdateCommitResponseValidationError"
+func (e SecretUpdateCommitResponseValidationError) ErrorName() string {
+	return "SecretUpdateCommitResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e UpdateCommitResponseValidationError) Error() string {
+func (e SecretUpdateCommitResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -489,14 +513,14 @@ func (e UpdateCommitResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sUpdateCommitResponse.%s: %s%s",
+		"invalid %sSecretUpdateCommitResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = UpdateCommitResponseValidationError{}
+var _ error = SecretUpdateCommitResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -504,4 +528,4 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = UpdateCommitResponseValidationError{}
+} = SecretUpdateCommitResponseValidationError{}

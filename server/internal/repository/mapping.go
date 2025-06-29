@@ -82,21 +82,21 @@ func ToCreateSecretInitRequestParams(req *secret.InitRequest) pg.CreateSecretIni
 	}
 
 	return pg.CreateSecretInitRequestParams{
-		UserID:         req.UserID,
-		SecretID:       req.SecretID,
-		SecretName:     req.SecretName,
-		S3Url:          req.S3URL,
-		Version:        req.Version,
-		CurrentVersion: req.ParentVersion,
-		RequestType:    pg.RequestType(req.RequestType),
-		Token:          req.Token,
-		ClientInfo:     req.ClientInfo,
-		SecretSize:     req.SecretSize,
-		SecretHash:     req.SecretHash,
-		SecretDek:      req.SecretDEK,
-		Meta:           metaData,
-		CreatedAt:      req.CreatedAt,
-		ExpiresAt:      req.ExpiresAt,
+		UserID:           req.UserID,
+		SecretID:         req.SecretID,
+		SecretName:       req.SecretName,
+		S3Url:            req.S3URL,
+		VersionID:        req.VersionID,
+		CurrentVersionID: req.ParentVersionID,
+		RequestType:      pg.RequestType(req.RequestType),
+		Token:            req.Token,
+		ClientInfo:       req.ClientInfo,
+		SecretSize:       req.SecretSize,
+		SecretHash:       req.SecretHash,
+		SecretDek:        req.SecretDEK,
+		Meta:             metaData,
+		CreatedAt:        req.CreatedAt,
+		ExpiresAt:        req.ExpiresAt,
 	}
 }
 
@@ -107,21 +107,21 @@ func FromCreateSecretInitRequestParams(row pg.CreateSecretInitRequestRow) *secre
 	}
 
 	return &secret.InitRequest{
-		UserID:        row.UserID,
-		SecretID:      row.SecretID,
-		SecretName:    row.SecretName,
-		S3URL:         row.S3Url,
-		Version:       row.Version,
-		ParentVersion: row.ParentVersion,
-		RequestType:   secret.RequestType(row.RequestType),
-		Token:         row.Token,
-		ClientInfo:    row.ClientInfo,
-		SecretSize:    row.SecretSize,
-		SecretHash:    row.SecretHash,
-		SecretDEK:     row.SecretDek,
-		MetaData:      metaData,
-		CreatedAt:     row.CreatedAt,
-		ExpiresAt:     row.ExpiresAt,
+		UserID:          row.UserID,
+		SecretID:        row.SecretID,
+		SecretName:      row.SecretName,
+		S3URL:           row.S3Url,
+		VersionID:       row.VersionID,
+		ParentVersionID: row.ParentVersionID,
+		RequestType:     secret.RequestType(row.RequestType),
+		Token:           row.Token,
+		ClientInfo:      row.ClientInfo,
+		SecretSize:      row.SecretSize,
+		SecretHash:      row.SecretHash,
+		SecretDEK:       row.SecretDek,
+		MetaData:        metaData,
+		CreatedAt:       row.CreatedAt,
+		ExpiresAt:       row.ExpiresAt,
 	}
 }
 

@@ -20,16 +20,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	SecretService_UpdateInit_FullMethodName   = "/gophkeeper.v1.SecretService/UpdateInit"
-	SecretService_UpdateCommit_FullMethodName = "/gophkeeper.v1.SecretService/UpdateCommit"
+	SecretService_SecretUpdateInit_FullMethodName   = "/gophkeeper.v1.SecretService/SecretUpdateInit"
+	SecretService_SecretUpdateCommit_FullMethodName = "/gophkeeper.v1.SecretService/SecretUpdateCommit"
 )
 
 // SecretServiceClient is the client API for SecretService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SecretServiceClient interface {
-	UpdateInit(ctx context.Context, in *UpdateInitRequest, opts ...grpc.CallOption) (*UpdateInitResponse, error)
-	UpdateCommit(ctx context.Context, in *UpdateCommitRequest, opts ...grpc.CallOption) (*UpdateCommitResponse, error)
+	SecretUpdateInit(ctx context.Context, in *SecretUpdateInitRequest, opts ...grpc.CallOption) (*SecretUpdateInitResponse, error)
+	SecretUpdateCommit(ctx context.Context, in *SecretUpdateCommitRequest, opts ...grpc.CallOption) (*SecretUpdateCommitResponse, error)
 }
 
 type secretServiceClient struct {
@@ -40,20 +40,20 @@ func NewSecretServiceClient(cc grpc.ClientConnInterface) SecretServiceClient {
 	return &secretServiceClient{cc}
 }
 
-func (c *secretServiceClient) UpdateInit(ctx context.Context, in *UpdateInitRequest, opts ...grpc.CallOption) (*UpdateInitResponse, error) {
+func (c *secretServiceClient) SecretUpdateInit(ctx context.Context, in *SecretUpdateInitRequest, opts ...grpc.CallOption) (*SecretUpdateInitResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UpdateInitResponse)
-	err := c.cc.Invoke(ctx, SecretService_UpdateInit_FullMethodName, in, out, cOpts...)
+	out := new(SecretUpdateInitResponse)
+	err := c.cc.Invoke(ctx, SecretService_SecretUpdateInit_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *secretServiceClient) UpdateCommit(ctx context.Context, in *UpdateCommitRequest, opts ...grpc.CallOption) (*UpdateCommitResponse, error) {
+func (c *secretServiceClient) SecretUpdateCommit(ctx context.Context, in *SecretUpdateCommitRequest, opts ...grpc.CallOption) (*SecretUpdateCommitResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UpdateCommitResponse)
-	err := c.cc.Invoke(ctx, SecretService_UpdateCommit_FullMethodName, in, out, cOpts...)
+	out := new(SecretUpdateCommitResponse)
+	err := c.cc.Invoke(ctx, SecretService_SecretUpdateCommit_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -64,8 +64,8 @@ func (c *secretServiceClient) UpdateCommit(ctx context.Context, in *UpdateCommit
 // All implementations must embed UnimplementedSecretServiceServer
 // for forward compatibility.
 type SecretServiceServer interface {
-	UpdateInit(context.Context, *UpdateInitRequest) (*UpdateInitResponse, error)
-	UpdateCommit(context.Context, *UpdateCommitRequest) (*UpdateCommitResponse, error)
+	SecretUpdateInit(context.Context, *SecretUpdateInitRequest) (*SecretUpdateInitResponse, error)
+	SecretUpdateCommit(context.Context, *SecretUpdateCommitRequest) (*SecretUpdateCommitResponse, error)
 	mustEmbedUnimplementedSecretServiceServer()
 }
 
@@ -76,11 +76,11 @@ type SecretServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedSecretServiceServer struct{}
 
-func (UnimplementedSecretServiceServer) UpdateInit(context.Context, *UpdateInitRequest) (*UpdateInitResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateInit not implemented")
+func (UnimplementedSecretServiceServer) SecretUpdateInit(context.Context, *SecretUpdateInitRequest) (*SecretUpdateInitResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SecretUpdateInit not implemented")
 }
-func (UnimplementedSecretServiceServer) UpdateCommit(context.Context, *UpdateCommitRequest) (*UpdateCommitResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateCommit not implemented")
+func (UnimplementedSecretServiceServer) SecretUpdateCommit(context.Context, *SecretUpdateCommitRequest) (*SecretUpdateCommitResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SecretUpdateCommit not implemented")
 }
 func (UnimplementedSecretServiceServer) mustEmbedUnimplementedSecretServiceServer() {}
 func (UnimplementedSecretServiceServer) testEmbeddedByValue()                       {}
@@ -103,38 +103,38 @@ func RegisterSecretServiceServer(s grpc.ServiceRegistrar, srv SecretServiceServe
 	s.RegisterService(&SecretService_ServiceDesc, srv)
 }
 
-func _SecretService_UpdateInit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateInitRequest)
+func _SecretService_SecretUpdateInit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SecretUpdateInitRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SecretServiceServer).UpdateInit(ctx, in)
+		return srv.(SecretServiceServer).SecretUpdateInit(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: SecretService_UpdateInit_FullMethodName,
+		FullMethod: SecretService_SecretUpdateInit_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SecretServiceServer).UpdateInit(ctx, req.(*UpdateInitRequest))
+		return srv.(SecretServiceServer).SecretUpdateInit(ctx, req.(*SecretUpdateInitRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SecretService_UpdateCommit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateCommitRequest)
+func _SecretService_SecretUpdateCommit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SecretUpdateCommitRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SecretServiceServer).UpdateCommit(ctx, in)
+		return srv.(SecretServiceServer).SecretUpdateCommit(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: SecretService_UpdateCommit_FullMethodName,
+		FullMethod: SecretService_SecretUpdateCommit_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SecretServiceServer).UpdateCommit(ctx, req.(*UpdateCommitRequest))
+		return srv.(SecretServiceServer).SecretUpdateCommit(ctx, req.(*SecretUpdateCommitRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -147,12 +147,12 @@ var SecretService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*SecretServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "UpdateInit",
-			Handler:    _SecretService_UpdateInit_Handler,
+			MethodName: "SecretUpdateInit",
+			Handler:    _SecretService_SecretUpdateInit_Handler,
 		},
 		{
-			MethodName: "UpdateCommit",
-			Handler:    _SecretService_UpdateCommit_Handler,
+			MethodName: "SecretUpdateCommit",
+			Handler:    _SecretService_SecretUpdateCommit_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

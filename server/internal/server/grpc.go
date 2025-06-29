@@ -10,6 +10,7 @@ import (
 	pb "github.com/patraden/ya-practicum-gophkeeper/pkg/proto/gophkeeper/v1"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/auth"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/config"
+	"github.com/patraden/ya-practicum-gophkeeper/server/internal/crypto/keystore"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/grpchandler"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
@@ -18,11 +19,12 @@ import (
 
 // Server represents the gRPC server for gophkeeper application.
 type GRPCServer struct {
-	grpcSrv  *grpc.Server
-	config   *config.Config
-	adminSrv grpchandler.AdminServiceServer
-	userSrv  grpchandler.UserServiceServer
-	log      zerolog.Logger
+	grpcSrv   *grpc.Server
+	config    *config.Config
+	adminSrv  grpchandler.AdminServiceServer
+	userSrv   grpchandler.UserServiceServer
+	secretSrv grpchandler.SecretServiceServer
+	log       zerolog.Logger
 }
 
 // New creates instance of the application gRPC server.
@@ -30,7 +32,9 @@ func New(
 	config *config.Config,
 	adminSrv grpchandler.AdminServiceServer,
 	userSrv grpchandler.UserServiceServer,
+	secretSrv grpchandler.SecretServiceServer,
 	authenticator *auth.Auth,
+	kstore keystore.Keystore,
 	isPublicMethod func(method string) bool,
 	log zerolog.Logger,
 ) (*GRPCServer, error) {
@@ -58,6 +62,7 @@ func New(
 	interceptors := grpc.ChainUnaryInterceptor(
 		auth.GRPCServerVerifier(authenticator),
 		auth.GRPCServerAuthenticator(isPublicMethod),
+		keystore.GRPCServerStatusValidator(kstore),
 	)
 
 	grpcSrv := grpc.NewServer(
@@ -66,11 +71,12 @@ func New(
 	)
 
 	return &GRPCServer{
-		grpcSrv:  grpcSrv,
-		config:   config,
-		adminSrv: adminSrv,
-		userSrv:  userSrv,
-		log:      log,
+		grpcSrv:   grpcSrv,
+		config:    config,
+		adminSrv:  adminSrv,
+		userSrv:   userSrv,
+		secretSrv: secretSrv,
+		log:       log,
 	}, nil
 }
 
@@ -91,6 +97,7 @@ func (s *GRPCServer) Run() error {
 
 	pb.RegisterUserServiceServer(s.grpcSrv, grpchandler.NewUserServiceAdapter(s.userSrv))
 	pb.RegisterAdminServiceServer(s.grpcSrv, grpchandler.NewAdminServiceAdapter(s.adminSrv))
+	pb.RegisterSecretServiceServer(s.grpcSrv, grpchandler.NewSecretServiceAdapter(s.secretSrv))
 
 	if err := s.grpcSrv.Serve(listen); err != nil {
 		s.log.Error().Err(err).

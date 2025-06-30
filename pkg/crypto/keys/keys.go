@@ -19,7 +19,7 @@ const (
 	KEKLength      = 32 // Key Encryption Key (256-bit)
 	DEKLength      = 32 // Data Encryption Key (256-bit)
 	kekIter        = 100_000
-	nonceSize      = 12 // Recommended nonce size for AES-GCM
+	NonceSize      = 12 // Recommended nonce size for AES-GCM
 	EncryptionAlgo = "AES-GCM"
 )
 
@@ -54,7 +54,7 @@ func KEK(u *user.User, password string) ([]byte, error) {
 
 	kek, err := pbkdf2.Key(sha256.New, password, u.Salt, kekIter, KEKLength)
 	if err != nil {
-		return nil, e.ErrGenerate
+		return nil, fmt.Errorf("[%w] KEK", e.ErrGenerate)
 	}
 
 	return kek, nil
@@ -72,7 +72,7 @@ func KEK(u *user.User, password string) ([]byte, error) {
 func DEK() ([]byte, error) {
 	dek := make([]byte, DEKLength)
 	if _, err := rand.Read(dek); err != nil {
-		return nil, e.ErrGenerate
+		return nil, fmt.Errorf("[%w] DEK", e.ErrGenerate)
 	}
 
 	return dek, nil
@@ -114,16 +114,16 @@ func WrapDEK(kek, dek []byte) ([]byte, error) {
 		return nil, fmt.Errorf("encrypt dek(gcm): %w", e.ErrEncrypt)
 	}
 
-	nonce := make([]byte, nonceSize)
+	nonce := make([]byte, NonceSize)
 	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
 		return nil, fmt.Errorf("encrypt dek(nonce): %w", e.ErrEncrypt)
 	}
 
 	ciphertext := aesgcm.Seal(nil, nonce, dek, nil)
-	result := make([]byte, nonceSize+len(ciphertext))
+	result := make([]byte, NonceSize+len(ciphertext))
 
 	copy(result, nonce)
-	copy(result[nonceSize:], ciphertext)
+	copy(result[NonceSize:], ciphertext)
 
 	return result, nil
 }
@@ -135,12 +135,12 @@ func UnwrapDEK(kek, wrapped []byte) ([]byte, error) {
 		return nil, e.ErrInvalidInput
 	}
 
-	if len(wrapped) < nonceSize {
+	if len(wrapped) < NonceSize {
 		return nil, e.ErrInvalidInput
 	}
 
-	nonce := wrapped[:nonceSize]
-	ciphertext := wrapped[nonceSize:]
+	nonce := wrapped[:NonceSize]
+	ciphertext := wrapped[NonceSize:]
 
 	block, err := aes.NewCipher(kek)
 	if err != nil {

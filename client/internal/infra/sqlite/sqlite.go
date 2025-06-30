@@ -49,6 +49,8 @@ func (db *DB) Close() error {
 	return nil
 }
 
+// IsUniqueViolation reports whether the error is a UNIQUE constraint violation.
+// It works with both typed sqlite3 errors and fallback string checks.
 func IsUniqueViolation(err error) bool {
 	var sqliteErr sqlite3.Error
 	if errors.As(err, &sqliteErr) {

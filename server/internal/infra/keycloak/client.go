@@ -110,6 +110,8 @@ func (c *Client) RefreshToken(ctx context.Context, refreshToken string) (*user.J
 // CreateUser creates a new Keycloak user based on the provided domain user model.
 // A default minio policy attribute `policy=readwrite` is also applied.
 // Returns the created Keycloak user object.
+//
+//nolint:funlen //reason: logging
 func (c *Client) CreateUser(ctx context.Context, usr *user.User, token string) (string, error) {
 	gcUser := gocloak.User{
 		Username:      gocloak.StringP(usr.Username),
@@ -123,14 +125,25 @@ func (c *Client) CreateUser(ctx context.Context, usr *user.User, token string) (
 	}
 
 	users, err := c.client.GetUsers(ctx, token, c.realm, gocloak.GetUsersParams{Username: gocloak.StringP(usr.Username)})
-	if err == nil && len(users) > 0 {
-		c.log.Error().
-			Str("client_id", c.clientID).
-			Str("realm", c.realm).
-			Str("username", *gcUser.Username).
-			Msg("user already exists")
+	if err != nil {
+		c.log.Error().Err(err).
+			Str("username", usr.Username).
+			Msg("failed to fetch users")
 
-		return "", fmt.Errorf("[%w] keyclock user", e.ErrExists)
+		return "", e.InternalErr(err)
+	}
+
+	// manually filter by exact username match
+	for _, u := range users {
+		if u.Username != nil && *u.Username == usr.Username {
+			c.log.Error().
+				Str("client_id", c.clientID).
+				Str("realm", c.realm).
+				Str("username", usr.Username).
+				Msg("user already exists")
+
+			return "", fmt.Errorf("[%w] keycloak user", e.ErrExists)
+		}
 	}
 
 	userID, err := c.client.CreateUser(ctx, token, c.realm, gcUser)

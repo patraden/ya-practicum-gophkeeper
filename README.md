@@ -33,7 +33,7 @@ make run-server-local
 ./dev/scripts/unseal.sh
 
 # install client app
-go run ./client install -p "$(pwd)/.gophkeeper"
+go run ./client install --dir "$(pwd)/.gophkeeper" --server-port 3300 --server-host localhost --server-ca-cert ./deployments/.certs/ca.cert
 # register new user
 go run ./client register -u patraden -p password
 ```

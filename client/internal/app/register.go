@@ -67,7 +67,7 @@ func RegisterUser(cfg *config.Config, log logger.Logger) error {
 
 	defer db.Close()
 
-	repo := repository.NewUserRepo(db, zlog)
+	repo := repository.NewUserRepo(db, cfg, zlog)
 	if err := repo.CreateUser(ctx, usr, token); err != nil {
 		return err
 	}

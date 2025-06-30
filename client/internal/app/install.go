@@ -15,8 +15,10 @@ import (
 
 const (
 	appDirPermissions = 0o700
+	caCertFilename    = "ca.cert"
 )
 
+//nolint:funlen //reason: logging.
 func SetupLocal(cfg *config.Config, log logger.Logger) error {
 	basePath := cfg.InstallDir
 	zlog := log.GetZeroLog()
@@ -39,6 +41,10 @@ func SetupLocal(cfg *config.Config, log logger.Logger) error {
 			Msg("Failed to create installation directory")
 
 		return e.InternalErr(err)
+	}
+
+	if err := CopyCACertToInstallDir(cfg, zlog); err != nil {
+		return err
 	}
 
 	dbPath := filepath.Join(basePath, cfg.DatabaseFileName)
@@ -72,8 +78,7 @@ func SetupLocal(cfg *config.Config, log logger.Logger) error {
 		return e.InternalErr(err)
 	}
 
-	zlog.Info().
-		Msg("Application installed successfully!")
+	zlog.Info().Msg("Application installed successfully!")
 
 	return nil
 }
@@ -104,6 +109,52 @@ func SaveToFile(cfg *config.Config, log zerolog.Logger) error {
 
 		return e.InternalErr(err)
 	}
+
+	return nil
+}
+
+func CopyCACertToInstallDir(cfg *config.Config, log zerolog.Logger) error {
+	srcPath := cfg.ServerTLSCertPath
+	dstPath := filepath.Join(cfg.InstallDir, caCertFilename)
+
+	log.Info().
+		Str("src", srcPath).
+		Str("dst", dstPath).
+		Msg("Copying CA certificate to install directory")
+
+	src, err := os.Open(srcPath)
+	if err != nil {
+		log.Error().Err(err).
+			Str("src", srcPath).
+			Msg("Failed to open source CA cert for copying")
+
+		return e.InternalErr(err)
+	}
+	defer src.Close()
+
+	dst, err := os.Create(dstPath)
+	if err != nil {
+		log.Error().Err(err).
+			Str("dst", dstPath).
+			Msg("Failed to create destination CA cert file")
+
+		return e.InternalErr(err)
+	}
+	defer dst.Close()
+
+	if _, err := dst.ReadFrom(src); err != nil {
+		log.Error().Err(err).
+			Str("dst", dstPath).
+			Msg("Failed to copy CA cert")
+
+		return e.InternalErr(err)
+	}
+
+	cfg.ServerTLSCertPath = dstPath
+
+	log.Info().
+		Str("dst", dstPath).
+		Msg("CA certificate copied successfully")
 
 	return nil
 }

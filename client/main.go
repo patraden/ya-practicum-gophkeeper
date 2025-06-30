@@ -9,6 +9,6 @@ import (
 func main() {
 	log := logger.StdoutConsole(zerolog.DebugLevel).GetZeroLog()
 	if err := cmd.NewRootCmd().Execute(); err != nil {
-		log.Error().Err(err).Msg("gophkeeper cli command error")
+		log.Error().Err(err).Msg("command error")
 	}
 }

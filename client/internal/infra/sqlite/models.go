@@ -10,6 +10,29 @@ import (
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/domain/user"
 )
 
+type Secret struct {
+	UserID          string
+	SecretID        string
+	SecretName      string
+	VersionID       string
+	ParentVersionID string
+	FilePath        string
+	SecretSize      uint64
+	SecretHash      []byte
+	SecretDek       []byte
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	InSync          int64
+}
+
+type SecretMetum struct {
+	UserID    string
+	SecretID  string
+	Meta      string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
 type User struct {
 	ID         string
 	Username   string

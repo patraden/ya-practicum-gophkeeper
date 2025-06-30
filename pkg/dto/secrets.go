@@ -51,7 +51,7 @@ func (r *SecretUploadInitRequest) ToDomain() (*secret.InitRequest, error) {
 		return nil, fmt.Errorf("[%w] invalid secretID", e.ErrValidation)
 	}
 
-	version, err := uuid.Parse(r.VersionID)
+	versionID, err := uuid.Parse(r.VersionID)
 	if err != nil {
 		return nil, fmt.Errorf("[%w] invalid versionID", e.ErrValidation)
 	}
@@ -79,7 +79,7 @@ func (r *SecretUploadInitRequest) ToDomain() (*secret.InitRequest, error) {
 		UserID:          userID,
 		SecretID:        secretID,
 		SecretName:      r.SecretName,
-		VersionID:       version,
+		VersionID:       versionID,
 		ParentVersionID: parentID,
 		RequestType:     secret.RequestTypePut,
 		ClientInfo:      r.ClientInfo,
@@ -179,5 +179,71 @@ func (r *SecretUploadCommitRequest) ToDomain() (*secret.CommitRequest, error) {
 		SecretHash:      r.SecretHash,
 		SecretDEK:       r.SecretDEK,
 		Token:           r.Token,
+	}, nil
+}
+
+type Secret struct {
+	ID              string
+	UserID          string
+	SecretName      string
+	VersionID       string
+	ParentVersionID string
+	FilePath        string
+	SecretSize      uint64
+	SecretHash      []byte
+	SecretDek       []byte
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	InSync          bool
+}
+
+func (r *Secret) ToDomain() (*secret.Secret, error) {
+	userID, err := uuid.Parse(r.UserID)
+	if err != nil {
+		return nil, fmt.Errorf("[%w] invalid userID", e.ErrValidation)
+	}
+
+	secretID, err := uuid.Parse(r.ID)
+	if err != nil {
+		return nil, fmt.Errorf("[%w] invalid secretID", e.ErrValidation)
+	}
+
+	versionID, err := uuid.Parse(r.VersionID)
+	if err != nil {
+		return nil, fmt.Errorf("[%w] invalid versionID", e.ErrValidation)
+	}
+
+	var parentID uuid.UUID
+
+	if r.ParentVersionID != "" {
+		pparent, err := uuid.Parse(r.ParentVersionID)
+		if err != nil {
+			return nil, fmt.Errorf("[%w] invalid parent versionID", e.ErrValidation)
+		}
+
+		parentID = pparent
+	}
+
+	version := secret.Version{
+		ID:         versionID,
+		UserID:     userID,
+		SecretID:   secretID,
+		ParentID:   parentID,
+		S3URL:      r.FilePath,
+		SecretSize: r.SecretSize,
+		SecretHash: r.SecretHash,
+		SecretDEK:  r.SecretDek,
+		CreatedAt:  r.CreatedAt,
+	}
+
+	return &secret.Secret{
+		ID:               secretID,
+		UserID:           userID,
+		Name:             r.SecretName,
+		CurrentVersionID: versionID,
+		CreatedAt:        r.CreatedAt,
+		UpdatedAt:        r.UpdatedAt,
+		CurrentVersion:   &version,
+		Meta:             nil,
 	}, nil
 }

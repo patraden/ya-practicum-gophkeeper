@@ -12,6 +12,57 @@ import (
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/domain/user"
 )
 
+const createSecret = `-- name: CreateSecret :exec
+INSERT INTO secrets (
+    user_id,
+    secret_id,
+    secret_name,
+    version_id,
+    parent_version_id,
+    file_path,
+    secret_size,
+    secret_hash,
+    secret_dek,
+    created_at,
+    updated_at,
+    in_sync
+)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+`
+
+type CreateSecretParams struct {
+	UserID          string
+	SecretID        string
+	SecretName      string
+	VersionID       string
+	ParentVersionID string
+	FilePath        string
+	SecretSize      uint64
+	SecretHash      []byte
+	SecretDek       []byte
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	InSync          int64
+}
+
+func (q *Queries) CreateSecret(ctx context.Context, arg CreateSecretParams) error {
+	_, err := q.db.ExecContext(ctx, createSecret,
+		arg.UserID,
+		arg.SecretID,
+		arg.SecretName,
+		arg.VersionID,
+		arg.ParentVersionID,
+		arg.FilePath,
+		arg.SecretSize,
+		arg.SecretHash,
+		arg.SecretDek,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+		arg.InSync,
+	)
+	return err
+}
+
 const createUser = `-- name: CreateUser :exec
 INSERT INTO users (id, username, verifier, role, salt, bucketname, created_at, updated_at)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -55,5 +106,92 @@ type CreateUserTokenParams struct {
 
 func (q *Queries) CreateUserToken(ctx context.Context, arg CreateUserTokenParams) error {
 	_, err := q.db.ExecContext(ctx, createUserToken, arg.UserID, arg.Token, arg.Ttl)
+	return err
+}
+
+const getSecret = `-- name: GetSecret :one
+SELECT
+    secrets.user_id,
+    secrets.secret_id,
+    secrets.secret_name,
+    secrets.version_id,
+    secrets.parent_version_id,
+    secrets.file_path,
+    secrets.secret_size,
+    secrets.secret_hash,
+    secrets.secret_dek,
+    secrets.created_at,
+    secrets.updated_at,
+    secrets.in_sync
+FROM secrets
+JOIN users ON users.id = secrets.user_id
+WHERE users.username = ? AND secret_name = ?
+`
+
+type GetSecretParams struct {
+	Username   string
+	SecretName string
+}
+
+func (q *Queries) GetSecret(ctx context.Context, arg GetSecretParams) (Secret, error) {
+	row := q.db.QueryRowContext(ctx, getSecret, arg.Username, arg.SecretName)
+	var i Secret
+	err := row.Scan(
+		&i.UserID,
+		&i.SecretID,
+		&i.SecretName,
+		&i.VersionID,
+		&i.ParentVersionID,
+		&i.FilePath,
+		&i.SecretSize,
+		&i.SecretHash,
+		&i.SecretDek,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.InSync,
+	)
+	return i, err
+}
+
+const updateSecret = `-- name: UpdateSecret :exec
+UPDATE secrets
+SET
+    version_id = ?,
+    parent_version_id = ?,
+    file_path = ?,
+    secret_size = ?,
+    secret_hash = ?,
+    secret_dek = ?,
+    updated_at = ?,
+    in_sync = ?
+WHERE user_id = ? AND secret_id = ?
+`
+
+type UpdateSecretParams struct {
+	VersionID       string
+	ParentVersionID string
+	FilePath        string
+	SecretSize      uint64
+	SecretHash      []byte
+	SecretDek       []byte
+	UpdatedAt       time.Time
+	InSync          int64
+	UserID          string
+	SecretID        string
+}
+
+func (q *Queries) UpdateSecret(ctx context.Context, arg UpdateSecretParams) error {
+	_, err := q.db.ExecContext(ctx, updateSecret,
+		arg.VersionID,
+		arg.ParentVersionID,
+		arg.FilePath,
+		arg.SecretSize,
+		arg.SecretHash,
+		arg.SecretDek,
+		arg.UpdatedAt,
+		arg.InSync,
+		arg.UserID,
+		arg.SecretID,
+	)
 	return err
 }

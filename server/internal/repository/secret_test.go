@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -16,10 +18,14 @@ import (
 	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/logger"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/s3"
+	"github.com/patraden/ya-practicum-gophkeeper/server/internal/config"
+	"github.com/patraden/ya-practicum-gophkeeper/server/internal/identity"
+	"github.com/patraden/ya-practicum-gophkeeper/server/internal/infra/minio"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/infra/pg"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/mock"
 	"github.com/patraden/ya-practicum-gophkeeper/server/internal/repository"
 	"github.com/rs/zerolog"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
@@ -307,76 +313,76 @@ func TestSecretRepoCreateSecretInitRequest(t *testing.T) {
 	}
 }
 
-// func TestSecretRepoCreateSecretInitRequestIntegration(t *testing.T) {
-// 	t.Parallel()
-// 	t.Skip("Enable when dev environment (pod and containers) are up and running")
+func TestSecretRepoCreateSecretInitRequestIntegration(t *testing.T) {
+	t.Parallel()
+	t.Skip("Enable when dev environment (pod and containers) are up and running")
 
-// 	log := logger.StdoutConsole(zerolog.DebugLevel).GetZeroLog()
-// 	cfg := config.DefaultConfig()
-// 	cfg.DatabaseDSN = "postgres://postgres:postgres@localhost:5432/gophkeeper?sslmode=disable"
-// 	cfg.S3TLSCertPath = "../../../deployments/.certs/ca.cert"
+	log := logger.StdoutConsole(zerolog.DebugLevel).GetZeroLog()
+	cfg := config.DefaultConfig()
+	cfg.DatabaseDSN = "postgres://postgres:postgres@localhost:5432/gophkeeper?sslmode=disable"
+	cfg.S3TLSCertPath = "../../../deployments/.certs/ca.cert"
 
-// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-// 	defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-// 	db, err := pg.NewDB(ctx, cfg.DatabaseDSN)
-// 	require.NoError(t, err)
+	db, err := pg.NewDB(ctx, cfg.DatabaseDSN)
+	require.NoError(t, err)
 
-// 	err = db.Ping(ctx)
-// 	require.NoError(t, err)
+	err = db.Ping(ctx)
+	require.NoError(t, err)
 
-// 	minIOClient, err := minio.NewClient(cfg, log)
-// 	require.NoError(t, err)
+	minIOClient, err := minio.NewClient(cfg, log)
+	require.NoError(t, err)
 
-// 	identityClient, err := identity.KeycloakPGManager(cfg, db, log)
-// 	require.NoError(t, err)
+	identityClient, err := identity.KeycloakPGManager(cfg, db, log)
+	require.NoError(t, err)
 
-// 	repo := repository.NewSecretRepo(db, minIOClient, identityClient, log)
+	repo := repository.NewSecretRepo(db, minIOClient, identityClient, log)
 
-// 	uid, err := uuid.Parse("e96aff31-bc4d-426e-a559-ad51bc9859e9")
-// 	require.NoError(t, err)
+	uid, err := uuid.Parse("e96aff31-bc4d-426e-a559-ad51bc9859e9")
+	require.NoError(t, err)
 
-// 	sid, err := uuid.Parse("6c9ba89f-eefe-4625-a781-394a8308e93e")
-// 	require.NoError(t, err)
+	sid, err := uuid.Parse("6c9ba89f-eefe-4625-a781-394a8308e93e")
+	require.NoError(t, err)
 
-// 	iters := int32(100)
-// 	failed := iters - 1
-// 	var count atomic.Int32
-// 	wg := sync.WaitGroup{}
+	iters := int32(100)
+	failed := iters - 1
+	var count atomic.Int32
+	wg := sync.WaitGroup{}
 
-// 	for range iters {
-// 		wg.Add(1)
-// 		go func() {
-// 			defer wg.Done()
+	for range iters {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
 
-// 			// create request with new version
-// 			req := secret.InitRequest{
-// 				UserID:        uid,
-// 				SecretID:      sid,
-// 				SecretName:    "example.txt",
-// 				S3URL:         "s3_path",
-// 				Version:       uuid.New(),
-// 				ParentVersion: uuid.Nil,
-// 				RequestType:   secret.RequestTypePut,
-// 				Token:         123,
-// 				ClientInfo:    "test-agent",
-// 				SecretSize:    100,
-// 				SecretHash:    []byte("hash"),
-// 				SecretDEK:     []byte("dek"),
-// 				MetaData:      secret.MetaData{"k1": "v1"},
-// 				CreatedAt:     time.Now().UTC(),
-// 				ExpiresAt:     time.Now().Add(time.Hour),
-// 			}
+			// create request with new version
+			req := secret.InitRequest{
+				UserID:          uid,
+				SecretID:        sid,
+				SecretName:      "example.txt",
+				S3URL:           "s3_path",
+				VersionID:       uuid.New(),
+				ParentVersionID: uuid.Nil,
+				RequestType:     secret.RequestTypePut,
+				Token:           123,
+				ClientInfo:      "test-agent",
+				SecretSize:      100,
+				SecretHash:      []byte("hash"),
+				SecretDEK:       []byte("dek"),
+				MetaData:        secret.MetaData{"k1": "v1"},
+				CreatedAt:       time.Now().UTC(),
+				ExpiresAt:       time.Now().Add(time.Hour),
+			}
 
-// 			result, err := repo.CreateSecretInitRequest(ctx, &req)
-// 			if err != nil && errors.Is(err, e.ErrExists) {
-// 				count.Add(1)
-// 			} else {
-// 				require.NotNil(t, result)
-// 			}
-// 		}()
-// 	}
+			result, err := repo.CreateSecretInitRequest(ctx, &req)
+			if err != nil && errors.Is(err, e.ErrExists) {
+				count.Add(1)
+			} else {
+				require.NotNil(t, result)
+			}
+		}()
+	}
 
-// 	wg.Wait()
-// 	assert.Equal(t, failed, count.Load())
-// }
+	wg.Wait()
+	assert.Equal(t, failed, count.Load())
+}

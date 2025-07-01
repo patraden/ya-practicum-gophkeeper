@@ -4,6 +4,7 @@ package config
 
 import (
 	json "encoding/json"
+	time "time"
 
 	easyjson "github.com/mailru/easyjson"
 	jlexer "github.com/mailru/easyjson/jlexer"
@@ -49,6 +50,8 @@ func easyjson6615c02eDecodeGithubComPatradenYaPracticumGophkeeperClientInternalC
 			out.DatabaseFileName = string(in.String())
 		case "debug":
 			out.DebugMode = bool(in.Bool())
+		case "RequestsTimeout":
+			out.RequestsTimeout = time.Duration(in.Int64())
 		default:
 			in.SkipRecursive()
 		}
@@ -92,6 +95,11 @@ func easyjson6615c02eEncodeGithubComPatradenYaPracticumGophkeeperClientInternalC
 		const prefix string = ",\"debug\":"
 		out.RawString(prefix)
 		out.Bool(bool(in.DebugMode))
+	}
+	{
+		const prefix string = ",\"RequestsTimeout\":"
+		out.RawString(prefix)
+		out.Int64(int64(in.RequestsTimeout))
 	}
 	out.RawByte('}')
 }

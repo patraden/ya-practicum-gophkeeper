@@ -18,6 +18,8 @@ func NewRootCmd() *cobra.Command {
 
 	cmd.AddCommand(NewInstallCmd(dcfg))
 	cmd.AddCommand(NewRegisterCmd(dcfg))
+	cmd.AddCommand(NewCreateCmd(dcfg))
+	cmd.AddCommand(NewSyncCmd(dcfg))
 
 	return cmd
 }

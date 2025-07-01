@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/patraden/ya-practicum-gophkeeper/client/internal/config"
 	"github.com/patraden/ya-practicum-gophkeeper/client/internal/infra/sqlite"
 	"github.com/patraden/ya-practicum-gophkeeper/pkg/dto"
 	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
@@ -24,16 +23,14 @@ type SecretRepo struct {
 	SecretRepository
 	queries *sqlite.Queries
 	conn    *sql.DB
-	cfg     *config.Config
 	log     zerolog.Logger
 }
 
 // NewSecretRepo creates and initializes a new SecretRepo instance.
-func NewSecretRepo(db *sqlite.DB, cfg *config.Config, log zerolog.Logger) *SecretRepo {
+func NewSecretRepo(db *sqlite.DB, log zerolog.Logger) *SecretRepo {
 	return &SecretRepo{
 		queries: db.Queries,
 		conn:    db.Conn,
-		cfg:     cfg,
 		log:     log,
 	}
 }

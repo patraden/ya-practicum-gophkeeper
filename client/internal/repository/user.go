@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -21,17 +22,15 @@ const (
 
 // UserRepository defines user-related persistence operations.
 type UserRepository interface {
-	// CreateUser registers a regular user with KEK and an S3 bucket.
+	// CreateUser registers a regular user.
 	CreateUser(ctx context.Context, usr *user.User, token *dto.ServerToken) error
-	// GetUser get user by username.
+	// GetUser gets a user by username.
 	GetUser(ctx context.Context, username string) (*user.User, error)
-	// GetUserByID get user by user id.
-	// ValidateUser Validates user credentials on Login.
+	// ValidateUser checks credentials during login.
 	ValidateUser(ctx context.Context, creds *dto.UserCredentials) (*user.User, error)
 }
 
 type UserRepo struct {
-	UserRepository
 	queries *sqlite.Queries
 	conn    *sql.DB
 	cfg     *config.Config
@@ -45,6 +44,41 @@ func NewUserRepo(db *sqlite.DB, cfg *config.Config, log zerolog.Logger) *UserRep
 		cfg:     cfg,
 		log:     log,
 	}
+}
+
+func (repo *UserRepo) ValidateUser(ctx context.Context, creds *dto.UserCredentials) (*user.User, error) {
+	usr, err := repo.GetUser(ctx, creds.Username)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = usr.SetPassword(creds.Password); err != nil {
+		return nil, err
+	}
+
+	if !usr.CheckPassword(creds.Password) {
+		return nil, fmt.Errorf("[%w] bad password", e.ErrInvalidInput)
+	}
+
+	return usr, nil
+}
+
+func (repo *UserRepo) GetUser(ctx context.Context, username string) (*user.User, error) {
+	dbUsr, err := repo.queries.GetUser(ctx, username)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, fmt.Errorf("[%w] db user", e.ErrNotFound)
+	}
+
+	if err != nil {
+		return nil, e.InternalErr(err)
+	}
+
+	usr, err := FromSQLUser(dbUsr)
+	if err != nil {
+		return nil, err
+	}
+
+	return usr, nil
 }
 
 func (repo *UserRepo) logWithUserContext(usr *user.User, op string) zerolog.Logger {

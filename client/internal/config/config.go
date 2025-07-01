@@ -6,7 +6,7 @@ import "time"
 
 const (
 	ConfigFileName    = "gophkeeper.json"
-	DefaultReqTimeout = 30 * time.Second
+	DefaultReqTimeout = 180 * time.Second
 	DefaultServerPort = 3200
 )
 
@@ -17,6 +17,9 @@ type Config struct {
 	ServerPort        int    `env:"SERVER_PORT"             json:"server_port"`
 	ServerTLSCertPath string `env:"SERVER_TLS_CERT_PATH"    json:"server_tls_cert_path"`
 	DatabaseFileName  string `env:"DATABASE_FILE_NAME"      json:"database_dsn"`
+	S3Endpoint        string `env:"S3_ENDPOINT"             json:"s3_endpoint"`
+	S3AccountID       string `env:"S3_ACCOUNT_ID"           json:"s3_account_id"`
+	S3Region          string `env:"S3_REGION"               json:"s3_region"`
 	Username          string `env:"GOPHKEEPER_USERNAME"     json:"-"`
 	Password          string `env:"GOPHKEEPER_USERPASSWORD" json:"-"`
 	DebugMode         bool   `env:"DEBUG"                   json:"debug"`
@@ -31,6 +34,9 @@ func DefaultConfig() *Config {
 		ServerPort:        DefaultServerPort,
 		ServerTLSCertPath: `./deployments/.certs/ca.cert`,
 		DatabaseFileName:  `gophkeeper.db`,
+		S3Endpoint:        `localhost:9000`,
+		S3AccountID:       `gophkeeper`,
+		S3Region:          `eu-central-1`,
 		Username:          ``,
 		Password:          ``,
 		RequestsTimeout:   DefaultReqTimeout,

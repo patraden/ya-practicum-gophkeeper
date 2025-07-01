@@ -59,9 +59,6 @@ sql:
             go_type:
               import: "github.com/patraden/ya-practicum-gophkeeper/pkg/domain/user"
               type: "Role"
-          - column: "secrets.secret_size"
-            go_type:
-              type: "uint64"
           - column: "secrets.parent_version_id"
             go_type:
               type: "string"

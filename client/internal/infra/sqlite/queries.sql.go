@@ -37,7 +37,7 @@ type CreateSecretParams struct {
 	VersionID       string
 	ParentVersionID string
 	FilePath        string
-	SecretSize      uint64
+	SecretSize      int64
 	SecretHash      []byte
 	SecretDek       []byte
 	CreatedAt       time.Time
@@ -153,6 +153,36 @@ func (q *Queries) GetSecret(ctx context.Context, arg GetSecretParams) (Secret, e
 	return i, err
 }
 
+const getUser = `-- name: GetUser :one
+SELECT
+    id,
+    username,
+    verifier,
+    role,
+    salt,
+    bucketname,
+    created_at,
+    updated_at
+FROM users
+WHERE username = ?
+`
+
+func (q *Queries) GetUser(ctx context.Context, username string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUser, username)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Verifier,
+		&i.Role,
+		&i.Salt,
+		&i.Bucketname,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const updateSecret = `-- name: UpdateSecret :exec
 UPDATE secrets
 SET
@@ -171,7 +201,7 @@ type UpdateSecretParams struct {
 	VersionID       string
 	ParentVersionID string
 	FilePath        string
-	SecretSize      uint64
+	SecretSize      int64
 	SecretHash      []byte
 	SecretDek       []byte
 	UpdatedAt       time.Time

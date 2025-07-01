@@ -13,7 +13,7 @@ type Version struct {
 	SecretID   uuid.UUID `json:"secret_id"`
 	ParentID   uuid.UUID `json:"parent_version,omitempty"`
 	S3URL      string    `json:"s3_url"`
-	SecretSize uint64    `json:"secret_size"`
+	SecretSize int64     `json:"secret_size"`
 	SecretHash []byte    `json:"secret_hash"`
 	SecretDEK  []byte    `json:"secret_dek"`
 	CreatedAt  time.Time `json:"created_at"`
@@ -24,7 +24,7 @@ func NewVersion(
 	secretID uuid.UUID,
 	parentID uuid.UUID,
 	s3URL string,
-	secretSize uint64,
+	secretSize int64,
 	secretHash []byte,
 	secretDEK []byte,
 ) *Version {

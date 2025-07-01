@@ -25,15 +25,15 @@ func NewCreateCmd(dcfg *config.Config) *cobra.Command {
 		Short: "Creates a user secret in GophKeeper",
 		RunE: func(_ *cobra.Command, _ []string) error {
 			if secretName == "" {
-				return fmt.Errorf("--secret flag is required [%w]", e.ErrInvalidInput)
+				return fmt.Errorf("[%w] --secret flag is required", e.ErrInvalidInput)
 			}
 			switch secretType {
 			case "binary", "card", "credentials":
 			default:
-				return fmt.Errorf("--type must be one of: binary, card, credentials [%w]", e.ErrInvalidInput)
+				return fmt.Errorf("[%w] --type must be one of: binary, card, credentials", e.ErrInvalidInput)
 			}
 			if secretValue == "" {
-				return fmt.Errorf("--value must be provided for secret[%w]", e.ErrInvalidInput)
+				return fmt.Errorf("[%w] --value must be provided for secret", e.ErrInvalidInput)
 			}
 
 			cfg := config.LoadConfig(dcfg)

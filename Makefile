@@ -115,6 +115,8 @@ json:
 
 .PHONY: run-server-local
 run-server-local:
+	@echo "Ensuring local shares directory exists..."
+	@mkdir -p $(CRYPTO_DIR_LOCAL)
 	@echo "Running local server installation..."
 	@DATABASE_DSN="$(DATABASE_DSN)" \
 	REK_SHARES_PATH="${CRYPTO_DIR_LOCAL}/shares.json" \
@@ -233,6 +235,8 @@ podman-certgen-run:
 				-ca-cert /certs/gophkeeper/ca/ca-public.crt -ca-key /certs/gophkeeper/ca/ca-private.key && \
 			echo "======CA CERTIFICATE======" && cat /certs/gophkeeper/ca/ca-public.crt \
 		'
+	@echo "Ensuring local certificate directory exists..."
+	@mkdir -p $(CERT_DIR_LOCAL)
 	@echo "Copying certificates from certgen container..."
 	@$(PODMAN) cp certgen:/certs/gophkeeper/ca/ca-public.crt $(CERT_DIR_LOCAL)/ca.cert
 	@$(PODMAN) cp certgen:/certs/gophkeeper/backend/private.key $(CERT_DIR_LOCAL)/server-private.key

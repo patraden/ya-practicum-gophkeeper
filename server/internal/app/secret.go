@@ -42,15 +42,13 @@ func (uc *SecretUC) InitUploadRequest(
 	ctx context.Context,
 	req *secret.InitRequest,
 ) (*dto.SecretUploadInitResponse, error) {
-	rek, err := uc.keyStore.Get()
+	_, err := uc.keyStore.Get()
 	if err != nil {
 		return nil, err
 	}
 
-	err = req.Validate(rek)
-	if err != nil {
-		return nil, err
-	}
+	// here we need to get encrypted user kek
+	// and validate dek from requests
 
 	uploadToken, err := utils.GenerateUploadToken()
 	if err != nil {

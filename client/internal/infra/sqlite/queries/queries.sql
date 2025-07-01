@@ -2,6 +2,19 @@
 INSERT INTO users (id, username, verifier, role, salt, bucketname, created_at, updated_at)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
+-- name: GetUser :one
+SELECT
+    id,
+    username,
+    verifier,
+    role,
+    salt,
+    bucketname,
+    created_at,
+    updated_at
+FROM users
+WHERE username = ?;
+
 -- name: CreateUserToken :exec
 INSERT INTO users_server_tokens (user_id, token, ttl)
 VALUES (?, ?, ?);

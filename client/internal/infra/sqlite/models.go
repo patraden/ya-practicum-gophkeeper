@@ -17,7 +17,7 @@ type Secret struct {
 	VersionID       string
 	ParentVersionID string
 	FilePath        string
-	SecretSize      uint64
+	SecretSize      int64
 	SecretHash      []byte
 	SecretDek       []byte
 	CreatedAt       time.Time

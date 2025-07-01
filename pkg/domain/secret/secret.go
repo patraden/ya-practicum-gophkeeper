@@ -38,13 +38,13 @@ type Secret struct {
 }
 
 func (s *Secret) SetCurrentVersion(
-	parentVersion uuid.UUID,
+	parentVersionID uuid.UUID,
 	s3URL string,
-	secretSize uint64,
+	secretSize int64,
 	secretHash []byte,
 	secretDEK []byte,
 ) *Secret {
-	ver := NewVersion(s.UserID, s.ID, parentVersion, s3URL, secretSize, secretHash, secretDEK)
+	ver := NewVersion(s.UserID, s.ID, parentVersionID, s3URL, secretSize, secretHash, secretDEK)
 
 	return &Secret{
 		ID:               s.ID,

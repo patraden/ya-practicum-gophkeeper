@@ -7,6 +7,8 @@ import (
 	"os"
 
 	"github.com/patraden/ya-practicum-gophkeeper/client/internal/config"
+	clientinfo "github.com/patraden/ya-practicum-gophkeeper/client/internal/systeminfo"
+	"github.com/patraden/ya-practicum-gophkeeper/pkg/dto"
 	e "github.com/patraden/ya-practicum-gophkeeper/pkg/errors"
 	pb "github.com/patraden/ya-practicum-gophkeeper/pkg/proto/gophkeeper/v1"
 	"github.com/rs/zerolog"
@@ -16,10 +18,11 @@ import (
 
 // Client wraps the gRPC connection and service clients.
 type Client struct {
-	Conn        *grpc.ClientConn
-	UserService pb.UserServiceClient
-	cfg         *config.Config
-	log         zerolog.Logger
+	Conn          *grpc.ClientConn
+	UserService   pb.UserServiceClient
+	SecretService pb.SecretServiceClient
+	cfg           *config.Config
+	log           zerolog.Logger
 }
 
 // New creates a new gRPC client with TLS credentials.
@@ -54,10 +57,11 @@ func New(cfg *config.Config, log zerolog.Logger) (*Client, error) {
 	}
 
 	return &Client{
-		Conn:        conn,
-		UserService: pb.NewUserServiceClient(conn),
-		log:         log,
-		cfg:         cfg,
+		Conn:          conn,
+		UserService:   pb.NewUserServiceClient(conn),
+		SecretService: pb.NewSecretServiceClient(conn),
+		log:           log,
+		cfg:           cfg,
 	}, nil
 }
 
@@ -78,4 +82,24 @@ func (c *Client) Register(ctx context.Context) (*pb.RegisterResponse, error) {
 	}
 
 	return c.UserService.Register(ctx, req)
+}
+
+func (c *Client) SecretUpdateInitRequest(
+	ctx context.Context,
+	scrt *dto.Secret,
+) (*pb.SecretUpdateInitResponse, error) {
+	req := &pb.SecretUpdateInitRequest{
+		UserId:          scrt.UserID,
+		SecretId:        scrt.ID,
+		SecretName:      scrt.SecretName,
+		VersionId:       scrt.VersionID,
+		ParentVersionId: scrt.ParentVersionID,
+		ClientInfo:      clientinfo.GenerateClientInfo(),
+		Size:            scrt.SecretSize,
+		Hash:            scrt.SecretHash,
+		EncryptedDek:    scrt.SecretDek,
+		MetadataJson:    "{}",
+	}
+
+	return c.SecretService.SecretUpdateInit(ctx, req)
 }

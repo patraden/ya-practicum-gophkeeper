@@ -24,7 +24,7 @@ make podman-keycloak-run
 make podman-minio-run
 # start gophkeeper server
 make podman-build-server
-make podman-server-run
+# make podman-server-run
 # alternatively you can run server locally
 make run-server-local
 
@@ -36,5 +36,11 @@ make run-server-local
 go run ./client install --dir "$(pwd)/.gophkeeper" --server-port 3300 --server-host localhost --server-ca-cert ./deployments/.certs/ca.cert
 # register new user
 go run ./client register -u patraden -p password
+# create big enough file
+mkfile 5g bigfile.bin
+# create secret
+go run ./client create -u patraden -p password -s binary5g --type binary --value "$(pwd)/bigfile.bin"
+# sync secret to server
+go run ./client sync -u patraden -p password -s binary5g
 ```
 

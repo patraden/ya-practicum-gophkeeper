@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package gophkeeper.v1;
+
+import "buf/validate/validate.proto";
+import "gophkeeper/v1/common.proto";
+
+option go_package = "github.com/patraden/ya-practicum-gophkeeper/api/gophkeeper/v1;proto";
+
+service AdminService {
+  rpc Unseal(UnsealRequest) returns (UnsealResponse);
+}
+
+message UnsealRequest {
+  string key_piece = 1 [(buf.validate.field).string.min_len = 1];
+}
+
+message UnsealResponse {
+  SealStatus status = 1;
+  string message = 2;
+}

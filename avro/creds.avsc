@@ -1,0 +1,10 @@
+{
+  "type": "record",
+  "name": "UserCredentials",
+  "namespace": "github.com.patraden.gophkeeper",
+  "fields": [
+    { "name": "user_id", "type": "string" },
+    { "name": "username", "type": "string" },
+    { "name": "hashed_password", "type": "bytes" }
+  ]
+}

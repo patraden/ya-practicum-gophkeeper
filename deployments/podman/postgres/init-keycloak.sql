@@ -1,0 +1,2 @@
+CREATE SCHEMA IF NOT EXISTS keycloak;
+GRANT ALL ON SCHEMA keycloak TO postgres;

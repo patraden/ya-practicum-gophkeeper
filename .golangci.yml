@@ -1,0 +1,42 @@
+# See https://golangci-lint.run/usage/linters/
+
+linters:
+  enable-all: true
+  disable:
+    - gochecknoglobals
+    - ireturn
+    - nlreturn
+    - exhaustruct
+    - tenv
+    - recvcheck
+    - tparallel
+    - usetesting
+
+linters-settings:
+  depguard:
+    rules:
+      main:
+        list-mode: lax
+        allow:
+          - $gostd
+
+  tagliatelle:
+      case:
+        rules:
+          json: snake
+
+  wrapcheck:
+    ignorePackageGlobs:
+      - github.com/cenkalti/backoff/*
+      - github.com/patraden/ya-practicum-gophkeeper/pkg/**
+      - github.com/patraden/ya-practicum-gophkeeper/server/internal/**
+      - github.com/patraden/ya-practicum-gophkeeper/client/internal/**
+      - google.golang.org/grpc/status
+
+  varnamelen:
+    ignore-names:
+      - db
+      - tt
+      - lc
+    ignore-decls:
+      - t testing.T
